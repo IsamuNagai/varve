@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/varv-logo-light.png">
-  <img src="assets/brand/varv-logo-dark.png" alt="Varve" width="200">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/varve-logo-light.png">
+  <img src="assets/brand/varve-logo-dark.png" alt="Varve" width="200">
 </picture>
 
 <h3>Long-horizon proof-of-work money with post-quantum ownership</h3>
