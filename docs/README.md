@@ -16,3 +16,9 @@ Pages link to the repository using the literal text `https://github.com/IsamuNag
 - [ ] Replace every `https://github.com/IsamuNagai/varve` placeholder.
 - [ ] Confirm no external requests (browser network panel stays empty apart from this site).
 - [ ] Keep the Content-Security-Policy meta tag on every page.
+
+## Cache busting
+
+Pages link `style.css`, `theme-init.js`, and `site.js` with a `?v=N` query.
+Increase N in every page whenever one of those files changes, so browsers do
+not keep serving stale copies (GitHub Pages caches files for about 10 minutes).
