@@ -3,56 +3,92 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="description" content="Frequently asked questions about Varve: status, post-quantum design, fair launch, units and how to help.">
 <title>Varve FAQ</title>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-<header>
-<a class="brand" href="index.html"><picture><source srcset="assets/varv-mark-light.png" media="(prefers-color-scheme: dark)"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture>Varve</a>
-<nav>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="bar">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture><span>Varve</span></a>
+<nav class="nav" aria-label="Main">
 <a href="index.html">Home</a>
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html" aria-current="page">FAQ</a>
+<a class="nav-ext" href="https://github.com/IsamuNagai/varve">GitHub</a>
 </nav>
+</div>
 </header>
-<main>
+<main id="main">
+<section class="page-head">
+<div class="wrap narrow">
+<p class="eyebrow">FAQ</p>
 <h1>FAQ</h1>
-<dl>
-<dt>Is there a coin I can buy?</dt>
-<dd>No. No network exists yet and no coin exists yet. There will never be a presale, ICO, premine, founder or team allocation, or airdrop. Anyone selling "Varve" or "VARV" today is a scammer.</dd>
-
-<dt>What stage is the project at?</dt>
-<dd>Research and specification. Testnet, independent review and mainnet have not started.</dd>
-
-<dt>Why post-quantum now?</dt>
-<dd>This is not a claim that quantum computers are about to break Bitcoin or any other system. The goal is long-horizon custody: coins held for decades should not depend on signature schemes that may weaken. Varve uses ML-DSA from genesis, with SLH-DSA as an independent recovery family, which gives quantum-resistant signatures under currently understood attack models. Typed outputs and an algorithm lifecycle allow change if those models turn out to be wrong.</dd>
-
-<dt>Can the author mine early?</dt>
-<dd>No. Mainnet genesis will be derived from a future Bitcoin block header, so nobody, including the author, can mine early.</dd>
-
-<dt>Does Varve support smart contracts or tokens?</dt>
-<dd>No. There is no smart-contract VM and no token platform. Native timelocked recovery paths are the extent of its scripting ambitions.</dd>
-
-<dt>What are the units?</dt>
-<dd>The currency unit is the varve, the smallest unit is the lamina, and 1 varve = 100,000,000 laminae. The ticker is VARV.</dd>
-
-<dt>Who is Isamu Nagai?</dt>
-<dd>Isamu Nagai is a pen name and does not refer to any real person. The protocol matters more than the author, and it is meant to be checked independently rather than trusted.</dd>
-
-<dt>How can I help?</dt>
-<dd>Read the specification and the <a href="whitepaper.html">whitepaper</a>, review them critically, and open issues in the <a href="https://github.com/IsamuNagai/varve">repository</a>. Report vulnerabilities as described on the <a href="security.html">security page</a>.</dd>
-</dl>
+<p class="lead">Common questions, answered plainly.</p>
+</div>
+</section>
+<div class="wrap narrow prose">
+<div class="qa-list">
+<details class="qa" open>
+<summary>Is there a coin I can buy?</summary>
+<div class="answer"><p>No. No network exists yet and no coin exists yet. There will never be a presale, ICO, premine, founder or team allocation, or airdrop. Anyone selling "Varve" or "VARV" today is a scammer.</p></div>
+</details>
+<details class="qa">
+<summary>What stage is the project at?</summary>
+<div class="answer"><p>Research and specification. Testnet, independent review and mainnet have not started.</p></div>
+</details>
+<details class="qa">
+<summary>Why post-quantum now?</summary>
+<div class="answer"><p>This is not a claim that quantum computers are about to break Bitcoin or any other system. The goal is long-horizon custody: coins held for decades should not depend on signature schemes that may weaken. Varve uses ML-DSA from genesis, with SLH-DSA as an independent recovery family, which gives quantum-resistant signatures under currently understood attack models. Typed outputs and an algorithm lifecycle allow change if those models turn out to be wrong.</p></div>
+</details>
+<details class="qa">
+<summary>Can the author mine early?</summary>
+<div class="answer"><p>No. Mainnet genesis will be derived from a future Bitcoin block header, so nobody, including the author, can mine early.</p></div>
+</details>
+<details class="qa">
+<summary>Does Varve support smart contracts or tokens?</summary>
+<div class="answer"><p>No. There is no smart-contract VM and no token platform. Native timelocked recovery paths are the extent of its scripting ambitions.</p></div>
+</details>
+<details class="qa">
+<summary>What are the units?</summary>
+<div class="answer"><p>The currency unit is the varve, the smallest unit is the lamina, and 1 varve = 100,000,000 laminae. The ticker is VARV.</p></div>
+</details>
+<details class="qa">
+<summary>Who is Isamu Nagai?</summary>
+<div class="answer"><p>Isamu Nagai is a pen name and does not refer to any real person. The protocol matters more than the author, and it is meant to be checked independently rather than trusted.</p></div>
+</details>
+<details class="qa">
+<summary>How can I help?</summary>
+<div class="answer"><p>Read the specification and the <a href="whitepaper.html">whitepaper</a>, review them critically, and open issues in the <a href="https://github.com/IsamuNagai/varve">repository</a>. Report vulnerabilities as described on the <a href="security.html">security page</a>.</p></div>
+</details>
+</div>
+</div>
 </main>
-<footer>
-<p>Varve is an open-source, research-stage protocol. No network or coin exists yet.</p>
-<p>Anyone selling "Varve" or "VARV" today is running a scam.</p>
-<p><a href="https://github.com/IsamuNagai/varve">Source repository</a></p>
+<footer class="site-footer">
+<div class="wrap">
+<div class="foot-top">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="24" height="24"></picture><span>Varve</span></a>
+<nav class="foot-nav" aria-label="Footer">
+<a href="about.html">About</a>
+<a href="whitepaper.html">Whitepaper</a>
+<a href="forum.html">Forum</a>
+<a href="security.html">Security</a>
+<a href="faq.html">FAQ</a>
+<a href="https://github.com/IsamuNagai/varve">Source repository</a>
+</nav>
+</div>
+<hr class="strata-rule">
+<p>Varve is an open-source, research-stage protocol. No network or coin exists yet. Anyone selling "Varve" or "VARV" today is running a scam.</p>
+<p>Open source under MIT or Apache-2.0.</p>
+<p>Isamu Nagai is a pen name and does not refer to any real person.</p>
+</div>
 </footer>
 </body>
 </html>

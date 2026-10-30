@@ -3,41 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="description" content="About Varve: design principles, design direction and what the protocol deliberately does not build.">
 <title>About Varve</title>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-<header>
-<a class="brand" href="index.html"><picture><source srcset="assets/varv-mark-light.png" media="(prefers-color-scheme: dark)"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture>Varve</a>
-<nav>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="bar">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture><span>Varve</span></a>
+<nav class="nav" aria-label="Main">
 <a href="index.html">Home</a>
 <a href="about.html" aria-current="page">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
+<a class="nav-ext" href="https://github.com/IsamuNagai/varve">GitHub</a>
 </nav>
+</div>
 </header>
-<main>
-<h1>About</h1>
-<p>Varve is a specification for a proof-of-work cryptocurrency, developed in the open. The currency unit is the varve (lowercase), the smallest unit is the lamina (1 varve = 100,000,000 laminae), and the ticker is VARV. No coin exists yet.</p>
-
+<main id="main">
+<section class="page-head">
+<div class="wrap narrow">
+<p class="eyebrow">About</p>
+<h1>About Varve</h1>
+<p class="lead">Varve is a specification for a proof-of-work cryptocurrency, developed in the open. The currency unit is the varve (lowercase), the smallest unit is the lamina (1 varve = 100,000,000 laminae), and the ticker is VARV. No coin exists yet.</p>
+</div>
+</section>
+<div class="wrap narrow prose">
+<section class="block reveal">
 <h2>Design principles</h2>
-<ul>
-<li>Correctness</li>
-<li>Security</li>
-<li>Simplicity</li>
-<li>Cryptographic adaptability</li>
-<li>Independent verification</li>
-<li>Predictable issuance</li>
-<li>Permissionless participation</li>
+<ul class="chips">
+<li>Correctness</li><li>Security</li><li>Simplicity</li><li>Cryptographic adaptability</li><li>Independent verification</li><li>Predictable issuance</li><li>Permissionless participation</li>
 </ul>
-
+</section>
+<section class="block reveal">
 <h2>Design direction</h2>
-<ul>
+<ul class="list">
 <li>UTXO ledger.</li>
 <li>Signatures: ML-DSA (<a href="https://csrc.nist.gov/pubs/fips/204/final">FIPS 204</a>) from genesis, with SLH-DSA (<a href="https://csrc.nist.gov/pubs/fips/205/final">FIPS 205</a>) as an independent recovery family. These are post-quantum: quantum-resistant signatures under currently understood attack models.</li>
 <li>Typed outputs and a defined algorithm lifecycle, so algorithms can be introduced and retired in an orderly way.</li>
@@ -45,21 +51,39 @@
 <li>Smooth issuance with a small permanent tail emission.</li>
 <li>Native timelocked recovery paths.</li>
 </ul>
-
+</section>
+<section class="block reveal">
 <h2>What Varve deliberately does not build</h2>
-<ul>
+<ul class="list">
 <li>A smart-contract virtual machine.</li>
 <li>A token platform or a place to issue other assets.</li>
 <li>A presale, ICO, premine, founder or team allocation, or airdrop.</li>
 </ul>
-
+</section>
+<section class="block reveal">
 <h2>Authorship</h2>
 <p>The draft whitepaper is credited to Isamu Nagai. Isamu Nagai is a pen name and does not refer to any real person.</p>
+</section>
+</div>
 </main>
-<footer>
-<p>Varve is an open-source, research-stage protocol. No network or coin exists yet.</p>
-<p>Anyone selling "Varve" or "VARV" today is running a scam.</p>
-<p><a href="https://github.com/IsamuNagai/varve">Source repository</a></p>
+<footer class="site-footer">
+<div class="wrap">
+<div class="foot-top">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="24" height="24"></picture><span>Varve</span></a>
+<nav class="foot-nav" aria-label="Footer">
+<a href="about.html">About</a>
+<a href="whitepaper.html">Whitepaper</a>
+<a href="forum.html">Forum</a>
+<a href="security.html">Security</a>
+<a href="faq.html">FAQ</a>
+<a href="https://github.com/IsamuNagai/varve">Source repository</a>
+</nav>
+</div>
+<hr class="strata-rule">
+<p>Varve is an open-source, research-stage protocol. No network or coin exists yet. Anyone selling "Varve" or "VARV" today is running a scam.</p>
+<p>Open source under MIT or Apache-2.0.</p>
+<p>Isamu Nagai is a pen name and does not refer to any real person.</p>
+</div>
 </footer>
 </body>
 </html>

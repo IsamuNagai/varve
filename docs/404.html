@@ -3,32 +3,56 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="description" content="The page you requested does not exist on the Varve site.">
 <title>Page not found</title>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-<header>
-<a class="brand" href="index.html"><picture><source srcset="assets/varv-mark-light.png" media="(prefers-color-scheme: dark)"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture>Varve</a>
-<nav>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="bar">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture><span>Varve</span></a>
+<nav class="nav" aria-label="Main">
 <a href="index.html">Home</a>
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
+<a class="nav-ext" href="https://github.com/IsamuNagai/varve">GitHub</a>
 </nav>
+</div>
 </header>
-<main>
+<main id="main">
+<section class="page-head notfound">
+<div class="wrap narrow">
+<p class="eyebrow">404</p>
 <h1>Page not found</h1>
-<p>That page does not exist. Return to the <a href="index.html">home page</a>.</p>
+<p class="lead">That page does not exist. Return to the <a href="index.html">home page</a>.</p>
+</div>
+</section>
 </main>
-<footer>
-<p>Varve is an open-source, research-stage protocol. No network or coin exists yet.</p>
-<p>Anyone selling "Varve" or "VARV" today is running a scam.</p>
-<p><a href="https://github.com/IsamuNagai/varve">Source repository</a></p>
+<footer class="site-footer">
+<div class="wrap">
+<div class="foot-top">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="24" height="24"></picture><span>Varve</span></a>
+<nav class="foot-nav" aria-label="Footer">
+<a href="about.html">About</a>
+<a href="whitepaper.html">Whitepaper</a>
+<a href="forum.html">Forum</a>
+<a href="security.html">Security</a>
+<a href="faq.html">FAQ</a>
+<a href="https://github.com/IsamuNagai/varve">Source repository</a>
+</nav>
+</div>
+<hr class="strata-rule">
+<p>Varve is an open-source, research-stage protocol. No network or coin exists yet. Anyone selling "Varve" or "VARV" today is running a scam.</p>
+<p>Open source under MIT or Apache-2.0.</p>
+<p>Isamu Nagai is a pen name and does not refer to any real person.</p>
+</div>
 </footer>
 </body>
 </html>

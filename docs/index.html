@@ -3,57 +3,143 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="description" content="Varve is an open-source, research-stage proof-of-work protocol with post-quantum signatures from genesis. No network or coin exists yet.">
 <title>Varve: a post-quantum proof-of-work protocol (research stage)</title>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-<header>
-<a class="brand" href="index.html"><picture><source srcset="assets/varv-mark-light.png" media="(prefers-color-scheme: dark)"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture>Varve</a>
-<nav>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="bar">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="28" height="28"></picture><span>Varve</span></a>
+<nav class="nav" aria-label="Main">
 <a href="index.html" aria-current="page">Home</a>
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
+<a class="nav-ext" href="https://github.com/IsamuNagai/varve">GitHub</a>
 </nav>
+</div>
 </header>
-<main>
-<p class="hero"><picture><source srcset="assets/varv-logo-light.png" media="(prefers-color-scheme: dark)"><img src="assets/varv-logo-dark.png" alt="Varve logo" width="180" height="212"></picture></p>
-<h1>Varve</h1>
-<p>Varve is an open-source, research-stage proof-of-work cryptocurrency protocol. It uses a UTXO ledger and post-quantum signatures from genesis: ML-DSA (FIPS 204), with SLH-DSA (FIPS 205) as an independent recovery family. Typed outputs and a defined algorithm lifecycle allow cryptography to be replaced without redesigning the ledger. Issuance is smooth with a small permanent tail emission, and recovery paths are timelocked natively. There is no smart-contract VM and no token platform.</p>
+<main id="main">
+<section class="hero">
+<div class="strata" aria-hidden="true"></div>
+<div class="wrap hero-inner">
+<picture class="hero-logo"><source media="(prefers-color-scheme: dark)" srcset="assets/varv-logo-light.png"><img src="assets/varv-logo-dark.png" alt="Varve logo" width="480" height="564"></picture>
+<div class="hero-copy">
+<p class="pill">Specification phase</p>
+<h1>Money designed to outlast its cryptography</h1>
+<p class="lead">Varve is an open-source proof-of-work protocol that uses post-quantum signatures from genesis and a ledger built so that cryptography can be replaced without redesigning it.</p>
+<p class="actions"><a class="btn primary" href="whitepaper.html">Read the whitepaper</a><a class="btn" href="https://github.com/IsamuNagai/varve">View on GitHub</a></p>
+</div>
+</div>
+</section>
 
-<div class="warning" role="note">
-<h2>Scam warning</h2>
+<div class="wrap">
+<aside class="warning reveal" role="note" aria-labelledby="warn-h">
+<h2 id="warn-h">Scam warning</h2>
 <p><strong>No network exists yet. No coin exists yet.</strong> There will never be a presale, ICO, premine, founder or team allocation, or airdrop. Any site, token or person selling "Varve" or "VARV" today is a scam. Do not send money to anyone claiming otherwise.</p>
+</aside>
 </div>
 
-<h2>Current status</h2>
-<table>
-<tr><th>Phase</th><th>State</th></tr>
-<tr><td>Specification</td><td>In progress</td></tr>
-<tr><td>Testnet</td><td>Not started</td></tr>
-<tr><td>Independent review</td><td>Not started</td></tr>
-<tr><td>Mainnet</td><td>Not started</td></tr>
-</table>
-<p>Mainnet will launch only after a public specification, testnets and independent security review. Its genesis will be derived from a future Bitcoin block header, so nobody, including the author, can mine early.</p>
-
-<h2>Read more</h2>
-<ul>
-<li><a href="about.html">About</a>: design principles and non-goals</li>
-<li><a href="whitepaper.html">Whitepaper</a>: the draft, kept in the repository</li>
-<li><a href="forum.html">Forum</a>: where discussion takes place and the guidelines</li>
-<li><a href="security.html">Security</a>: reporting vulnerabilities and verifying releases</li>
-<li><a href="faq.html">FAQ</a>: common questions</li>
+<section class="section" aria-labelledby="principles">
+<div class="wrap">
+<p class="eyebrow">Principles</p>
+<h2 id="principles">Four ideas the design is built around</h2>
+<ul class="grid cards">
+<li class="card reveal"><span class="num">01</span><h3>Post-quantum ownership from genesis</h3><p>Standardized signatures from the first block: ML-DSA (FIPS 204), with SLH-DSA (FIPS 205) as an independent recovery family. There are no legacy elliptic-curve outputs to migrate.</p></li>
+<li class="card reveal"><span class="num">02</span><h3>Cryptographic agility</h3><p>Every output records its signature scheme. Schemes are added, deprecated and retired through a defined lifecycle, without restarting the chain.</p></li>
+<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths support inheritance, disaster recovery and long-term cold storage, with no smart-contract VM.</p></li>
+<li class="card reveal"><span class="num">04</span><h3>Verification by ordinary people</h3><p>Block capacity is limited by what an ordinary computer can verify, not by demand.</p></li>
 </ul>
+</div>
+</section>
+
+<section class="section" aria-labelledby="glance">
+<div class="wrap">
+<hr class="strata-rule">
+<p class="eyebrow">Design at a glance</p>
+<h2 id="glance">Current direction</h2>
+<p class="muted">The specification is the authority. These are directions recorded in the repository, and some are working choices rather than final decisions.</p>
+<dl class="spec">
+<div class="row reveal"><dt>Ledger</dt><dd>UTXO with typed outputs; closed policy set (single key, or key plus timelocked recovery)</dd></div>
+<div class="row reveal"><dt>Signatures</dt><dd>ML-DSA-65 primary, SLH-DSA-SHA2-128s recovery, SHA3-256 key commitments</dd></div>
+<div class="row reveal"><dt>Proof of work</dt><dd>RandomX v2 with distinct safe parameters (working choice); SHA-256d fallback</dd></div>
+<div class="row reveal"><dt>Issuance</dt><dd>Smooth decay, 8-year half-life, then a small fixed tail</dd></div>
+<div class="row reveal"><dt>Difficulty</dt><dd>ASERT per-block adjustment; time-warp resistant</dd></div>
+<div class="row reveal"><dt>Fair launch</dt><dd>Genesis derived from a future Bitcoin block header; no premine</dd></div>
+</dl>
+</div>
+</section>
+
+<section class="section" aria-labelledby="roadmap">
+<div class="wrap">
+<hr class="strata-rule">
+<p class="eyebrow">Roadmap</p>
+<h2 id="roadmap">Ten phases, each ending at a gate</h2>
+<ol class="timeline">
+<li class="step done"><span class="step-n">00</span><span class="step-name">Existence test</span><span class="step-state">Done</span></li>
+<li class="step current" aria-current="step"><span class="step-n">01</span><span class="step-name">Architecture decisions</span><span class="step-state">In progress</span></li>
+<li class="step next"><span class="step-n">02</span><span class="step-name">Specification</span><span class="step-state">Upcoming</span></li>
+<li class="step next"><span class="step-n">03</span><span class="step-name">Threat model</span><span class="step-state">Upcoming</span></li>
+<li class="step next"><span class="step-n">04</span><span class="step-name">Simulation</span><span class="step-state">Upcoming</span></li>
+<li class="step next"><span class="step-n">05</span><span class="step-name">Prototype</span><span class="step-state">Upcoming</span></li>
+<li class="step next"><span class="step-n">06</span><span class="step-name">Reference implementation</span><span class="step-state">Upcoming</span></li>
+<li class="step next"><span class="step-n">07</span><span class="step-name">Testnets</span><span class="step-state">Upcoming</span></li>
+<li class="step next"><span class="step-n">08</span><span class="step-name">Independent review</span><span class="step-state">Upcoming</span></li>
+<li class="step next"><span class="step-n">09</span><span class="step-name">Fair launch</span><span class="step-state">Upcoming</span></li>
+</ol>
+<p class="muted">The project stops rather than launches if the design cannot pass independent review, keep verification affordable, or remain independent of its author. Mainnet will launch only after a public specification, testnets and independent security review. Its genesis will be derived from a future Bitcoin block header, so nobody, including the author, can mine early.</p>
+</div>
+</section>
+
+<section class="section" aria-labelledby="units">
+<div class="wrap">
+<hr class="strata-rule">
+<p class="eyebrow">Units</p>
+<h2 id="units">One varve, one hundred million laminae</h2>
+<p class="units reveal"><span>1 varve = 100,000,000 laminae</span><span class="dot" aria-hidden="true"></span><span>ticker VARV</span></p>
+</div>
+</section>
+
+<section class="section" aria-labelledby="more">
+<div class="wrap">
+<hr class="strata-rule">
+<p class="eyebrow">Read more</p>
+<h2 id="more">Where to go next</h2>
+<ul class="grid links">
+<li class="card reveal"><a class="card-link" href="about.html"><h3>About</h3><p>Design principles and non-goals</p></a></li>
+<li class="card reveal"><a class="card-link" href="whitepaper.html"><h3>Whitepaper</h3><p>The draft, kept in the repository</p></a></li>
+<li class="card reveal"><a class="card-link" href="forum.html"><h3>Forum</h3><p>Where discussion takes place, and the guidelines</p></a></li>
+<li class="card reveal"><a class="card-link" href="security.html"><h3>Security</h3><p>Reporting vulnerabilities and verifying releases</p></a></li>
+<li class="card reveal"><a class="card-link" href="faq.html"><h3>FAQ</h3><p>Common questions</p></a></li>
+</ul>
+</div>
+</section>
 </main>
-<footer>
-<p>Varve is an open-source, research-stage protocol. No network or coin exists yet.</p>
-<p>Anyone selling "Varve" or "VARV" today is running a scam.</p>
-<p><a href="https://github.com/IsamuNagai/varve">Source repository</a></p>
+<footer class="site-footer">
+<div class="wrap">
+<div class="foot-top">
+<a class="brand" href="index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/varv-mark-light.png"><img src="assets/varv-mark-dark.png" alt="" width="24" height="24"></picture><span>Varve</span></a>
+<nav class="foot-nav" aria-label="Footer">
+<a href="about.html">About</a>
+<a href="whitepaper.html">Whitepaper</a>
+<a href="forum.html">Forum</a>
+<a href="security.html">Security</a>
+<a href="faq.html">FAQ</a>
+<a href="https://github.com/IsamuNagai/varve">Source repository</a>
+</nav>
+</div>
+<hr class="strata-rule">
+<p>Varve is an open-source, research-stage protocol. No network or coin exists yet. Anyone selling "Varve" or "VARV" today is running a scam.</p>
+<p>Open source under MIT or Apache-2.0.</p>
+<p>Isamu Nagai is a pen name and does not refer to any real person.</p>
+</div>
 </footer>
 </body>
 </html>
