@@ -22,7 +22,11 @@
   locations, screenshots containing account details).
 - Binary blobs without a reproducible source.
 
-Run `tools/check-no-secrets.sh` before every commit. CI will run it as well.
+- Images with metadata (author, software, location, timestamps). Only clean PNG
+  or SVG files are accepted.
+
+Run `sh tools/check-no-secrets.sh` and `python3 -I tools/check-image-metadata.py`
+before every commit. CI runs both.
 
 ## Licensing of contributions
 

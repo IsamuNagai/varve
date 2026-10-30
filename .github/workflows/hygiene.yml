@@ -16,5 +16,7 @@ jobs:
           persist-credentials: false
       - name: Scan for secrets and personal data
         run: sh tools/check-no-secrets.sh
+      - name: Scan images for metadata
+        run: python3 -I tools/check-image-metadata.py
       - name: Issuance model runs
         run: python3 simulations/issuance.py
