@@ -26,3 +26,7 @@ Likelihood and impact: L = low, M = medium, H = high. Tests refer to future test
 | T-G1 | Founder cult or repository capture | Social | Popularity | M | H | Multiple maintainers, authoritative spec, founder minimization | M | — |
 | T-G2 | Contested emergency fork | Community split | Crypto break | L | H | Lifecycle rules published before any crisis | M | — |
 | T-G3 | Author deanonymization leading to coercion | Investigators, criminals | Metadata leaks | M | H | No personal data in repo; metadata hygiene; author irrelevance by design | M | `tools/check-no-secrets.sh` |
+| T-L1 | Early genesis computation (head start) | Anyone with modified software | First draft hashed only Bitcoin header H | — | H | FIXED: seed covers H..H+5; only the miner of H+5 could gain minutes, by withholding a Bitcoin block | L | prototype Genesis tests |
+| T-L2 | Competing genesis via forged or reorganized Bitcoin headers | Large Bitcoin miner, eclipse attacker | Relaxed difficulty floor, or 6+ block Bitcoin reorg | L | H | Exact nBits required; compare sources; wait 6 extra confirmations; release records genesis id | L | Genesis vectors (at freeze) |
+| T-N3 | Low-work fork flood (resource exhaustion) | Anyone | ASERT eases far-behind forks | M | M | POW_LIMIT = INITIAL_TARGET × 256; headers-first work gate; cache budget; ban invalid PoW | L | Sync tests (Phase 6) |
+| T-C4 | Network split via ambiguous median timestamp | Miner | Even-count median undefined | — | H | FIXED: upper median defined normatively | L | prototype MTP test |

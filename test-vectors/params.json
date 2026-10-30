@@ -1,0 +1,184 @@
+{
+ "description": "Draft consensus parameter set. Placeholders for launch fields; NOT a mainnet set.",
+ "set": "draft",
+ "serialization_hex_sha256": "887eb81675fd9bb44cec2df1b8df419f4b6deb66cea9e512bb129e869c08d83e",
+ "serialization_length": 1356,
+ "params_hash": "9b2175c0878961feac922b2df436d77625a16d14cd030ef5f37c81568b974a7b",
+ "entries": [
+  {
+   "name": "NETWORK_ID",
+   "type": "bytes",
+   "value": "56415256"
+  },
+  {
+   "name": "BLOCK_VERSION",
+   "type": "u32",
+   "value": "1"
+  },
+  {
+   "name": "TX_VERSION",
+   "type": "u32",
+   "value": "1"
+  },
+  {
+   "name": "OUTPUT_VERSION",
+   "type": "u8",
+   "value": "1"
+  },
+  {
+   "name": "MAX_MONEY",
+   "type": "u64",
+   "value": "4611686018427387904"
+  },
+  {
+   "name": "COINBASE_MATURITY",
+   "type": "u32",
+   "value": "288"
+  },
+  {
+   "name": "COINBASE_EXTRA_MAX",
+   "type": "u32",
+   "value": "64"
+  },
+  {
+   "name": "MAX_BLOCK_WEIGHT",
+   "type": "u64",
+   "value": "720000"
+  },
+  {
+   "name": "UTXO_GROWTH_UNITS",
+   "type": "u32",
+   "value": "100"
+  },
+  {
+   "name": "RECOVERY_DELAY_MAX",
+   "type": "u32",
+   "value": "2147483647"
+  },
+  {
+   "name": "SCHEME_0001_ALG",
+   "type": "bytes",
+   "value": "4d4c2d4453412d3635"
+  },
+  {
+   "name": "SCHEME_0001_PK_LEN",
+   "type": "u32",
+   "value": "1952"
+  },
+  {
+   "name": "SCHEME_0001_SIG_LEN",
+   "type": "u32",
+   "value": "3309"
+  },
+  {
+   "name": "SCHEME_0001_VERIFY_UNITS",
+   "type": "u32",
+   "value": "100"
+  },
+  {
+   "name": "SCHEME_0002_ALG",
+   "type": "bytes",
+   "value": "534c482d4453412d534841322d31323873"
+  },
+  {
+   "name": "SCHEME_0002_PK_LEN",
+   "type": "u32",
+   "value": "32"
+  },
+  {
+   "name": "SCHEME_0002_SIG_LEN",
+   "type": "u32",
+   "value": "7856"
+  },
+  {
+   "name": "SCHEME_0002_VERIFY_UNITS",
+   "type": "u32",
+   "value": "1700"
+  },
+  {
+   "name": "TARGET_SPACING",
+   "type": "u32",
+   "value": "300"
+  },
+  {
+   "name": "ASERT_TAU",
+   "type": "u32",
+   "value": "21600"
+  },
+  {
+   "name": "MTP_WINDOW",
+   "type": "u32",
+   "value": "11"
+  },
+  {
+   "name": "MAX_FUTURE_DRIFT",
+   "type": "u32",
+   "value": "600"
+  },
+  {
+   "name": "INITIAL_SUBSIDY",
+   "type": "u64",
+   "value": "8200000000"
+  },
+  {
+   "name": "TAIL_SUBSIDY",
+   "type": "u64",
+   "value": "600000000"
+  },
+  {
+   "name": "BLOCKS_PER_EPOCH",
+   "type": "u32",
+   "value": "13149"
+  },
+  {
+   "name": "SUBSIDY_FRAC_Q63",
+   "type": "bytes",
+   "value": "0000000000000080ba60437a06069f7e9d0115b96dd9417ddc9d6885b96fe87b166643928abe927a9cd8ff2c9ebb4079e57a6deecd5cf277c215ca6c0f98a776971c92ee7363607534ee251e28b51c7454a441be7383dc72282d455fb9c49f7188704a15766f66709148072f417a306faa1b79edcbdbfd6ddaeb573ce18ace6c7ab54e6b657ea26b0ffdf6e755ad796a2d7295f8c80e5469ca929577ed9931687140c28f0a4612672e3e39797f0af665d1931737c3dedc64aed8dc5564bac6636e6d83aa0895b36203b24b126d66a3612b4a3833652696604188393ddbcc8b5f5f1b06accf51845efd229f0959ad7f5d74cf7db1a3d77d5cc8bb6894f1c87e5b4232effc9979825a4492885409e28859c71256e9c0fa9158ba2185b456bc9d5763a55021751fac569b699fd4da1cbd557c073e755aadd054b49ab274dac9e653759ca8d8546bff524f40f304d78a1a520cb4248681213851e1a7b8dc87285850d688d04830997a4fa8db7f96d36c9f4e9c2aa7eadc9cc64d32fd5b90c922f04cb754dcc628f81b4c002d0c909b164a4bb0847b7fd4777a4a9574f3899715ad499be188d5b9e9e148ee58338a21ee1848e0a9e6a2c51c5247f2d42dbfad6f8d4673eb45f5f1e0ca45cd7eb7a4ba6a0a4593426d4940074c440888464fcbb08f438a3d24e6b361d54223206fd661141d42ebd015564cc36641b98301def968b240"
+  },
+  {
+   "name": "POW_ALGORITHM",
+   "type": "bytes",
+   "value": "52616e646f6d582d7632"
+  },
+  {
+   "name": "RANDOMX_ARGON_SALT",
+   "type": "bytes",
+   "value": "5661727665525801"
+  },
+  {
+   "name": "RANDOMX_KEY_EPOCH",
+   "type": "u32",
+   "value": "2048"
+  },
+  {
+   "name": "RANDOMX_KEY_LAG",
+   "type": "u32",
+   "value": "64"
+  },
+  {
+   "name": "INITIAL_TARGET",
+   "type": "u256",
+   "value": "1766847064778384329583297500742918515827483896875618958121606201292619776"
+  },
+  {
+   "name": "POW_LIMIT",
+   "type": "u256",
+   "value": "452312848583266388373324160190187140051835877600158453279131187530910662656"
+  },
+  {
+   "name": "BTC_ANCHOR_HEIGHT",
+   "type": "u32",
+   "value": "0"
+  },
+  {
+   "name": "BTC_ANCHOR_PREV_HASH",
+   "type": "bytes",
+   "value": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "name": "BTC_ANCHOR_BITS",
+   "type": "u32",
+   "value": "0"
+  }
+ ]
+}

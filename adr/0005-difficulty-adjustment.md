@@ -20,37 +20,39 @@ ASERT (absolutely scheduled exponentially rising targets, deployed on Bitcoin
 Cash since November 2020 as aserti3-2d).
 
 ## Decision
-**ASERT**, anchored at the block after genesis:
+**ASERT**, anchored at genesis (height 0, timestamp t0, target INITIAL_TARGET):
 
-    target(h+1) = target_anchor * 2^((t_h - t_anchor - T * (h - h_anchor)) / tau)
+    next_target(parent h) = INITIAL_TARGET * 2^((t_h - t0 - T * h) / tau)
 
-computed with the integer cubic approximation of 2^x used by aserti3-2d.
+computed with the integer cubic approximation of 2^x used by aserti3-2d. A
+parent at t0 + T*h is on schedule. protocol/difficulty.md is authoritative.
 
 - T = block interval (target 300 s; set by ADR-0006 / Phase 4).
 - tau = 21,600 s (6 hours = 72 blocks). Simulation compared 6 h, 12 h, 1 day and 2 days (table below).
-- Target clamped to [1, 2^252 − 1]. Exact integer algorithm: protocol/difficulty.md.
+- Target clamped to [1, POW_LIMIT], where POW_LIMIT = INITIAL_TARGET × 256. This bounds how cheap any block can be, which limits low-work fork floods (blocks.md §6).
 
 **Timestamp rules:**
 
-1. A block's timestamp must be greater than the median of the previous 11.
-2. Acceptance rule: a node does not accept a block more than 10 minutes ahead of its own clock. Nodes never use peer-reported time.
-3. The block after genesis must have a timestamp greater than or equal to the
-   Bitcoin header timestamp bound into genesis (ADR-0008).
+1. A block's timestamp must be greater than the median time past:
+   `sorted(S)[len(S)/2]` over the parent and up to 10 ancestors, including
+   genesis. For block 1 this means `timestamp > t0`.
+2. Acceptance rule: a node defers, and never marks invalid, a block more than
+   10 minutes ahead of its own clock. Nodes never use peer-reported time.
 
 ## Simulation results
 Recovery is the number of hours until the median difficulty-implied interval is
 within 10% of T. The hopper adds 100× hashrate for 3 days.
 
-| tau | 10× growth | 90% departure | Hopper leaves | Steady jitter | Worst gap after departure |
+| tau | 10× growth | 90% departure | Hopper leaves | Steady jitter | Worst gap after 90% departure |
 | --- | --- | --- | --- | --- | --- |
-| **6 h** | **20 h** | **38 h** | **60 h** | **7.1%** | **3.6 h (21 h after hopper)** |
-| 12 h | 44 h | 84 h | 123 h | 4.9% | 5.9 h |
-| 1 day | 77 h | 157 h | 238 h | 3.4% | 5.1 h |
+| **6 h** | **20 h** | **38 h** | **62 h** | **7.1%** | **3.6 h** (21 h after a 100× hopper leaves) |
+| 12 h | 43 h | 78 h | 123 h | 4.9% | 5.9 h |
+| 1 day | 77 h | 157 h | 239 h | 3.4% | 5.1 h |
 | 2 days | 120 h | 312 h | 432 h | 2.3% | 5.2 h |
 
 A 30% miner stamping every block at +600 s shifted the mean interval by
-+0.05% or less for every tau. Hopping produced no net extra blocks, except
-+96 at tau = 2 days.
++0.06% or less for every tau. Hopping produced no net extra blocks, except
++97 at tau = 2 days.
 
 ## Rationale
 ASERT depends only on the anchor and the latest block, so there is no window

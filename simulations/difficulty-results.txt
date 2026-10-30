@@ -2,25 +2,25 @@ Recovery = hours until the median (over 20 runs) difficulty-implied block interv
 within 10% of 300 s and stays there. Jitter = std. dev. of that ratio in steady state.
 
 tau = 0.25 day(s)
-  growth  recovery after each step (h): [20, 18] | longest gap in day after a step: median 28 min, worst 44 min
-  hopper  recovery after each step (h): [20, 60] | longest gap in day after a step: median 439 min, worst 1264 min | net extra blocks over the whole episode: -1
-  exodus  recovery after each step (h): [38] | longest gap in day after a step: median 115 min, worst 213 min
-  steady  jitter 7.1% | timestamp attack (30% hashrate, +600 s stamps): mean interval 300.1 s -> 300.2 s (+0.05%)
+  growth  recovery after each step (h): [20, 19] | longest gap in day after a step: median 28 min, worst 44 min
+  hopper  recovery after each step (h): [20, 62] | longest gap in day after a step: median 436 min, worst 1264 min | net extra blocks over the whole episode: -1
+  exodus  recovery after each step (h): [38] | longest gap in day after a step: median 110 min, worst 218 min
+  steady  jitter 7.1% | timestamp attack (30% hashrate, +600 s stamps): mean interval 300.0 s -> 300.2 s (+0.06%)
 
 tau = 0.5 day(s)
-  growth  recovery after each step (h): [44, 36] | longest gap in day after a step: median 24 min, worst 34 min
-  hopper  recovery after each step (h): [40, 123] | longest gap in day after a step: median 553 min, worst 928 min | net extra blocks over the whole episode: -1
-  exodus  recovery after each step (h): [84] | longest gap in day after a step: median 151 min, worst 356 min
+  growth  recovery after each step (h): [43, 36] | longest gap in day after a step: median 24 min, worst 34 min
+  hopper  recovery after each step (h): [40, 123] | longest gap in day after a step: median 500 min, worst 793 min | net extra blocks over the whole episode: -1
+  exodus  recovery after each step (h): [78] | longest gap in day after a step: median 147 min, worst 356 min
   steady  jitter 4.9% | timestamp attack (30% hashrate, +600 s stamps): mean interval 300.0 s -> 300.2 s (+0.05%)
 
 tau = 1 day(s)
   growth  recovery after each step (h): [77, 80] | longest gap in day after a step: median 15 min, worst 27 min
-  hopper  recovery after each step (h): [72, 238] | longest gap in day after a step: median 670 min, worst 1412 min | net extra blocks over the whole episode: -1
-  exodus  recovery after each step (h): [157] | longest gap in day after a step: median 182 min, worst 306 min
-  steady  jitter 3.4% | timestamp attack (30% hashrate, +600 s stamps): mean interval 300.1 s -> 300.2 s (+0.03%)
+  hopper  recovery after each step (h): [72, 239] | longest gap in day after a step: median 715 min, worst 1412 min | net extra blocks over the whole episode: -1
+  exodus  recovery after each step (h): [157] | longest gap in day after a step: median 181 min, worst 305 min
+  steady  jitter 3.4% | timestamp attack (30% hashrate, +600 s stamps): mean interval 300.1 s -> 300.2 s (+0.04%)
 
 tau = 2 day(s)
   growth  recovery after each step (h): [120, 153] | longest gap in day after a step: median 12 min, worst 15 min
-  hopper  recovery after each step (h): [72, 432] | longest gap in day after a step: median 550 min, worst 963 min | net extra blocks over the whole episode: +96
+  hopper  recovery after each step (h): [72, 432] | longest gap in day after a step: median 519 min, worst 1039 min | net extra blocks over the whole episode: +97
   exodus  recovery after each step (h): [312] | longest gap in day after a step: median 198 min, worst 310 min
-  steady  jitter 2.3% | timestamp attack (30% hashrate, +600 s stamps): mean interval 300.1 s -> 300.2 s (+0.05%)
+  steady  jitter 2.3% | timestamp attack (30% hashrate, +600 s stamps): mean interval 300.0 s -> 300.2 s (+0.06%)

@@ -11,7 +11,7 @@ Full post-quantum public keys (about 2 KB) are unusable in addresses.
 **Bech32m (BIP-350)** encoding of the output template, excluding the amount:
 
 - Human-readable part: `varve` (mainnet), `tvarve` (testnet), `rvarve` (regtest).
-- Data payload: `output_version (u8) || policy (u8) || scheme_id (u16 LE) || commitment (32 bytes)`.
+- Data: one 5-bit symbol for `output_version`, then `policy (u8) || scheme_id (u16 LE) || commitment (32 bytes)` converted to 5-bit groups (protocol/addresses.md is authoritative).
   When the policy includes recovery, the payload also carries
   `recovery_scheme_id || recovery_commitment || recovery_delay`.
 - Single-path addresses are about 70 characters. Recovery-policy addresses

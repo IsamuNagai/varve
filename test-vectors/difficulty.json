@@ -1,38 +1,50 @@
 {
- "description": "aserti3-2d next-target vectors (INITIAL_TARGET placeholder 2^240, TAU 21600, T 300).",
+ "description": "ASERT next-target vectors anchored at genesis (INITIAL_TARGET placeholder 2^240, POW_LIMIT = INITIAL_TARGET x 256, TAU 21600, T 300). parent_time_minus_genesis is t_h - t0.",
  "cases": [
   {
-   "label": "on schedule",
-   "parent_time_minus_genesis": 300,
+   "label": "parent is genesis",
+   "parent_time_minus_genesis": 0,
    "parent_height": 0,
    "next_target_hex": "0001000000000000000000000000000000000000000000000000000000000000"
   },
   {
    "label": "on schedule, h=1000",
-   "parent_time_minus_genesis": 300300,
+   "parent_time_minus_genesis": 300000,
    "parent_height": 1000,
    "next_target_hex": "0001000000000000000000000000000000000000000000000000000000000000"
   },
   {
    "label": "one tau ahead (fast)",
-   "parent_time_minus_genesis": 8700,
+   "parent_time_minus_genesis": 8400,
    "parent_height": 100,
    "next_target_hex": "0000800000000000000000000000000000000000000000000000000000000000"
   },
   {
    "label": "one tau behind (slow)",
-   "parent_time_minus_genesis": 51900,
+   "parent_time_minus_genesis": 51600,
    "parent_height": 100,
    "next_target_hex": "0002000000000000000000000000000000000000000000000000000000000000"
   },
   {
-   "label": "far behind (clamp to POW_LIMIT check)",
-   "parent_time_minus_genesis": 1000000000,
-   "parent_height": 10,
-   "next_target_hex": "0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+   "label": "half tau behind",
+   "parent_time_minus_genesis": 40800,
+   "parent_height": 100,
+   "next_target_hex": "00016a0200000000000000000000000000000000000000000000000000000000"
   },
   {
-   "label": "far ahead (clamp to 1)",
+   "label": "1 second behind",
+   "parent_time_minus_genesis": 30001,
+   "parent_height": 100,
+   "next_target_hex": "0001000200000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "far behind (clamped to POW_LIMIT)",
+   "parent_time_minus_genesis": 1000000000,
+   "parent_height": 10,
+   "next_target_hex": "0100000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "far ahead (clamped to 1)",
    "parent_time_minus_genesis": 0,
    "parent_height": 10000000,
    "next_target_hex": "0000000000000000000000000000000000000000000000000000000000000001"

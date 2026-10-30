@@ -1,4 +1,4 @@
-# Block subsidy (normative, draft v0.1)
+# Block subsidy (normative, draft v0.2)
 
 | Constant | Value |
 | --- | --- |

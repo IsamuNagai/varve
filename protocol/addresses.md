@@ -1,11 +1,14 @@
-# Addresses (normative for wallets, draft v0.1)
+# Addresses (normative for wallets, draft v0.2)
 
 Addresses are not consensus objects. Wallets MUST still implement this encoding
 exactly, so they remain interoperable.
 
 ## Encoding
 
-- Bech32m (BIP-350) checksum and character set; lowercase only.
+- Bech32m (BIP-350) checksum and character set. Wallets MUST display
+  lowercase. Decoders MUST accept an all-lowercase or all-uppercase string
+  (for example from an alphanumeric QR code), normalize it to lowercase, and
+  reject mixed case.
 - Human-readable part: `varve` (mainnet), `tvarve` (testnet), `rvarve` (regtest).
 - Data: the first 5-bit symbol is `output_version` (`1`). It is followed by the
   output template bytes after `output_version`, converted from 8-bit to 5-bit
@@ -33,8 +36,10 @@ Decoders MUST reject:
 - a wrong checksum;
 - `output_version ≠ 1`;
 - an unknown policy;
-- an unknown `scheme_id`;
 - a payload length that does not match the policy;
-- non-zero padding bits.
+- non-zero padding bits;
+- any template that would make an invalid output under transactions.md §1 and
+  §6. That includes a `scheme_id` or `recovery_scheme_id` that is not
+  currently creatable, and a `recovery_delay` of 0 or ≥ 2^31.
 
 Test vectors: `test-vectors/addresses.json`.

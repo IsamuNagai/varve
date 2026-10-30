@@ -2,7 +2,7 @@
 
 **Isamu Nagai**
 
-*Draft 0.1 (specification phase). Not a final design. Every parameter may change before mainnet.*
+*Draft 0.2 (specification phase). Not a final design. Every parameter may change before mainnet.*
 
 ---
 
@@ -17,7 +17,7 @@ by deliberate consensus upgrades without restarting the chain. Outputs may
 carry a timelocked recovery path under an independent hash-based scheme.
 Issuance follows a fixed, smooth schedule ending in a small permanent tail.
 There is no premine, no allocation, and no privileged party. Genesis is derived
-from a future Bitcoin block header, so no one can begin mining early.
+from six future Bitcoin block headers, so no one can begin mining early.
 
 Labels used in this paper: **[FACT]** externally verifiable statement;
 **[DESIGN]** a decision of this protocol; **[ASSUMPTION]** something the design
@@ -93,9 +93,13 @@ whoever contributes computation, not to existing holders.
 designed for general-purpose CPUs and was audited four times in 2019, but a
 commercial RandomX ASIC now exists. RandomX v2 was released in 2026 in response.
 
-[DESIGN, provisional] The working choice is RandomX v2 with a Varve-specific
-parameter set restricted to parameters classified as safe by its audits. The
-fallback is SHA-256d. This choice is reviewed after the threat-model phase.
+[DESIGN] Varve uses RandomX v2 with every audited default unchanged except its
+salt, which is set to a Varve-specific value. The RandomX authors recommend
+exactly this, to keep rented hashrate and existing pools from simply being
+pointed at a new chain. Specialized RandomX hardware exists but has so far been
+roughly 1–4× as efficient as good CPUs, against roughly a million-fold for
+SHA-256 ASICs. SHA-256d stays the documented fallback, and the choice is
+reviewed again in the threat-model phase.
 
 [FACT] A small proof-of-work chain is vulnerable to anyone who can rent or
 redirect hashrate exceeding its honest total. Monero, a far larger network,
@@ -216,10 +220,12 @@ mining under the same rules as everyone else.
    and at least two independent builders must match.
 2. A public release-candidate testnet rehearses the launch procedure.
 3. Consensus parameters are frozen, and a future Bitcoin block height H is announced.
-4. Genesis is defined as a hash over a domain tag, a commitment to all
-   consensus parameters, and Bitcoin block header H. Nodes accept headers H
-   through H+5 from any source and verify their proof of work and linkage.
-   Until that block exists, nobody can know the genesis hash or mine block 1.
+4. Genesis is a hash over a domain tag, a commitment to all consensus
+   parameters, and **all six** Bitcoin block headers H through H+5. Each header
+   must link to the previous one and meet Bitcoin's real difficulty for that
+   period, which is fixed in advance. Until Bitcoin block H+5 exists, nobody can
+   know the genesis hash or mine block 1. The genesis timestamp is the median
+   of the six Bitcoin timestamps, so no single Bitcoin miner controls it.
 5. The genesis coinbase is unspendable, and genesis contains nothing else.
 
 After genesis, Varve never consults Bitcoin again.

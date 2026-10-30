@@ -14,17 +14,24 @@ may hold spendable coins at genesis or begin mining before others.
 - Every frozen consensus parameter is bound to genesis.
 
 ## Decision
-1. The release-candidate client hardcodes a Bitcoin target height **H** (set
-   about two weeks ahead at freeze time) and the hash of Bitcoin block **H−1**.
-2. At startup, the node takes the 80-byte Bitcoin headers for heights H to H+5
-   from any source. It verifies that they link back to H−1, and verifies each
-   header's proof of work against a hardcoded minimum target.
-3. `genesis_hash_input = SHA-256d("VARVE/genesis/v1" || params_hash || header_H)`,
-   where `params_hash` commits to every consensus constant.
-4. The genesis coinbase pays zero, to an unspendable output. Genesis contains
+1. The release-candidate client hardcodes a Bitcoin target height **H**, the
+   hash of Bitcoin block **H−1**, and the exact `nBits` of the Bitcoin
+   difficulty period containing H … H+5. That period has already begun at
+   freeze time, so its `nBits` is known.
+2. The node takes the 80-byte Bitcoin headers for heights H to H+5, verifies
+   their linkage from H−1, and verifies that each has exactly that `nBits`
+   and valid proof of work.
+3. `seed = H256("VARVE/genesis/v1", params_hash || header_H || … || header_{H+5})`.
+   The seed covers **all six** headers, so it cannot be computed before
+   Bitcoin block H+5 exists.
+4. The genesis timestamp t0 is the upper median of the six Bitcoin header
+   timestamps.
+5. The genesis coinbase pays zero, to an unspendable output. Genesis contains
    no other transactions.
-5. Block 1 must carry a timestamp of at least `header_H.time` (ADR-0005).
-6. Initial difficulty is a published constant. ASERT adapts from block 1.
+6. Block 1 needs `timestamp > t0`. Initial difficulty is a published constant;
+   ASERT adapts from block 1.
+
+protocol/genesis.md is authoritative.
 
 After genesis, Bitcoin is never consulted again.
 
@@ -35,9 +42,15 @@ testnet using the same genesis mechanism → parameter freeze and announcement
 of H → Bitcoin block H+5 mined → anyone can derive genesis and start mining.
 
 ## Rationale
-Requiring six linked headers means a one-block Bitcoin reorg cannot produce
-two genesis candidates. No party, including the author, learns genesis before
-the public does.
+No party, including the author, learns genesis before Bitcoin block H+5 is
+public. The only possible head start goes to the miner of H+5, who would have
+to withhold a valid Bitcoin block. Requiring Bitcoin's real `nBits` makes
+forged headers as expensive as real Bitcoin blocks. Using the median timestamp
+means no single Bitcoin miner controls t0.
+
+**Correction note:** the first draft hashed only `header_H`. That would have
+let anyone with modified software compute genesis about 50 minutes early. An
+independent review found the flaw, and it was fixed before any release.
 
 ## Security implications
 - Prevents premine, hidden genesis balances, and pre-mined chains.

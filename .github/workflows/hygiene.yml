@@ -20,8 +20,11 @@ jobs:
         run: python3 -I tools/check-image-metadata.py
       - name: Issuance model runs
         run: python3 -I simulations/issuance.py
+      - name: Prototype tests (signature tests skip without liboqs)
+        run: python3 -I prototype/test_proto.py
       - name: Test vectors are reproducible
         run: |
           python3 -I simulations/subsidy.py
           python3 -I tools/gen_vectors.py
+          python3 -I tools/params.py
           git diff --exit-code -- test-vectors

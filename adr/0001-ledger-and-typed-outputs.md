@@ -31,7 +31,7 @@ migration, and spending conditions are expressed for the life of the chain.
 | `commitment` | 32 bytes | Hash commitment to the primary public key |
 | `recovery_scheme_id` | u16 | Present only when `policy = 0x01` |
 | `recovery_commitment` | 32 bytes | Present only when `policy = 0x01` |
-| `recovery_delay` | u32 | Blocks after output confirmation; present only when `policy = 0x01` |
+| `recovery_delay` | u32 | The recovery path is valid in blocks at height ≥ creation height + recovery_delay; present only when `policy = 0x01` |
 
 Exact serialization is defined in `protocol/transactions.md`.
 

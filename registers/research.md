@@ -18,3 +18,6 @@ with primary sources before an ADR moves to ACCEPTED.
 | ASERT | Bitcoin Cash aserti3-2d (Nov 2020) | In production since 2020 | High | No | ADR-0005 |
 | Bech32m | BIP-350 | Mature checksum; 90-character limit | High | No | ADR-0007 |
 | PQ signature speed | liboqs speed_sig, own run (simulations/benchmarks) | ML-DSA-65 verify ~30 µs; SLH-DSA-128s verify ~0.6 ms, sign ~0.55 s | High (one machine) | Low | ADR-0006 |
+| RandomX v2 | tevador/RandomX releases and doc/configuration.md; benchmark gist | v2.0 released 25 Mar 2026, v2.0.1 fixes rare ARM/RISC-V invalid hashes; salt change recommended per project | High | Yes | ADR-0003 |
+| RandomX hardware market | OneMiners report (Oct 2026); pool documentation | X5 ~6.4 J/kH; X9 (~2.5 J/kH) withdrawn; RandomX v2 not on Monero mainnet | Medium (secondary) | Yes | ADR-0003 |
+| Spec v0.1 review | Independent adversarial review agent (2026-10-30) | 1 critical, 3 high, 13 medium/low findings; all addressed in spec v0.2 | High | No | All protocol/*.md |

@@ -2,7 +2,7 @@
 
 | ID | Question | Blocks | Resolve in |
 | --- | --- | --- | --- |
-| Q-01 | Is RandomX v2 reviewed, and which parameters are safe to change? | ADR-0003 | Phase 1–3 |
+| Q-01 | Independent security review of RandomX v2 (program size 384, CFROUND change). Parameter choice RESOLVED: salt only | ADR-0003 | Before release candidate |
 | Q-02 | Is rental-attack exposure acceptable compared with SHA-256d? | ADR-0003 | Phase 3 |
 | Q-03 | ~~Block interval, maximum weight, verify_units~~ RESOLVED: 300 s, 720,000, 100 / 1,700 | ADR-0006 | Done |
 | Q-04 | ~~ASERT tau~~ RESOLVED: 6 h | ADR-0005 | Done |

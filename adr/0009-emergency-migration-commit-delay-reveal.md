@@ -13,7 +13,7 @@ When a scheme enters SPEND_VIA_COMMITMENT (ADR-0002):
 
 1. **Commit.** The holder publishes a commitment transaction, paid from an
    output under a still-safe scheme, containing
-   `C = SHA3-256("VARVE/migrate/v1" || outpoint || public_key || destination_template || salt)`.
+   `C = H256("VARVE/migrate/v1", outpoint || public_key || destination_template || salt)` (encoding.md §4).
    This reveals nothing about the key.
 2. **Delay.** C must be buried at least D blocks deep (proposed D = 288, about one day).
 3. **Reveal.** The holder spends the output to `destination_template`. The

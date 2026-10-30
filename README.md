@@ -61,12 +61,12 @@ compatibly.
 | --- | --- | --- |
 | Ledger | UTXO with typed outputs; closed policy set (single key, or key plus timelocked recovery) | [ADR-0001](adr/0001-ledger-and-typed-outputs.md) |
 | Signatures | ML-DSA-65 primary, SLH-DSA-SHA2-128s recovery, SHA3-256 key commitments | [ADR-0002](adr/0002-signature-schemes-and-commitments.md) |
-| Proof of work | RandomX v2 with distinct safe parameters (working choice); SHA-256d fallback | [ADR-0003](adr/0003-proof-of-work.md) |
+| Proof of work | RandomX v2 with a Varve-specific salt; SHA-256d fallback | [ADR-0003](adr/0003-proof-of-work.md) |
 | Issuance | Smooth decay, 8-year half-life, then a small fixed tail | [ADR-0004](adr/0004-monetary-policy.md) |
 | Difficulty | ASERT per-block adjustment; time-warp resistant | [ADR-0005](adr/0005-difficulty-adjustment.md) |
 | Capacity and fees | ~5-minute blocks; weight = bytes + verification + UTXO growth; market fees | [ADR-0006](adr/0006-block-interval-weight-and-fees.md) |
 | Addresses | Bech32m with prefixes `varve` / `tvarve` | [ADR-0007](adr/0007-address-format.md) |
-| Launch | Genesis derived from a future Bitcoin block header; no premine | [ADR-0008](adr/0008-fair-launch-and-genesis.md) |
+| Launch | Genesis derived from six future Bitcoin block headers; no premine | [ADR-0008](adr/0008-fair-launch-and-genesis.md) |
 | Crypto emergencies | Commit–delay–reveal migration | [ADR-0009](adr/0009-emergency-migration-commit-delay-reveal.md) |
 
 **Units:** 1 varve = 100,000,000 laminae · **Ticker:** VARV

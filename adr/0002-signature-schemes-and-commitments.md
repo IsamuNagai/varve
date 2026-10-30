@@ -34,7 +34,7 @@ attack models for decades. No signature scheme can be assumed secure forever.
 | `0x0002` | SLH-DSA-SHA2-128s (FIPS 205, pure mode, empty context string) | Recovery or primary | ACTIVE |
 | `0x0003`–`0xFFFF` | reserved for future soft forks | — | invalid to create or spend |
 
-**Commitment:** `commitment = SHA3-256("VARVE/pk/v1" || u16_le(scheme_id) || public_key)`.
+**Commitment:** `commitment = H256("VARVE/pk/v1", u16_le(scheme_id) || public_key)`, where `H256` is the length-prefixed, tagged SHA3-256 defined in protocol/encoding.md §4.
 The domain tag and scheme id bind the commitment to the scheme, so a key cannot
 be reinterpreted under another algorithm.
 

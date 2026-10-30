@@ -1,4 +1,4 @@
-# Encoding conventions (normative, draft v0.1)
+# Encoding conventions (normative, draft v0.2)
 
 ## 1. General
 
@@ -34,20 +34,22 @@ scheme `0x0001`. A wrong length is invalid; no padding or truncation is allowed.
 
 | Name | Definition | Use |
 | --- | --- | --- |
-| `H256(tag, m)` | `SHA3-256(len(tag) as u8 \|\| tag \|\| m)` | Commitments, signature hashes, domain-separated hashing |
-| `HB(m)` | `SHA-256(SHA-256(m))` | Block header hash, Merkle tree (ADR pending) |
+| `H256(tag, m)` | `SHA3-256(u8(len(tag)) \|\| tag \|\| m)` | Every Varve hash: commitments, txid, wtxid, Merkle tree, block id, signature messages, genesis seed, params hash |
 
 Tags are ASCII strings beginning with `VARVE/`, for example `VARVE/pk/v1`.
-Every use of a hash in consensus MUST have a unique tag.
+The one-byte length prefix is part of the hash input. Every use of a hash in
+consensus has a unique tag. SHA-256d appears only when checking Bitcoin
+headers during genesis construction (genesis.md). The proof-of-work hash is
+defined in pow.md.
 
 ## 5. Amounts
 
-Amounts are `u64` laminae. A single output's amount MUST be at most
-`MAX_MONEY` (to be set with ADR-0004 constants). The sum of outputs MUST be at
-most the sum of inputs, using checked arithmetic.
+Amounts are `u64` laminae. `MAX_MONEY` = 2^62. Range and sum rules are in
+transactions.md §1 and §9. The coinbase's value limit is in transactions.md §4.
 
 ## 6. Network identifier
 
 `network_id` is 4 raw bytes, the ASCII strings `VARV` (mainnet), `TVAR`
 (testnet), and `RVAR` (regtest), serialized in that byte order. It is included
-in every signature hash to prevent cross-network replay.
+in every signature message, together with the genesis block id, to prevent
+replay across networks and chains (transactions.md §7).

@@ -18,7 +18,7 @@ import bisect
 import random
 
 T = 300                      # target block interval, seconds
-POW_LIMIT = (1 << 252) - 1   # easiest allowed target (protocol/difficulty.md)
+POW_LIMIT = (1 << 240) << 8  # INITIAL_TARGET x 256 (protocol/difficulty.md)
 INIT_TARGET = 1 << 240       # initial target: 2^16 expected hashes per block
 BASE_RATE = (1 << 16) / T    # hashes/s for "hashrate 1": one block per T at INIT_TARGET
 FUTURE_LIMIT = 600           # max seconds ahead of the node clock (ADR-0005)
@@ -27,12 +27,16 @@ DAYS = 24
 
 
 def asert_target(anchor_target, time_delta, height_delta, tau):
-    """aserti3-2d: next target from the anchor and the parent block.
+    """ASERT (aserti3-2d arithmetic) anchored at genesis: next target after a parent block.
 
-    time_delta   = parent timestamp - anchor parent timestamp
-    height_delta = parent height - anchor height
+    time_delta   = parent timestamp - genesis timestamp
+    height_delta = parent height (genesis = 0); a parent at t0 + T*h is on schedule
     """
-    exponent = ((time_delta - T * (height_delta + 1)) * 65536) // tau
+    exponent = ((time_delta - T * height_delta) * 65536) // tau
+    if exponent >= 256 << 16:
+        return POW_LIMIT
+    if exponent <= -(270 << 16):
+        return 1
     shifts = exponent >> 16                 # arithmetic (floor) shift
     frac = exponent & 0xFFFF
     factor = 65536 + ((195766423245049 * frac + 971821376 * frac * frac
