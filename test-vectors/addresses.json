@@ -1,0 +1,35 @@
+{
+ "description": "Address and commitment vectors. Public keys are byte patterns, not real keys.",
+ "public_key_patterns": {
+  "mldsa65": "bytes(i % 256 for i in range(1952))",
+  "slhdsa128s": "bytes((255 - i) % 256 for i in range(32))"
+ },
+ "commitments": {
+  "mldsa65": "1efab801045b9967e91aa76fbef38ee8608be702decc5e6e367d80c18afc48b4",
+  "slhdsa128s": "c0c2b43656270648a74ba6d012f9da709b747f0ea1cf9308df0b6bda73e08a13"
+ },
+ "addresses": [
+  {
+   "network": "mainnet",
+   "policy": 0,
+   "template_hex": "010001001efab801045b9967e91aa76fbef38ee8608be702decc5e6e367d80c18afc48b4",
+   "address": "varve1pqqqsq8h6hqqsgkuevl534fm0hmeca6rq30ns9hkvtehrvlvqcx90cj95kr895l",
+   "length": 69
+  },
+  {
+   "network": "testnet",
+   "policy": 0,
+   "template_hex": "010001001efab801045b9967e91aa76fbef38ee8608be702decc5e6e367d80c18afc48b4",
+   "address": "tvarve1pqqqsq8h6hqqsgkuevl534fm0hmeca6rq30ns9hkvtehrvlvqcx90cj95kfvsmx",
+   "length": 70
+  },
+  {
+   "network": "mainnet",
+   "policy": 1,
+   "recovery_delay": 105192,
+   "template_hex": "010101001efab801045b9967e91aa76fbef38ee8608be702decc5e6e367d80c18afc48b40200c0c2b43656270648a74ba6d012f9da709b747f0ea1cf9308df0b6bda73e08a13e89a0100",
+   "address": "varve1pqyqsq8h6hqqsgkuevl534fm0hmeca6rq30ns9hkvtehrvlvqcx90cj95qgqvps45xetzwpjg5a96d5qjl8d8pxm50u82rnunpr0sk676w0sg5ylgngqsq4twtgd",
+   "length": 130
+  }
+ ]
+}

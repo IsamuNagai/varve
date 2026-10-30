@@ -104,7 +104,7 @@ operation. Varve will be weakest when it is youngest. Recipients of large
 payments should wait for many confirmations in the early years.
 
 Difficulty adjusts every block using ASERT (absolutely scheduled exponentially
-rising targets). Because ASERT is anchored to a fixed reference block, it has
+rising targets) with a six-hour half-life. Because ASERT is anchored to a fixed reference block, it has
 no adjustment window to exploit. It recovers from sudden hashrate departures in
 hours rather than weeks.
 
@@ -129,9 +129,11 @@ unstandardized cryptography.
 signature, and net growth of the UTXO set. A block of expensive-to-verify
 signatures therefore cannot exceed the time budget of a block of cheap ones.
 
-[OPEN] Block interval (300 s hypothesis), maximum block weight (target: about
-60 GB of chain growth per year at sustained full blocks), and per-scheme
-verification costs will be set from benchmarks and propagation simulation.
+[DESIGN] Blocks target 300 seconds. The maximum block weight is 720,000, which
+is about 76 GB of chain growth per year at sustained full blocks. Measured
+verification times set the weights: about 30 µs per ML-DSA-65 signature and
+about 0.6 ms per SLH-DSA-SHA2-128s signature on one 2.1 GHz core. A full block
+verifies in under 50 ms in the worst case.
 
 ## 6. Cryptographic agility
 
@@ -243,7 +245,7 @@ Mainnet requires independent human review.
 
 ## 11. Limitations
 
-- Throughput is low by design, about 0.5–1 transactions per second at full
+- Throughput is low by design, about 0.4 transactions per second at full
   blocks. Varve is a settlement layer.
 - Transactions are large compared with elliptic-curve systems.
 - There is no multisignature at launch; post-quantum threshold signatures are immature.

@@ -6,7 +6,7 @@ Likelihood and impact: L = low, M = medium, H = high. Tests refer to future test
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | T-C1 | 51% / deep reorg double-spend | Hashrate renter, large pool | Hashrate above honest total | H (years 1–3) | H | Confirmation guidance, reorg monitoring, honest messaging | H early | Reorg simulation |
 | T-C2 | Selfish mining | Pool with ≥25–33% | Good connectivity | M | M | Fast block relay; monitoring | M | Network simulation |
-| T-C3 | Timestamp / difficulty manipulation | Miner | Mining share | M | L | ASERT, median-11, +10 min limit | L | Difficulty vectors |
+| T-C3 | Timestamp / difficulty manipulation | Miner | Mining share | M | L | ASERT (tau 6 h), median-11, +10 min acceptance limit; simulated effect +0.05% | L | test-vectors/difficulty.json |
 | T-N1 | Eclipse attack | Network adversary | Many IPs | M | H | Outbound diversity, anchor connections, address bucketing | M | P2P test |
 | T-N2 | DoS via malformed or oversized messages | Anyone | None | H | M | Bounded parsing, size limits before allocation, ban scores | L | Fuzzing |
 | T-T1 | Verification-cost DoS (SLH-DSA-heavy blocks) | Miner or spammer | Fees | M | M | verify_units in weight (ADR-0006) | L | Benchmark vectors |

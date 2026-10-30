@@ -17,3 +17,4 @@ with primary sources before an ADR moves to ACCEPTED.
 | Hashrate attacks | Decrypt, The Block (2025) | Qubic-linked 6- and 18-block Monero reorgs | High | No | ADR-0003, T-C1 |
 | ASERT | Bitcoin Cash aserti3-2d (Nov 2020) | In production since 2020 | High | No | ADR-0005 |
 | Bech32m | BIP-350 | Mature checksum; 90-character limit | High | No | ADR-0007 |
+| PQ signature speed | liboqs speed_sig, own run (simulations/benchmarks) | ML-DSA-65 verify ~30 µs; SLH-DSA-128s verify ~0.6 ms, sign ~0.55 s | High (one machine) | Low | ADR-0006 |

@@ -1,7 +1,7 @@
 # ADR-0004: Monetary policy
 
 ## Status
-ACCEPTED in shape (2026-10-30); exact constants are PROPOSED until the Phase 4 simulation.
+ACCEPTED for specification v0.1 (2026-10-30). Exact constants are in protocol/subsidy.md.
 
 ## Context
 Issuance must be deterministic, auditable, and encoded in consensus. It
@@ -31,11 +31,13 @@ Reproduce with `simulations/issuance.py`.
 **Model F.** The block subsidy decays smoothly with an 8-year half-life until it
 reaches a fixed tail. From then on, the subsidy stays constant forever.
 
-- Smooth decay is implemented as a per-epoch lookup table of exact integer
-  subsidies. An epoch is 1/64 of a half-life. The table is generated once by a
-  published script and committed as consensus constants with test vectors.
-- The coin denomination, absolute subsidy, and tail value are set in Phase 4.
-  The target is about 0.6% inflation at year 50 and below 0.5% at year 100.
+- Initial subsidy 82 varve per block; tail 6 varve per block, reached at
+  block 3,182,059 (about year 30).
+- Epoch = 13,149 blocks (1/64 of an 8-year half-life at 300 s).
+  `subsidy = max(TAIL, (INITIAL × FRAC[e mod 64]) >> (63 + e div 64))`, using
+  64 consensus constants proven exact (simulations/subsidy.py).
+- Supply: 8.31 M (year 1), 58.0 M (10), 82.4 M (20), 105.3 M (50), 136.8 M (100).
+  Inflation is 0.60% at year 50 and 0.46% at year 100.
 - Amounts are u64 laminae. The total stays far below 2^63 for over 100,000 years.
 
 ## Rationale

@@ -1,0 +1,41 @@
+{
+ "description": "aserti3-2d next-target vectors (INITIAL_TARGET placeholder 2^240, TAU 21600, T 300).",
+ "cases": [
+  {
+   "label": "on schedule",
+   "parent_time_minus_genesis": 300,
+   "parent_height": 0,
+   "next_target_hex": "0001000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "on schedule, h=1000",
+   "parent_time_minus_genesis": 300300,
+   "parent_height": 1000,
+   "next_target_hex": "0001000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "one tau ahead (fast)",
+   "parent_time_minus_genesis": 8700,
+   "parent_height": 100,
+   "next_target_hex": "0000800000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "one tau behind (slow)",
+   "parent_time_minus_genesis": 51900,
+   "parent_height": 100,
+   "next_target_hex": "0002000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "far behind (clamp to POW_LIMIT check)",
+   "parent_time_minus_genesis": 1000000000,
+   "parent_height": 10,
+   "next_target_hex": "0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  {
+   "label": "far ahead (clamp to 1)",
+   "parent_time_minus_genesis": 0,
+   "parent_height": 10000000,
+   "next_target_hex": "0000000000000000000000000000000000000000000000000000000000000001"
+  }
+ ]
+}

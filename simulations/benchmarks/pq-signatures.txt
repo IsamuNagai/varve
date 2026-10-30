@@ -1,0 +1,19 @@
+Signature benchmark (liboqs tests/speed_sig, --duration 3)
+Library: liboqs commit 87576461b457a17f806aae463a7c223e45029813, OQS 0.16.0, minimal build
+Machine: 2 vCPU Intel Xeon @ 2.10GHz (cloud VM), single-threaded, gcc 13.3.0, Release build
+
+Operation                            | Iterations | Total time (s) | Time (us): mean | pop. stdev | CPU cycles: mean          | pop. stdev
+------------------------------------ | ----------:| --------------:| ---------------:| ----------:| -------------------------:| ----------:
+ML-DSA-65                            |            |                |                 |            |                           |           
+keypair                              |      95599 |          3.000 |          31.381 |     17.254 |                     65755 |      36192
+sign                                 |      30429 |          3.000 |          98.592 |     74.144 |                    206905 |     155667
+verify                               |     103597 |          3.000 |          28.959 |     18.077 |                     60640 |      37944
+SLH_DSA_PURE_SHA2_128S               |            |                |                 |            |                           |           
+keypair                              |         40 |          3.046 |       76154.100 |  10805.531 |                 159922108 |   22691504
+sign                                 |          6 |          3.277 |      546141.833 |  25307.819 |                1146896051 |   53146710
+verify                               |       4927 |          3.000 |         608.942 |    125.082 |                   1278582 |     262556
+SLH_DSA_PURE_SHA2_128F               |            |                |                 |            |                           |           
+keypair                              |       2558 |          3.000 |        1172.929 |    258.982 |                   2462957 |     543772
+sign                                 |        111 |          3.007 |       27094.063 |   4357.523 |                  56896712 |    9150605
+verify                               |       1761 |          3.001 |        1703.956 |    343.316 |                   3578082 |     720834
+Ended at 2026-10-30 20:43:23

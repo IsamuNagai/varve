@@ -1,0 +1,31 @@
+Transaction sizes (bytes / weight)
+  1-in 2-out ML-DSA-65                            5400 B   weight   5600
+  2-in 2-out ML-DSA-65                           10702 B   weight  10902
+  1-in 2-out, both outputs with recovery path     5476 B   weight   5676
+  1-in 1-out SLH-DSA recovery spend               7982 B   weight   9682
+
+Block weight limit vs. growth and throughput at sustained full blocks
+  interval 120 s  target  50 GB/yr -> max weight    190 k,    34 typical tx/block, 0.28 tx/s
+  interval 120 s  target  75 GB/yr -> max weight    285 k,    51 typical tx/block, 0.42 tx/s
+  interval 120 s  target 100 GB/yr -> max weight    380 k,    68 typical tx/block, 0.57 tx/s
+  interval 300 s  target  50 GB/yr -> max weight    475 k,    85 typical tx/block, 0.28 tx/s
+  interval 300 s  target  75 GB/yr -> max weight    713 k,   127 typical tx/block, 0.42 tx/s
+  interval 300 s  target 100 GB/yr -> max weight    951 k,   170 typical tx/block, 0.57 tx/s
+  interval 600 s  target  50 GB/yr -> max weight    951 k,   170 typical tx/block, 0.28 tx/s
+  interval 600 s  target  75 GB/yr -> max weight   1426 k,   255 typical tx/block, 0.42 tx/s
+  interval 600 s  target 100 GB/yr -> max weight   1901 k,   340 typical tx/block, 0.57 tx/s
+
+Chosen: max weight 720,000, interval 300 s
+  chain growth at full blocks: 75.7 GB/yr
+  throughput: 0.43 typical tx/s, 129 tx/block
+  worst-case verification, block of ML-DSA-65 spends: 133 signatures, 4.5 ms on one core
+  worst-case verification, block of SLH-DSA-SHA2-128s spends: 74 signatures, 42.5 ms on one core
+  (without verification units an SLH-only block would hold 90 signatures)
+
+Stale-block rate estimate (exponential model, delay = latency + transfer + validation)
+  interval 120 s, compact relay                    delay   2.3 s -> stale 1.90%
+  interval 120 s, full block, 6 hops at 10 Mbit/s  delay   5.5 s -> stale 4.45%
+  interval 300 s, compact relay                    delay   2.3 s -> stale 0.77%
+  interval 300 s, full block, 6 hops at 10 Mbit/s  delay   5.5 s -> stale 1.80%
+  interval 600 s, compact relay                    delay   2.3 s -> stale 0.38%
+  interval 600 s, full block, 6 hops at 10 Mbit/s  delay   5.5 s -> stale 0.91%

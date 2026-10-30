@@ -33,7 +33,7 @@ migration, and spending conditions are expressed for the life of the chain.
 | `recovery_commitment` | 32 bytes | Present only when `policy = 0x01` |
 | `recovery_delay` | u32 | Blocks after output confirmation; present only when `policy = 0x01` |
 
-Exact serialization is defined in `protocol/encoding.md`.
+Exact serialization is defined in `protocol/transactions.md`.
 
 ## Rationale
 UTXO gives explicit ownership, simple supply audit, and natural parallelism.
@@ -60,7 +60,7 @@ permanent attack surface of a script language.
   migration semantics tied to accounts rather than individual coins.
 
 ## Dependencies
-ADR-0002, ADR-0007, protocol/encoding.md, protocol/validation.md.
+ADR-0002, ADR-0007, protocol/encoding.md, protocol/transactions.md.
 
 ## Revisit trigger
 A custody requirement that cannot be met by the policy set and is justified

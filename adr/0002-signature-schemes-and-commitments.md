@@ -39,7 +39,7 @@ The domain tag and scheme id bind the commitment to the scheme, so a key cannot
 be reinterpreted under another algorithm.
 
 **Signed message:** a transaction signature hash defined in
-`protocol/validation.md`, with its own domain separation. Signatures use
+`protocol/transactions.md` §7, with its own domain separation. Signatures use
 **hedged (randomized) signing** where FIPS 204 permits it, to reduce
 fault-attack exposure. Verification is deterministic either way.
 
