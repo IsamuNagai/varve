@@ -1,0 +1,35 @@
+# Secrets and keys: never commit
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.kdbx
+*.asc
+*.gpg
+!docs/**/*.asc
+seed*
+mnemonic*
+wallet*.dat
+*.wallet
+id_rsa*
+id_ed25519*
+secrets/
+private/
+
+# OS / editor metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# Build and tool output
+target/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+*.log
