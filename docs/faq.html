@@ -7,12 +7,13 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Frequently asked questions about Varve: status, post-quantum design, fair launch, units and how to help.">
 <title>Varve FAQ</title>
-<script src="theme-init.js?v=3"></script>
-<link rel="stylesheet" href="style.css?v=3">
-<script src="site.js?v=3" defer></script>
+<script src="theme-init.js?v=4"></script>
+<link rel="stylesheet" href="style.css?v=4">
+<script src="site.js?v=4" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-layer bg-layer-1"></div><div class="bg-layer bg-layer-2"></div></div>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
 <div class="bar">
@@ -38,36 +39,36 @@
 </div>
 </section>
 <div class="wrap narrow prose">
-<div class="qa-list">
-<details class="qa" open>
+<div class="qa-list stagger">
+<details class="qa reveal" open>
 <summary>Is there a coin I can buy?</summary>
 <div class="answer"><p>No. No network exists yet and no coin exists yet. There will never be a presale, ICO, premine, founder or team allocation, or airdrop. Anyone selling "Varve" or "VARV" today is a scammer.</p></div>
 </details>
-<details class="qa">
+<details class="qa reveal">
 <summary>What stage is the project at?</summary>
 <div class="answer"><p>Research and specification. Testnet, independent review and mainnet have not started.</p></div>
 </details>
-<details class="qa">
+<details class="qa reveal">
 <summary>Why post-quantum now?</summary>
 <div class="answer"><p>This is not a claim that quantum computers are about to break Bitcoin or any other system. The goal is long-horizon custody: coins held for decades should not depend on signature schemes that may weaken. Varve uses ML-DSA from genesis, with SLH-DSA as an independent recovery family, which gives quantum-resistant signatures under currently understood attack models. Typed outputs and an algorithm lifecycle allow change if those models turn out to be wrong.</p></div>
 </details>
-<details class="qa">
+<details class="qa reveal">
 <summary>Can the author mine early?</summary>
 <div class="answer"><p>No. Mainnet genesis will be derived from six future Bitcoin block headers, so nobody, including the author, can mine early.</p></div>
 </details>
-<details class="qa">
+<details class="qa reveal">
 <summary>Does Varve support smart contracts or tokens?</summary>
 <div class="answer"><p>No. There is no smart-contract VM and no token platform. Native timelocked recovery paths are the extent of its scripting ambitions.</p></div>
 </details>
-<details class="qa">
+<details class="qa reveal">
 <summary>What are the units?</summary>
 <div class="answer"><p>The currency unit is the varve, the smallest unit is the lamina, and 1 varve = 100,000,000 laminae. The ticker is VARV.</p></div>
 </details>
-<details class="qa">
+<details class="qa reveal">
 <summary>Who is Isamu Nagai?</summary>
 <div class="answer"><p>Isamu Nagai is a pen name and does not refer to any real person. The protocol matters more than the author, and it is meant to be checked independently rather than trusted.</p></div>
 </details>
-<details class="qa">
+<details class="qa reveal">
 <summary>How can I help?</summary>
 <div class="answer"><p>Read the specification and the <a href="whitepaper.html">whitepaper</a>, review them critically, and open issues in the <a href="https://github.com/IsamuNagai/varve">repository</a>. Report vulnerabilities as described on the <a href="security.html">security page</a>.</p></div>
 </details>

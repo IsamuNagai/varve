@@ -7,12 +7,13 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="How to report a Varve vulnerability, how future releases are intended to be verified, and a note on seed phrases.">
 <title>Varve security</title>
-<script src="theme-init.js?v=3"></script>
-<link rel="stylesheet" href="style.css?v=3">
-<script src="site.js?v=3" defer></script>
+<script src="theme-init.js?v=4"></script>
+<link rel="stylesheet" href="style.css?v=4">
+<script src="site.js?v=4" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-layer bg-layer-1"></div><div class="bg-layer bg-layer-2"></div></div>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
 <div class="bar">
@@ -45,10 +46,10 @@
 <section class="block reveal">
 <h2>Verifying future releases</h2>
 <p>No releases exist yet. When they do, the intent is that you can verify them yourself:</p>
-<ul class="list">
-<li>Reproducible builds, so anyone can rebuild and compare the result.</li>
-<li>Multiple independent signers, so no single key vouches for a release.</li>
-<li>Published checksums to compare against what you downloaded.</li>
+<ul class="list stagger">
+<li class="reveal">Reproducible builds, so anyone can rebuild and compare the result.</li>
+<li class="reveal">Multiple independent signers, so no single key vouches for a release.</li>
+<li class="reveal">Published checksums to compare against what you downloaded.</li>
 </ul>
 </section>
 <section class="block reveal">

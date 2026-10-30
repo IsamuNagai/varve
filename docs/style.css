@@ -14,6 +14,8 @@
   --btn-fg: #fbf8f3;
   --strata: rgba(138, 106, 55, 0.14);
   --glow: rgba(176, 141, 87, 0.14);
+  --bg-o1: 0.16;
+  --bg-o2: 0.09;
   --shadow: 0 10px 30px -12px rgba(28, 28, 26, 0.18);
   --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -36,6 +38,8 @@
     --btn-fg: #0d1117;
     --strata: rgba(176, 141, 87, 0.16);
     --glow: rgba(176, 141, 87, 0.12);
+    --bg-o1: 0.13;
+    --bg-o2: 0.07;
     --shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.7);
   }
 }
@@ -54,6 +58,8 @@
   --btn-fg: #0d1117;
   --strata: rgba(176, 141, 87, 0.16);
   --glow: rgba(176, 141, 87, 0.12);
+  --bg-o1: 0.13;
+  --bg-o2: 0.07;
   --shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.7);
 }
 
@@ -198,6 +204,40 @@ code {
   .nav { order: 3; width: 100%; margin: 0 -0.7rem; padding-right: 1rem; }
 }
 
+/* Ambient background: slow-drifting strata (a varve is a layer of sediment) */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+}
+.bg-layer {
+  position: absolute;
+  left: 0;
+  width: 2880px;
+  height: 900px;
+  background-image: url("assets/strata.svg");
+  background-repeat: repeat-x;
+  background-size: 1440px 900px;
+  will-change: transform;
+}
+.bg-layer-1 { top: 4vh; opacity: var(--bg-o1); }
+.bg-layer-2 { top: 32vh; opacity: var(--bg-o2); transform: scaleY(-1); }
+.bg-glow {
+  position: absolute;
+  left: 50%;
+  top: -20vh;
+  width: 90vmax;
+  height: 90vmax;
+  margin-left: -45vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--glow), transparent 70%);
+  will-change: transform, opacity;
+}
+
 /* Hero */
 .hero {
   position: relative;
@@ -206,7 +246,8 @@ code {
   padding: 5rem 0 6.5rem;
   background: radial-gradient(60% 55% at 50% 0%, var(--glow), transparent 70%);
 }
-.strata {
+.strata { display: none; }
+.strata-unused {
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(to bottom, transparent 0, transparent 35px, var(--strata) 35px, var(--strata) 36px);
@@ -449,13 +490,20 @@ main > .section:last-of-type { padding-bottom: 7rem; }
 
   .qa[open] .answer { animation: open-in 0.3s ease-out; }
 
-  .js .reveal { transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
-  .js .reveal:not(.is-visible) { opacity: 0; transform: translateY(14px); }
-  .js .reveal.d1 { transition-delay: 0.08s; }
-  .js .reveal.d2 { transition-delay: 0.16s; }
-  .js .reveal.d3 { transition-delay: 0.24s; }
-  .js .reveal.d4 { transition-delay: 0.32s; }
-  .js .reveal.d5 { transition-delay: 0.4s; }
+  .js .reveal { transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .js .reveal:not(.is-visible) { opacity: 0; transform: translateY(36px) scale(0.985); }
+  .js .reveal.d1 { transition-delay: 0.1s; }
+  .js .reveal.d2 { transition-delay: 0.2s; }
+  .js .reveal.d3 { transition-delay: 0.3s; }
+  .js .reveal.d4 { transition-delay: 0.4s; }
+  .js .reveal.d5 { transition-delay: 0.5s; }
+
+  @keyframes drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-1440px, 0, 0); } }
+  @keyframes drift-flip { from { transform: translate3d(-1440px, 0, 0) scaleY(-1); } to { transform: translate3d(0, 0, 0) scaleY(-1); } }
+  @keyframes breathe { 0%, 100% { transform: translate3d(-4%, 0, 0) scale(1); opacity: 0.85; } 50% { transform: translate3d(4%, 3%, 0) scale(1.08); opacity: 1; } }
+  .bg-layer-1 { animation: drift 110s linear infinite; }
+  .bg-layer-2 { animation: drift-flip 170s linear infinite; }
+  .bg-glow { animation: breathe 26s ease-in-out infinite; }
   .js .reveal.is-done { transition: transform 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s, opacity 0.3s; }
   .js .timeline.reveal.is-done { transition: none; }
 }
@@ -465,7 +513,7 @@ main > .section:last-of-type { padding-bottom: 7rem; }
 }
 
 @media print {
-  .site-header, .strata, .theme-toggle { display: none; }
+  .site-header, .strata, .theme-toggle, .bg { display: none; }
   body { background: #fff; color: #000; }
   .only-dark { display: none !important; }
   .only-light { display: block !important; }
