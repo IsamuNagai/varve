@@ -56,7 +56,7 @@
 <ul class="grid cards stagger">
 <li class="card reveal"><span class="num">01</span><h3>Post-quantum ownership from genesis</h3><p>Standardized signatures from the first block: ML-DSA (FIPS 204), with SLH-DSA (FIPS 205) as an independent recovery family. There are no legacy elliptic-curve outputs to migrate.</p></li>
 <li class="card reveal"><span class="num">02</span><h3>Cryptographic agility</h3><p>Every output records its signature scheme. Schemes are added, deprecated and retired through a defined lifecycle, without restarting the chain.</p></li>
-<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths support inheritance, disaster recovery and long-term cold storage, with no smart-contract VM.</p></li>
+<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths support inheritance, disaster recovery and long-term cold storage, with no smart-contract VM. After its delay, a recovery key acts as a second owner, not a revocation switch.</p></li>
 <li class="card reveal"><span class="num">04</span><h3>Verification by ordinary people</h3><p>Block capacity is limited by what an ordinary computer can verify, not by demand.</p></li>
 </ul>
 </div>
@@ -82,18 +82,20 @@
 <div class="wrap">
 <p class="eyebrow reveal">Roadmap</p>
 <h2 class="reveal" id="roadmap">Ten phases, each ending at a gate</h2>
+<!-- status:begin -->
 <ol class="timeline reveal">
 <li class="step done"><span class="step-n">00</span><span class="step-name">Existence test</span><span class="step-state">Done</span></li>
 <li class="step done"><span class="step-n">01</span><span class="step-name">Architecture decisions</span><span class="step-state">Done</span></li>
-<li class="step current" aria-current="step"><span class="step-n">02</span><span class="step-name">Specification</span><span class="step-state">In progress</span></li>
-<li class="step next"><span class="step-n">03</span><span class="step-name">Threat model</span><span class="step-state">Upcoming</span></li>
-<li class="step next"><span class="step-n">04</span><span class="step-name">Simulation</span><span class="step-state">Upcoming</span></li>
-<li class="step next"><span class="step-n">05</span><span class="step-name">Prototype</span><span class="step-state">Upcoming</span></li>
+<li class="step current" aria-current="step" title="consensus drafts v0.2-v0.3, p2p and wallet drafts"><span class="step-n">02</span><span class="step-name">Specification</span><span class="step-state">In progress</span></li>
+<li class="step current" title="threat register in registers/threats.md"><span class="step-n">03</span><span class="step-name">Threat model</span><span class="step-state">In progress</span></li>
+<li class="step current" title="issuance, difficulty, capacity models"><span class="step-n">04</span><span class="step-name">Simulation</span><span class="step-state">In progress</span></li>
+<li class="step current" title="disposable Python prototype and an independent spec-only verifier"><span class="step-n">05</span><span class="step-name">Prototype</span><span class="step-state">In progress</span></li>
 <li class="step next"><span class="step-n">06</span><span class="step-name">Reference imple&shy;mentation</span><span class="step-state">Upcoming</span></li>
 <li class="step next"><span class="step-n">07</span><span class="step-name">Testnets</span><span class="step-state">Upcoming</span></li>
-<li class="step next"><span class="step-n">08</span><span class="step-name">Independent review</span><span class="step-state">Upcoming</span></li>
+<li class="step next" title="one anonymous informal review done (audits/); formal public review pending"><span class="step-n">08</span><span class="step-name">Independent review</span><span class="step-state">Upcoming</span></li>
 <li class="step next"><span class="step-n">09</span><span class="step-name">Fair launch</span><span class="step-state">Upcoming</span></li>
 </ol>
+<!-- status:end -->
 <p class="muted reveal">The project stops rather than launches if the design cannot pass independent review, keep verification affordable, or remain independent of its author. Mainnet will launch only after a public specification, testnets and independent security review. Its genesis will be derived from six future Bitcoin block headers, so nobody, including the author, can mine early.</p>
 </div>
 </section>

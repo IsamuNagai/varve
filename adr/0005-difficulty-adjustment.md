@@ -60,9 +60,21 @@ boundary to exploit (no time warp). It recovers from large departures within
 hours rather than weeks, and has five years of production use.
 
 ## Security implications
-Timestamp manipulation shifts difficulty by about 2^(skew/tau). A 10-minute
-skew with a 1-day tau changes difficulty by under 0.5%. The median-of-11 rule
-bounds backdating.
+Timestamp manipulation shifts the target by about 2^(skew/tau). With the
+chosen tau of 6 hours (21,600 s), two effects must be kept apart:
+
+- **One-time offset.** A block stamped the full 600 s future limit ahead
+  raises the next target by at most 2^(600/21600) ≈ 1.0194, about 1.94%. The
+  offset is not cumulative: the next honest timestamp undoes it, because ASERT
+  is anchored to genesis and depends only on the parent's timestamp.
+- **Steady-state effect.** A miner with 30% of the hashrate who stamps every
+  block +600 s moves the mean block interval from 300.0 s to about 300.2 s
+  (+0.06%) in simulation (`simulations/difficulty-results.txt`, tau 0.25 day).
+
+The median-of-11 rule bounds backdating.
+
+*Corrected 2026-10-31 (independent review, finding M-05): this paragraph
+previously quoted the effect for a 1-day tau, which was not the chosen value.*
 
 ## Tradeoffs
 A shorter future-time limit makes nodes with badly set clocks reject valid

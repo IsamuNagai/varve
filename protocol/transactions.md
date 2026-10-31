@@ -1,4 +1,4 @@
-# Transactions and outputs (normative, draft v0.2)
+# Transactions and outputs (normative, draft v0.3)
 
 Conventions (integer widths, little-endian, canonical `varint`, `bytes`, `H256`)
 are defined in `encoding.md`. "Invalid" means the containing block is invalid.
@@ -67,7 +67,9 @@ Witness serialization (one entry per input, in input order):
 | `signature` | bytes | length ≤ 7,856 |
 
 Full serialization = base ‖ witness. There is no witness count field; the
-witness has exactly `input_count` entries.
+witness has exactly `input_count` entries. Of the rules in these tables, only
+the `path` values and the length maxima are parse-time rules; `version = 1` and
+the non-zero counts are validity rules (encoding.md §1.5).
 
 - `txid = H256("VARVE/txid/v1", base)`. Outpoints reference txids, so a change
   to witness data cannot change a txid (no third-party malleability).
@@ -113,16 +115,27 @@ All other ids are invalid to create or spend. Each scheme has a lifecycle
 state per height range, fixed by consensus. At genesis both schemes are
 ACTIVE, and no other state is used.
 
-| State | Create outputs | Spend via path 0 | Spend via path 1 (recovery) |
-| --- | --- | --- | --- |
-| ACTIVE | yes | yes | yes |
-| NO_NEW_OUTPUTS | no | yes | yes |
-| SPEND_VIA_COMMITMENT | no | only through commit–delay–reveal (ADR-0009) | only through commit–delay–reveal |
-| DISABLED | no | no | no |
+| State | Create outputs (as `scheme_id` or `recovery_scheme_id`) | Spend via a path whose scheme is in this state |
+| --- | --- | --- |
+| ACTIVE | yes | yes |
+| NO_NEW_OUTPUTS | no | yes |
+| DISABLED | no | no |
 
-For path 1, the state that applies is the state of `recovery_scheme_id`.
-Rules for SPEND_VIA_COMMITMENT and DISABLED take effect only when a soft fork
-specifies them.
+For path 0 the state of `scheme_id` applies; for path 1 the state of
+`recovery_scheme_id` applies. So an output whose primary scheme is DISABLED
+can still be spent through its recovery path if the recovery scheme is not
+DISABLED.
+
+These three states are the complete v1 lifecycle. At genesis both schemes are
+ACTIVE. A change of state is a consensus upgrade made under
+`protocol/upgrades.md`; it is one-directional (never back to ACTIVE).
+
+**Not in v1: spending via commitment.** An emergency "commit–delay–reveal"
+spend path for a broken scheme (ADR-0009) is research only. It needs new
+consensus state (a commitment index), exact transaction formats, reorg rules,
+fee sponsorship and spam bounds, none of which are specified. No v1 rule
+refers to it, and no claim about Varve's crypto-agility may rely on it until a
+complete normative document and vectors exist (audit finding H-08).
 
 ## 7. Signature message
 
@@ -159,6 +172,28 @@ An input spending output `o`, created at height `h_o`, in a block at height `h`,
 5. `public_key` and `signature` have exactly the lengths in §6 for the selected scheme.
 6. `H256("VARVE/pk/v1", u16(scheme) ‖ public_key)` equals the selected commitment.
 7. `Verify(public_key, msg, signature)` returns true.
+
+### 8.1 Recovery trust model (informative)
+
+The recovery path is **delayed alternate authorization, not revocation**
+(audit finding M-02):
+
+- After `recovery_delay` blocks, the recovery key can spend the output on its
+  own, at any time, for as long as the output exists. No proof of death,
+  loss, or consent is involved; consensus sees only a valid signature.
+- The primary key also stays valid forever. Using the recovery path does not
+  cancel a stolen primary key; it only lets the recovery holder race the thief.
+- So a stolen recovery key is a direct theft risk once the delay has passed,
+  and an heir holding it can spend early. Whoever holds the recovery key must
+  be trusted as much as the owner, after the delay.
+- What the delay does give: a window in which the primary holder can move the
+  coins (resetting the clock) if they see unexpected recovery activity or
+  suspect the recovery key leaked. Wallets SHOULD periodically "refresh"
+  long-held recovery outputs well within the delay, and SHOULD alert on any
+  recovery-path spend.
+- A two-stage design (recovery initiation that the owner can cancel) would be
+  stronger but adds consensus state. It is out of scope for v1 and recorded as
+  an open question.
 
 ## 9. Fees and weight
 

@@ -7,6 +7,8 @@ Deterministic arithmetic only. Transaction sizes follow protocol/transactions.md
 Usage: python3 -I simulations/capacity.py
 """
 import math
+import os
+import re
 
 SECONDS_PER_YEAR = 365.25 * 86400
 
@@ -19,7 +21,26 @@ WITNESS = {                 # per input: path byte + pubkey (len+bytes) + signat
     "ML-DSA-65": 1 + (2 + 1952) + (2 + 3309),
     "SLH-DSA-SHA2-128s": 1 + (1 + 32) + (2 + 7856),
 }
-VERIFY_US = {"ML-DSA-65": 33.9, "SLH-DSA-SHA2-128s": 573.9}   # measured, 2.1 GHz Xeon core
+BENCH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "benchmarks", "pq-signatures.txt")
+BENCH_ROWS = {"ML-DSA-65": "ML-DSA-65", "SLH-DSA-SHA2-128s": "SLH_DSA_PURE_SHA2_128S"}
+
+
+def load_verify_us(path=BENCH):
+    """Mean verify time (us) per scheme, read from the committed liboqs speed_sig output (audit M-06)."""
+    out, section = {}, None
+    with open(path) as fh:
+        for line in fh:
+            cols = [c.strip() for c in line.split("|")]
+            if len(cols) < 5:
+                continue
+            if not cols[1] and cols[0] and not cols[0].startswith("-"):
+                section = cols[0] if cols[0] in BENCH_ROWS.values() else None
+            elif cols[0] == "verify" and section:
+                out[section] = float(cols[3])
+    return {name: out[row] for name, row in BENCH_ROWS.items()}
+
+
+VERIFY_US = load_verify_us()   # measured, single 2.1 GHz Xeon core
 VERIFY_UNITS = {"ML-DSA-65": 100, "SLH-DSA-SHA2-128s": 1700}  # proposed weight per signature
 UTXO_UNITS_PER_NET_OUTPUT = 100
 

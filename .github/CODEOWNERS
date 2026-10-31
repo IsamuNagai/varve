@@ -1,0 +1,9 @@
+# Review ownership. Consensus-critical paths need an owner's review once
+# branch protection requires it. More maintainers will be added here as the
+# project gains independent reviewers (audit M-08).
+*                   @IsamuNagai
+/protocol/          @IsamuNagai
+/test-vectors/      @IsamuNagai
+/tools/randomx/     @IsamuNagai
+/tools/liboqs/      @IsamuNagai
+/.github/           @IsamuNagai

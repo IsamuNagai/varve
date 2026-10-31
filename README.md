@@ -47,7 +47,8 @@ network built around four ideas:
   restarting the chain.
 - **Custody that outlives keys.** Native timelocked recovery paths support
   inheritance, disaster recovery and long-term cold storage, with no
-  smart-contract VM.
+  smart-contract VM. After its delay, a recovery key is a second owner, not a
+  revocation switch ([details](protocol/transactions.md#81-recovery-trust-model-informative)).
 - **Verification by ordinary people.** Block capacity is limited by what an
   ordinary computer can verify, not by demand.
 
@@ -67,25 +68,30 @@ compatibly.
 | Capacity and fees | ~5-minute blocks; weight = bytes + verification + UTXO growth; market fees | [ADR-0006](adr/0006-block-interval-weight-and-fees.md) |
 | Addresses | Bech32m with prefixes `varve` / `tvarve` | [ADR-0007](adr/0007-address-format.md) |
 | Launch | Genesis derived from six future Bitcoin block headers; no premine | [ADR-0008](adr/0008-fair-launch-and-genesis.md) |
-| Crypto emergencies | Commit–delay–reveal migration | [ADR-0009](adr/0009-emergency-migration-commit-delay-reveal.md) |
+| Crypto emergencies | v1: lifecycle states and recovery paths. Commit–delay–reveal deferred to research | [ADR-0009](adr/0009-emergency-migration-commit-delay-reveal.md) |
 
 **Units:** 1 varve = 100,000,000 laminae · **Ticker:** VARV
 
 ## Roadmap
 
+<!-- status:begin -->
 ```mermaid
 flowchart LR
-    P0["0 · Existence test ✓"] --> P1["1 · Architecture decisions"]
-    P1 --> P2["2 · Specification v0.1"]
-    P2 --> P3["3 · Threat model"]
-    P3 --> P4["4 · Simulation"]
-    P4 --> P5["5 · Disposable prototype"]
+    P0["0 · Existence test ✓"]
+    P0 --> P1["1 · Architecture decisions ✓"]
+    P1 --> P2["2 · Specification ◐"]
+    P2 --> P3["3 · Threat model ◐"]
+    P3 --> P4["4 · Simulation ◐"]
+    P4 --> P5["5 · Prototype ◐"]
     P5 --> P6["6 · Reference implementation"]
-    P6 --> P9["7–9 · Tools, devnet, public testnets"]
-    P9 --> P10["10 · Independent review"]
-    P10 --> P12["11–12 · Release candidate, fair launch"]
+    P6 --> P7["7 · Testnets"]
+    P7 --> P8["8 · Independent review"]
+    P8 --> P9["9 · Fair launch"]
     P3 -. "critical flaw" .-> P1
 ```
+
+✓ done · ◐ in progress. Generated from `registers/status.json`.
+<!-- status:end -->
 
 Every phase ends at a gate. The project stops rather than launches if the
 design cannot pass independent review, keep verification affordable, or remain
@@ -97,10 +103,14 @@ independent of its author.
 | --- | --- |
 | [`whitepaper/`](whitepaper/) | Draft whitepaper |
 | [`adr/`](adr/) | Architecture Decision Records: one protocol decision per file |
-| [`protocol/`](protocol/) | Normative specification drafts (consensus rules) |
-| [`registers/`](registers/) | Decision register, threat model, research sources, open questions |
+| [`protocol/`](protocol/) | Normative specification drafts: consensus, upgrades, P2P, wallet |
+| [`test-vectors/`](test-vectors/) | Consensus, chain, signature, genesis and proof-of-work vectors |
+| [`prototype/`](prototype/) | Disposable Python prototype of the consensus rules |
+| [`verifier/`](verifier/) | Independent implementation written only from the specification |
+| [`audits/`](audits/) | Review findings and how each was resolved |
+| [`registers/`](registers/) | Decision register, threat model, research sources, open questions, project status |
 | [`simulations/`](simulations/) | Reproducible models (issuance, difficulty, capacity) |
-| [`tools/`](tools/) | Repository hygiene: secret and image-metadata scanners |
+| [`tools/`](tools/) | Vector generators, pinned RandomX and liboqs builds, hygiene scanners |
 | [`docs/`](docs/) | Project website, served by GitHub Pages |
 | [`assets/brand/`](assets/brand/) | Logo files |
 

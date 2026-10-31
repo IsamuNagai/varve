@@ -18,7 +18,7 @@ jobs:
         runner: [ubuntu-24.04, ubuntu-24.04-arm]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0, pinned
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0, pinned (Node 24)
         with:
           persist-credentials: false
       - name: Build pinned liboqs (ML-DSA-65, SLH-DSA-SHA2-128s)
@@ -28,5 +28,11 @@ jobs:
           VARVE_LIBOQS: ${{ runner.temp }}/liboqs/build/lib/liboqs.so
           VARVE_REQUIRE_LIBOQS: "1"
         run: python3 -I prototype/test_proto.py -v
+      - name: Independent spec-only verifier against all vectors
+        env:
+          VARVE_LIBOQS: ${{ runner.temp }}/liboqs/build/lib/liboqs.so
+        run: |
+          python3 -I verifier/run_vectors.py
+          python3 -I verifier/selftest.py
       - name: Build pinned, patched RandomX and verify all PoW vectors
         run: sh tools/randomx/build_and_check.sh "$RUNNER_TEMP/randomx"

@@ -21,7 +21,9 @@
 `block = header ‖ varint(tx_count) ‖ tx_0 (full serialization) ‖ … ‖ tx_{n−1}`
 
 - `tx_count ≥ 1`; `tx_0` is the coinbase; no other transaction is a coinbase.
-- `Σ weight(tx) ≤ MAX_BLOCK_WEIGHT = 720,000`.
+- `Σ weight(tx) ≤ MAX_BLOCK_WEIGHT = 720,000`, where the coinbase's weight is
+  its serialized length only and every other transaction's weight is as in
+  transactions.md §9.
 - Weight is at least the serialized length, so a peer message larger than
   `116 + 5 + MAX_BLOCK_WEIGHT` bytes is rejected before parsing.
 
@@ -46,8 +48,9 @@ yet process, a block whose `timestamp > local_clock + MAX_FUTURE_DRIFT`
 (600 s). A deferred block MUST NOT be marked invalid. The node MAY process it
 later, once its clock has caught up.
 
-**Validity.** Nodes MUST reject at the first failing step. The order is fixed,
-so peers are scored consistently, and cheap checks come before expensive ones.
+**Validity.** A block is valid only if every step below passes; the result
+does not depend on the order. Nodes SHOULD evaluate in this order, so cheap
+checks come before expensive ones and peers are scored consistently.
 
 1. **Size bound:** the raw message length is within the §2 bound.
 2. **Header syntax:** exactly 116 bytes; `version = 1`.
@@ -58,9 +61,12 @@ so peers are scored consistently, and cheap checks come before expensive ones.
 7. **Block parse:** the canonical encoding parses exactly, with no trailing
    bytes, within the parse limits of transactions.md §3.
 8. **Root:** `tx_root` matches.
-9. **Structure:** coinbase position and uniqueness; no duplicate txids.
-10. **Weight:** `Σ weight ≤ MAX_BLOCK_WEIGHT`. This is computable from bytes
-    alone (transactions.md §9).
+9. **Structure:** `tx_0` has exactly one input, and its `prev_txid` is 32 zero
+   bytes; no other transaction has any input with a zero `prev_txid`; no two
+   transactions have the same txid.
+10. **Weight:** `Σ weight ≤ MAX_BLOCK_WEIGHT`, with the coinbase weighed by its
+    serialized length only (§2). This is computable from bytes alone
+    (transactions.md §9).
 11. **Each transaction, in order:**
     1. syntax, version, and counts;
     2. locktime (non-coinbase);
@@ -72,7 +78,10 @@ so peers are scored consistently, and cheap checks come before expensive ones.
     6. coinbase rules (transactions.md §4) for `tx_0`;
     7. every input's spend conditions (transactions.md §8).
 12. **Coinbase value:** coinbase outputs ≤ `subsidy(height)` + total fees.
-13. **Commit:** apply the UTXO changes atomically.
+13. **Commit:** apply the UTXO changes atomically. An input may refer only to
+    an output of an *earlier* transaction in the block, never to its own or a
+    later one. Outputs created and spent within the same block never enter the
+    UTXO set.
 
 Signature verification (11.7) MAY run in parallel. The result MUST equal
 sequential evaluation.
@@ -134,7 +143,8 @@ and scheduling.
    - Because a branch only needs one cache per 2,048 blocks, honest forks across
      a key rotation always fit within the budget.
 5. **First sync.** A new node MAY use a release-supplied `MIN_CHAIN_WORK`, and
-   ignore header chains with less total work during initial download. This is a
+   ignore header chains with less total work until its active tip reaches it
+   (p2p.md §5.3; no timeout, operator-overridable). This is a
    resource limit, not a checkpoint. Any chain above it is evaluated purely by
    consensus rules.
 

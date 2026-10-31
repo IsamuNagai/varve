@@ -5,7 +5,7 @@
 | `INITIAL_SUBSIDY` | 8,200,000,000 laminae (82 varve) |
 | `TAIL_SUBSIDY` | 600,000,000 laminae (6 varve) |
 | `BLOCKS_PER_EPOCH` | 13,149 (64 epochs = 841,536 blocks ≈ 8 years at 300 s) |
-| `FRAC[0..63]` | `floor(2^63 × 2^(−k/64))`, listed in `test-vectors/subsidy.json` |
+| `FRAC[0..63]` | `FRAC[k] = floor(2^63 × 2^(−k/64))`: the unique integer `v` with `v^64 × 2^k ≤ 2^4032 < (v+1)^64 × 2^k`. This definition is normative; `test-vectors/subsidy.json` lists the values |
 
     subsidy(0) = 0                                   # genesis
     for height ≥ 1:

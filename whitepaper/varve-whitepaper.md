@@ -76,7 +76,7 @@ Two policies exist at launch:
    delay of `recovery_delay` blocks since the output confirmed, a signature
    under the independent recovery scheme and key.
 
-[DESIGN] There is no script language. New policies require a soft fork. The
+[DESIGN] There is no script language. New policies require a coordinated upgrade of all nodes (a hard fork), because unknown policies are invalid rather than anyone-can-spend. The
 policy set covers the main long-term custody needs, such as inheritance,
 disaster recovery, and dormant cold storage. Consensus knows nothing about
 heirs or deaths; it evaluates only signatures, paths, and block heights.
@@ -147,14 +147,14 @@ Each scheme id has a consensus state:
 | --- | --- | --- |
 | ACTIVE | allowed | allowed |
 | NO_NEW_OUTPUTS | rejected | allowed |
-| SPEND_VIA_COMMITMENT | rejected | only through commit–delay–reveal |
 | DISABLED | rejected | only through an output's recovery path |
 
-[DESIGN] Transitions happen only by soft fork at a fixed height, are
+[DESIGN] Transitions happen only by a consensus upgrade at a fixed height, are
 one-directional, and are never triggered automatically by an oracle. An output
 can only be spent under the scheme it committed to, so downgrade is impossible
-by construction. Future standardized schemes enter as new scheme ids, without
-new currency, without restarting the chain, and without touching existing outputs.
+by construction. Future standardized schemes enter as new scheme ids through a scheduled,
+height-activated upgrade of all nodes (protocol/upgrades.md), without new
+currency, without restarting the chain, and without touching existing outputs.
 
 **What agility can and cannot do.**
 
@@ -162,11 +162,11 @@ new currency, without restarting the chain, and without touching existing output
   move funds at leisure. No losses.
 - *Practical break:* unspent outputs whose public keys were never revealed
   remain protected by their hash commitments, but spending reveals the key and
-  invites a race. [DESIGN, sketch] **Commit–delay–reveal** addresses this.
-  1. The owner first publishes a hash binding the outpoint, the key, and the
-     destination, paid from a safe output.
-  2. After a delay, the owner reveals and spends.
-  3. Consensus accepts only spends that match the earliest buried commitment.
+  invites a race. [RESEARCH, not in v1] A **commit–delay–reveal** spend path
+  could address this: the owner first publishes a hash binding the outpoint,
+  key and destination, then reveals and spends after a delay. It needs new
+  consensus state and many unresolved rules (ADR-0009, deferred), so v1 does
+  not include or rely on it.
 - *Outputs with a recovery path* can be moved under the independent hash-based
   scheme without any race.
 - *Cannot be solved:* outputs whose keys are already public through address
@@ -196,9 +196,12 @@ Reasons:
    depends entirely on fees. A fixed absolute tail keeps mining funded while
    inflation tends toward zero, and it offsets coins lost over time.
 
-[OPEN] The absolute numbers (denomination, initial subsidy, tail size) are
-set after fee and security modelling. Denomination is cosmetic; the shape of
-distribution is not.
+[DESIGN] The numbers (ADR-0004, protocol/subsidy.md): the subsidy starts at
+**82 varve** per block and falls by a factor 2^(−1/64) every 13,149 blocks
+(an eight-year half-life at 300-second blocks), computed exactly from a
+64-entry integer table. It reaches the **6 varve** tail at block 3,182,059,
+about 30 years after launch, and stays there. 1 varve = 10^8 laminae.
+Denomination is cosmetic; the shape of distribution is not.
 
 Fees are paid to miners in full. There are no burns, developer fees, or taxes.
 

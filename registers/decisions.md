@@ -16,5 +16,5 @@ Never reverse a decision silently. Supersede it with a new ADR and update this t
 | ADR-0006 | Interval / weight / fees | ACCEPTED (spec v0.1) | 300 s; max weight 720,000 (75.7 GB/yr, ~0.43 tx/s); verify units 100 / 1,700 | ADR-0002 | Testnet propagation |
 | ADR-0007 | Addresses | PROPOSED | Bech32m, prefixes `varve` / `tvarve` / `rvarve` | ADR-0001/2 | Usability study |
 | ADR-0008 | Genesis | PROPOSED (revised after review) | Seed over all six Bitcoin headers H..H+5 with exact nBits; t0 = median; unspendable coinbase | ADR-0005 | Phase 3 |
-| ADR-0009 | Emergency migration | PROPOSED (sketch) | Commit–delay–reveal | ADR-0002 | Phase 2/3 |
+| ADR-0009 | Emergency migration | DEFERRED (not in v1) | Commit–delay–reveal, research only | ADR-0002 | post-v1 |
 | ADR-0010 | License / language | ACCEPTED / PROPOSED | MIT OR Apache-2.0; Rust leaning | — | Dependency review |

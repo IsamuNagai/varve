@@ -1,7 +1,17 @@
 # ADR-0009: Emergency migration via commit–delay–reveal
 
 ## Status
-PROPOSED (2026-10-30). Design sketch; requires full specification and review.
+DEFERRED (2026-10-31). Not part of v1. Research sketch only.
+
+An independent review (finding H-08) noted that this sketch cannot be
+implemented from the specification: it lacks a transaction representation for
+the commitment (current outputs have no data field), a consensus commitment
+index, exact validity rules, fee sponsorship, spam/state-growth bounds,
+expiry, reorg handling and a definition of "earliest valid commitment" under
+reorgs, reveal serialization, activation, interaction with recovery outputs,
+and DoS limits. Until all of these are specified with vectors, Varve does not
+claim this mechanism, and the v1 lifecycle (transactions.md §6) has no state
+that depends on it.
 
 ## Context
 If a signature scheme is broken in practice, spending an output reveals its
@@ -9,7 +19,7 @@ public key, and an attacker can then race the legitimate holder with a forged
 spend. Agility does not help users who did not add a recovery path.
 
 ## Decision (sketch)
-When a scheme enters SPEND_VIA_COMMITMENT (ADR-0002):
+If a future upgrade added a SPEND_VIA_COMMITMENT lifecycle state:
 
 1. **Commit.** The holder publishes a commitment transaction, paid from an
    output under a still-safe scheme, containing

@@ -12,11 +12,11 @@ Likelihood and impact: L = low, M = medium, H = high. Tests refer to future test
 | T-T1 | Verification-cost DoS (SLH-DSA-heavy blocks) | Miner or spammer | Fees | M | M | verify_units in weight (ADR-0006) | L | Benchmark vectors |
 | T-T2 | Transaction malleability | Relay node | None | L | M | Txid excludes witness; canonical encodings only | L | Encoding vectors |
 | T-T3 | Cross-network replay | Anyone | Testnet/mainnet keys | L | M | Network id in signature hash | L | Signature-hash vectors |
-| T-K1 | ML-DSA cryptanalytic weakening | Researchers, states | Breakthrough | L–M | H | Lifecycle, commitments, recovery path, ADR-0009 | L–M | — |
+| T-K1 | ML-DSA cryptanalytic weakening | Researchers, states | Breakthrough | L–M | H | Lifecycle, commitments, recovery path (ADR-0009 deferred, not relied on) | L–M | — |
 | T-K2 | Implementation flaw (side channel, fault, bad RNG) | Local attacker, malware | Device access | M | H | Audited libraries, hedged signing, constant-time review | M | KAT and fault tests |
 | T-K3 | Public key exposure via address reuse | Future quantum attacker | Reuse | M | M | Wallets never reuse addresses; documentation | M | Wallet tests |
 | T-W1 | Seed theft or clipboard replacement | Malware | Infected device | H | H | Address verification UX, offline signing | M | — |
-| T-W2 | Recovery-path misuse (early recovery claim) | Heir or thief holding the recovery key | Recovery key | M | H | Relative delay; wallet alerts on recovery-path activity | M | Policy tests |
+| T-W2 | Recovery-path misuse (early recovery claim) | Heir or thief holding the recovery key | Recovery key | M | H | Relative delay; wallet refresh + alerts; documented as delayed alternate authorization, not revocation (transactions.md §8.1) | M | chain.json recovery-boundary cases |
 | T-M1 | Day-one hashrate rental | Well-funded party | Market liquidity | H | H | None technical; launch messaging | H | — |
 | T-M2 | Private miner optimization by the author | Author | Secrecy | L | H | Publish exact miner; delay launch if an optimization is found | L | Public benchmarks |
 | T-M3 | Botnet mining | Criminals | CPU-friendly PoW | H | M | None technical | M | — |

@@ -197,7 +197,12 @@ class Tx:
         outputs = [Output.parse(r) for _ in range(n_out)]
         locktime = r.uint(4)
         max_pk, max_sig = 1952, 7856
-        witnesses = [Witness(r.uint(1), r.bytes_(max_pk), r.bytes_(max_sig)) for _ in range(n_in)]
+        witnesses = []
+        for _ in range(n_in):
+            path = r.uint(1)
+            if path not in (0, 1):
+                raise Invalid("unknown witness path")          # parse-time rule (encoding.md §1.5)
+            witnesses.append(Witness(path, r.bytes_(max_pk), r.bytes_(max_sig)))
         return Tx(inputs, outputs, witnesses, locktime, version)
 
 
@@ -320,11 +325,32 @@ class Header:
     def block_id(self):
         return h256("VARVE/block/v1", self.serialize())
 
+    @staticmethod
+    def parse(r):
+        version, prev, root = r.uint(4), r.take(32), r.take(32)
+        ts, target, nonce = r.uint(8), r.uint(32), r.uint(8)
+        return Header(prev, root, ts, target, nonce, version)
+
 
 @dataclass
 class Block:
     header: Header
     txs: list
+
+    def serialize(self):
+        return self.header.serialize() + varint(len(self.txs)) + b"".join(t.full() for t in self.txs)
+
+    @staticmethod
+    def parse(data):
+        r = Reader(data)
+        hd = Header.parse(r)
+        n = r.varint()
+        if n < 1:
+            raise Invalid("empty block")
+        r.need(n * (4 + 1 + MIN_SIZE["input"] + 1 + MIN_SIZE["output"] + 4 + MIN_SIZE["witness"]))
+        txs = [Tx.parse(r) for _ in range(n)]
+        r.done()
+        return Block(hd, txs)
 
 
 def work(target):
@@ -493,10 +519,60 @@ class Chain:
 
 
 # ---------------------------------------------------------------- genesis.md
+BTC_PERIOD = 2016
+BTC_POW_LIMIT = 0xFFFF << 208          # Bitcoin mainnet powLimit (nBits 0x1d00ffff)
+
+
+def sha256d(b):
+    return hashlib.sha256(hashlib.sha256(b).digest()).digest()
+
+
+def btc_compact_to_target(bits):
+    """Decode Bitcoin compact nBits exactly as Bitcoin Core's arith_uint256::SetCompact,
+    rejecting what CheckProofOfWork rejects: negative, zero, or overflowing (>= 2^256) targets."""
+    if not 0 <= bits < 1 << 32:
+        raise Invalid("nBits out of range")
+    size, word = bits >> 24, bits & 0x007FFFFF
+    if size <= 3:
+        target = word >> (8 * (3 - size))
+    else:
+        target = word << (8 * (size - 3))
+    if word and bits & 0x00800000:
+        raise Invalid("nBits negative")
+    if target >> 256:
+        raise Invalid("nBits overflow")
+    if target == 0:
+        raise Invalid("nBits zero target")
+    return target
+
+
+def check_btc_anchor(headers, anchor_height, anchor_prev_hash, anchor_bits):
+    """genesis.md §2 step 2. Hashes are in Bitcoin's internal (little-endian) byte order,
+    i.e. the bytes as they appear inside a header. Raises Invalid with the first failure."""
+    if len(headers) != 6 or any(len(x) != 80 for x in headers):
+        raise Invalid("need six 80-byte Bitcoin headers")
+    if anchor_height % BTC_PERIOD > BTC_PERIOD - 6:
+        raise Invalid("anchor crosses a Bitcoin difficulty period")
+    target = btc_compact_to_target(anchor_bits)
+    if target > BTC_POW_LIMIT:
+        raise Invalid("anchor nBits above Bitcoin powLimit")
+    prev = anchor_prev_hash
+    for k, x in enumerate(headers):
+        if x[4:36] != prev:
+            raise Invalid(f"header {k}: prev mismatch")
+        if int.from_bytes(x[72:76], "little") != anchor_bits:
+            raise Invalid(f"header {k}: nBits mismatch")
+        hsh = sha256d(x)
+        if int.from_bytes(hsh, "little") > target:
+            raise Invalid(f"header {k}: proof of work")
+        prev = hsh
+    return True
+
+
 def genesis_block(params_hash, btc_headers, initial_target):
     """genesis.md §2 steps 3-7, from params_hash and the six Bitcoin headers H..H+5.
 
-    Checking the Bitcoin headers' linkage, nBits, and proof of work (step 2) is the caller's job.
+    The caller must first run check_btc_anchor (step 2).
     """
     if len(btc_headers) != 6 or any(len(x) != 80 for x in btc_headers):
         raise Invalid("need six 80-byte Bitcoin headers")

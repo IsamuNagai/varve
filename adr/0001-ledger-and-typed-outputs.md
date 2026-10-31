@@ -45,7 +45,7 @@ permanent attack surface of a script language.
 ## Security implications
 - A small, closed set of output types is far easier to specify, test, and audit than a script VM.
 - The commitment hides the public key until spend (see ADR-0002).
-- New policies require a soft fork. This is intended.
+- New policies require a hard fork (all nodes upgrade), because v1 rejects unknown policies rather than treating them as anyone-can-spend. This is intended; see protocol/upgrades.md. *(Corrected 2026-10-31: earlier text said soft fork.)*
 
 ## Tradeoffs
 - No multisignature in v1. PQ threshold signatures are immature, and naive

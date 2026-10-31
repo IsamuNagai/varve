@@ -1,0 +1,15 @@
+{
+ "_comment": "Single source of truth for public project status. tools/status.py generates the README and website roadmaps from this file; CI fails if they drift (audit M-04, L-04). States: done | active | upcoming.",
+ "phases": [
+  {"n": 0, "name": "Existence test", "state": "done"},
+  {"n": 1, "name": "Architecture decisions", "state": "done"},
+  {"n": 2, "name": "Specification", "state": "active", "note": "consensus drafts v0.2-v0.3, p2p and wallet drafts"},
+  {"n": 3, "name": "Threat model", "state": "active", "note": "threat register in registers/threats.md"},
+  {"n": 4, "name": "Simulation", "state": "active", "note": "issuance, difficulty, capacity models"},
+  {"n": 5, "name": "Prototype", "state": "active", "note": "disposable Python prototype and an independent spec-only verifier"},
+  {"n": 6, "name": "Reference implementation", "state": "upcoming"},
+  {"n": 7, "name": "Testnets", "state": "upcoming"},
+  {"n": 8, "name": "Independent review", "state": "upcoming", "note": "one anonymous informal review done (audits/); formal public review pending"},
+  {"n": 9, "name": "Fair launch", "state": "upcoming"}
+ ]
+}

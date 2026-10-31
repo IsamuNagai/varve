@@ -71,6 +71,42 @@ class Genesis(unittest.TestCase):
             hs[k] = bytes([0xEE]) + hs[k][1:]
             self.assertNotEqual(v.genesis_block(PARAMS_HASH, hs, INIT_TARGET).header.block_id(), base, k)
 
+    def test_anchor_vectors(self):
+        d = load("genesis.json")
+        for c in d["anchor_cases"]:
+            hs = [bytes.fromhex(x) for x in c["headers"]]
+            try:
+                v.check_btc_anchor(hs, c["anchor_height"], bytes.fromhex(c["anchor_prev_hash_internal"]),
+                                   int(c["anchor_bits"], 16))
+                got = "valid"
+            except v.Invalid as e:
+                got = str(e)
+            self.assertEqual(got, c["result"], c["name"])
+        for c in d["compact_cases"]:
+            try:
+                got = {"bits": c["bits"], "target": f"{v.btc_compact_to_target(int(c['bits'], 16)):064x}"}
+            except v.Invalid as e:
+                got = {"bits": c["bits"], "result": str(e)}
+            self.assertEqual(got, c)
+
+    def test_anchor_rejects_every_single_byte_mutation(self):
+        hs = [bytes.fromhex(x) for x in load("genesis.json")["anchor_cases"][0]["headers"]]
+        v.check_btc_anchor(hs, 0, bytes(32), 0x1D00FFFF)
+        for k in range(6):
+            for off in range(80):
+                bad = list(hs)
+                x = bytearray(bad[k])
+                x[off] ^= 0x01
+                bad[k] = bytes(x)
+                with self.assertRaises(v.Invalid, msg=(k, off)):
+                    v.check_btc_anchor(bad, 0, bytes(32), 0x1D00FFFF)
+
+    def test_example_genesis_reproduces(self):
+        d = load("genesis.json")
+        hs = [bytes.fromhex(x) for x in d["anchor_cases"][0]["headers"]]
+        g = v.genesis_block(bytes.fromhex(d["example_genesis"]["params_hash"]), hs, 2 ** 240)
+        self.assertEqual(g.header.block_id().hex(), d["example_genesis"]["block_id"])
+
     def test_t0_is_upper_median(self):
         g = v.genesis_block(PARAMS_HASH, fake_btc_headers((5, 1, 9, 3, 7, 100)), INIT_TARGET)
         self.assertEqual(g.header.timestamp, 7)          # sorted [1,3,5,7,9,100][3]
@@ -109,6 +145,100 @@ class Encoding(unittest.TestCase):
         v.Tx.parse(r)
         with self.assertRaises(v.Invalid):
             r.done()
+
+
+class ConsensusVectors(unittest.TestCase):
+    def test_transactions(self):
+        for c in load("consensus.json")["transactions"]:
+            raw = bytes.fromhex(c["hex"])
+            try:
+                r = v.Reader(raw)
+                tx = v.Tx.parse(r)
+                r.done()
+            except v.Invalid:
+                self.assertEqual(c["parse"], "error", c["name"])
+                continue
+            self.assertEqual(c["parse"], "ok", c["name"])
+            self.assertEqual((tx.txid().hex(), tx.wtxid().hex(), tx.weight(), len(tx.base())),
+                             (c["txid"], c["wtxid"], c["weight"], c["base_size"]), c["name"])
+
+    def test_merkle_headers_sighash_chainwork(self):
+        d = load("consensus.json")
+        for c in d["merkle"]:
+            self.assertEqual(v.merkle_root([bytes.fromhex(x) for x in c["wtxids"]]).hex(), c["root"], c["name"])
+        for c in d["headers"]:
+            hd = v.Header.parse(v.Reader(bytes.fromhex(c["hex"])))
+            self.assertEqual(hd.serialize().hex(), c["hex"])
+            self.assertEqual(hd.block_id().hex(), c["block_id"], c["name"])
+        for c in d["sighash"]:
+            tx = v.Tx.parse(v.Reader(bytes.fromhex(c["tx_hex"])))
+            spent = [v.Output.parse(v.Reader(bytes.fromhex(x))) for x in c["spent_outputs"]]
+            got = v.sighash(bytes.fromhex(c["network_id"]), bytes.fromhex(c["genesis_id"]), tx, c["index"], spent, c["path"])
+            self.assertEqual(got.hex(), c["sighash"], c["name"])
+        for c in d["chainwork"]:
+            hs = [v.Header(bytes(32), bytes(32), 0, int(t, 16)) for t in c["targets"]]
+            self.assertEqual(v.chainwork(hs), int(c["chainwork"], 16), c["name"])
+
+    def test_parser_fuzz(self):
+        """Seeded mutation fuzzing: parsers either succeed or raise Invalid, never anything else."""
+        import random
+        rng = random.Random(0x5641525645)
+        seeds = [bytes.fromhex(c["hex"]) for c in load("consensus.json")["transactions"]]
+        for i in range(3000):
+            data = bytearray(rng.choice(seeds))
+            for _ in range(rng.randint(1, 8)):
+                op = rng.randrange(4)
+                pos = rng.randrange(len(data) + 1)
+                if op == 0 and data:
+                    data[pos % len(data)] = rng.randrange(256)
+                elif op == 1:
+                    data[pos:pos] = bytes([rng.randrange(256)] * rng.randint(1, 5))
+                elif op == 2:
+                    del data[pos:pos + rng.randint(1, 64)]
+                else:
+                    data = data[:pos]
+            for parse in (lambda b: v.Tx.parse(v.Reader(b)), v.Block.parse):
+                try:
+                    parse(bytes(data))
+                except v.Invalid:
+                    pass
+
+
+@unittest.skipUnless(os.environ.get("VARVE_LIBOQS"), "set VARVE_LIBOQS to run signature tests")
+class SignedVectors(unittest.TestCase):
+    def test_signatures(self):
+        with v.PQ() as pq:
+            for c in load("signatures.json")["signatures"]:
+                ok = pq.verify(c["scheme_id"], bytes.fromhex(c["public_key"]), bytes.fromhex(c["message"]),
+                               bytes.fromhex(c["signature"]))
+                self.assertEqual(ok, c["valid"], c["name"])
+
+    def test_chain_cases(self):
+        d = load("chain.json")
+        with v.PQ() as pq:
+            def fresh(n):
+                c = v.Chain(d["network"], int(d["initial_target"], 16), lambda h, hd: True, pq)
+                c.add_genesis(v.Block.parse(bytes.fromhex(d["genesis"])))
+                for b in base[:n]:
+                    c.connect(b)
+                return c
+            base = [v.Block.parse(bytes.fromhex(x)) for x in d["base_chain"]]
+            for b in base:
+                self.assertEqual(b.serialize().hex(), d["base_chain"][base.index(b)])
+            snapshots = {}
+            for c in d["cases"]:
+                p = c["parent_height"]
+                if p not in snapshots:
+                    snapshots[p] = fresh(p)
+                chain = snapshots[p]
+                state = (dict(chain.utxo), list(chain.blocks))
+                try:
+                    chain.connect(v.Block.parse(bytes.fromhex(c["block"])))
+                    got = "valid"
+                except v.Invalid:
+                    got = "invalid"
+                chain.utxo, chain.blocks = state
+                self.assertEqual(got, c["result"], c["name"])
 
 
 @unittest.skipUnless(os.environ.get("VARVE_LIBOQS"), "set VARVE_LIBOQS to run signature tests")

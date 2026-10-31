@@ -6,7 +6,12 @@ so parameters cannot be swapped after the launch datum is known.
 
 ## Serialization
 
-For each entry, in the order given by `tools/params.py`:
+For each entry, in the order of the Entries table below, top to bottom. A row
+that lists several names (`SCHEME_0001_ALG / PK_LEN / …`) expands left to right
+into separate entries named `SCHEME_0001_ALG`, `SCHEME_0001_PK_LEN`,
+`SCHEME_0001_SIG_LEN`, `SCHEME_0001_VERIFY_UNITS` (likewise for 0002 and
+`RANDOMX_KEY_EPOCH`, `RANDOMX_KEY_LAG`), 35 entries in all. Every `bytes` value,
+fixed-length or not, carries its varint length:
 
     u8(len(name)) ‖ name (ASCII) ‖ value
 

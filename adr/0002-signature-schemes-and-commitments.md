@@ -32,7 +32,7 @@ attack models for decades. No signature scheme can be assumed secure forever.
 | `0x0000` | reserved, invalid | — | — |
 | `0x0001` | ML-DSA-65 (FIPS 204, pure mode, empty context string) | Primary | ACTIVE |
 | `0x0002` | SLH-DSA-SHA2-128s (FIPS 205, pure mode, empty context string) | Recovery or primary | ACTIVE |
-| `0x0003`–`0xFFFF` | reserved for future soft forks | — | invalid to create or spend |
+| `0x0003`–`0xFFFF` | reserved for future upgrades (adding one is a hard fork; protocol/upgrades.md) | — | invalid to create or spend |
 
 **Commitment:** `commitment = H256("VARVE/pk/v1", u16_le(scheme_id) || public_key)`, where `H256` is the length-prefixed, tagged SHA3-256 defined in protocol/encoding.md §4.
 The domain tag and scheme id bind the commitment to the scheme, so a key cannot
@@ -49,10 +49,14 @@ fault-attack exposure. Verification is deterministic either way.
 | --- | --- | --- |
 | ACTIVE | allowed | allowed |
 | NO_NEW_OUTPUTS | rejected | allowed |
-| SPEND_VIA_COMMITMENT | rejected | only through commit–delay–reveal (ADR-0009) |
-| DISABLED | rejected | rejected, except via the output's recovery path |
+| DISABLED | rejected | rejected, except via the output's recovery path (if that scheme is not DISABLED) |
 
-State changes occur only by soft fork activated at a block height. Changes are
+*Amended 2026-10-31 (independent review, finding H-08):* a fourth state,
+SPEND_VIA_COMMITMENT, was listed here. It is removed from v1 because the
+mechanism it depends on (ADR-0009) is only a sketch. It may return as a new
+state via a future upgrade once fully specified.
+
+State changes occur only by consensus upgrade activated at a block height (`protocol/upgrades.md`). Changes are
 one-directional (no return to ACTIVE). There is no automatic or
 oracle-triggered transition. "Discouraged" is wallet policy, not consensus.
 

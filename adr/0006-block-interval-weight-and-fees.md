@@ -50,8 +50,10 @@ Typical sizes:
 | SLH-DSA recovery spend (1-in/1-out) | 7,982 B | 9,682 |
 
 ## Rationale
-Bytes dominate cost. Worst-case verification of a full block is 4.5 ms with
-ML-DSA spends and 42.5 ms with SLH-DSA spends, so CPU denial of service is not
+Bytes dominate cost. Worst-case verification of a full block is 3.9 ms with
+ML-DSA spends and 45.1 ms with SLH-DSA spends (one 2.1 GHz core; numbers read
+by `simulations/capacity.py` directly from the committed benchmark file since
+the 2026-10-31 review, finding M-06), so CPU denial of service is not
 a concern at this size. verify_units keep the ratio honest for future, costlier
 schemes. A 300-second interval keeps stale rates around 1% even without compact
 relay, while confirmations stay usable.

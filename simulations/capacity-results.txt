@@ -18,8 +18,8 @@ Block weight limit vs. growth and throughput at sustained full blocks
 Chosen: max weight 720,000, interval 300 s
   chain growth at full blocks: 75.7 GB/yr
   throughput: 0.43 typical tx/s, 129 tx/block
-  worst-case verification, block of ML-DSA-65 spends: 133 signatures, 4.5 ms on one core
-  worst-case verification, block of SLH-DSA-SHA2-128s spends: 74 signatures, 42.5 ms on one core
+  worst-case verification, block of ML-DSA-65 spends: 133 signatures, 3.9 ms on one core
+  worst-case verification, block of SLH-DSA-SHA2-128s spends: 74 signatures, 45.1 ms on one core
   (without verification units an SLH-only block would hold 90 signatures)
 
 Stale-block rate estimate (exponential model, delay = latency + transfer + validation)

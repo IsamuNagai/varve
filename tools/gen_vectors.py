@@ -112,10 +112,20 @@ if __name__ == "__main__":
     diff = {"description": "ASERT next-target vectors anchored at genesis (INITIAL_TARGET placeholder 2^240, "
                            "POW_LIMIT = INITIAL_TARGET x 256, TAU 21600, T 300). parent_time_minus_genesis is t_h - t0.",
             "cases": []}
-    for label, dt, h in [("parent is genesis", 0, 0), ("on schedule, h=1000", 300 * 1000, 1000),
+    for label, dt, h in ([("parent is genesis", 0, 0), ("on schedule, h=1000", 300 * 1000, 1000),
                          ("one tau ahead (fast)", 300 * 100 - 21600, 100), ("one tau behind (slow)", 300 * 100 + 21600, 100),
                          ("half tau behind", 300 * 100 + 10800, 100), ("1 second behind", 300 * 100 + 1, 100),
-                         ("far behind (clamped to POW_LIMIT)", 10 ** 9, 10), ("far ahead (clamped to 1)", 0, 10 ** 7)]:
+                         ("far behind (clamped to POW_LIMIT)", 10 ** 9, 10), ("far ahead (clamped to 1)", 0, 10 ** 7),
+                         # added after the independent verifier's mutation testing (2026-10-31):
+                         ("1 second ahead (negative, non-exact: floor not truncation)", 300 * 100 - 1, 100),
+                         ("1.5 tau ahead (negative fraction)", 300 * 100 - 32400, 100),
+                         ("8.5 tau behind (final clamp to POW_LIMIT, no early return)", 300 * 100 + 183600, 100),
+                         ("249 tau ahead (final clamp to 1, no early return)", 18000, 18000),
+                         ("exactly 256 tau behind (early return)", 300 * 10 + 256 * 21600, 10),
+                         ("exactly 270 tau ahead (early return)", 300 * 30000 - 270 * 21600, 30000)]
+                        + [(f"fraction sweep {k}", 300 * 1000 + d, 1000)
+                           for k, d in enumerate((7, 333, 1234, 5399, 10799, 16201, 21599, -7, -333, -1234,
+                                                  -5399, -10799, -16201, -21599, 3 * 21600 + 77, -3 * 21600 - 77))]):
         t = asert_target(init, dt, h, tau)
         diff["cases"].append({"label": label, "parent_time_minus_genesis": dt, "parent_height": h, "next_target_hex": f"{t:064x}"})
 

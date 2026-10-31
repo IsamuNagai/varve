@@ -11,20 +11,27 @@ jobs:
   no-secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0, pinned
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0, pinned (Node 24)
         with:
           persist-credentials: false
-      - name: Scan for secrets and personal data
-        run: sh tools/check-no-secrets.sh
+          fetch-depth: 0
+      - name: Scan for secrets and personal data (tree and full history)
+        run: sh tools/check-no-secrets.sh --history
       - name: Scan images for metadata
         run: python3 -I tools/check-image-metadata.py
       - name: Issuance model runs
         run: python3 -I simulations/issuance.py
       - name: Prototype tests (signature tests skip without liboqs)
         run: python3 -I prototype/test_proto.py
+      - name: Independent verifier (signature checks skip without liboqs)
+        run: python3 -I verifier/run_vectors.py
       - name: Test vectors are reproducible
         run: |
           python3 -I simulations/subsidy.py
           python3 -I tools/gen_vectors.py
           python3 -I tools/params.py
-          git diff --exit-code -- test-vectors
+          python3 -I tools/gen_genesis_vectors.py > /dev/null
+          python3 -I tools/gen_consensus_vectors.py
+          python3 -I tools/status.py --check
+          python3 -I simulations/capacity.py > simulations/capacity-results.txt
+          git diff --exit-code -- test-vectors simulations/capacity-results.txt

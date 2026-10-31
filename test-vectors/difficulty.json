@@ -48,6 +48,138 @@
    "parent_time_minus_genesis": 0,
    "parent_height": 10000000,
    "next_target_hex": "0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  {
+   "label": "1 second ahead (negative, non-exact: floor not truncation)",
+   "parent_time_minus_genesis": 29999,
+   "parent_height": 100,
+   "next_target_hex": "0000fffd80000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "1.5 tau ahead (negative fraction)",
+   "parent_time_minus_genesis": -2400,
+   "parent_height": 100,
+   "next_target_hex": "00005a8080000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "8.5 tau behind (final clamp to POW_LIMIT, no early return)",
+   "parent_time_minus_genesis": 213600,
+   "parent_height": 100,
+   "next_target_hex": "0100000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "249 tau ahead (final clamp to 1, no early return)",
+   "parent_time_minus_genesis": 18000,
+   "parent_height": 18000,
+   "next_target_hex": "0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  {
+   "label": "exactly 256 tau behind (early return)",
+   "parent_time_minus_genesis": 5532600,
+   "parent_height": 10,
+   "next_target_hex": "0100000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "exactly 270 tau ahead (early return)",
+   "parent_time_minus_genesis": 3168000,
+   "parent_height": 30000,
+   "next_target_hex": "0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  {
+   "label": "fraction sweep 0",
+   "parent_time_minus_genesis": 300007,
+   "parent_height": 1000,
+   "next_target_hex": "0001000f00000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 1",
+   "parent_time_minus_genesis": 300333,
+   "parent_height": 1000,
+   "next_target_hex": "000102c200000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 2",
+   "parent_time_minus_genesis": 301234,
+   "parent_height": 1000,
+   "next_target_hex": "00010a5d00000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 3",
+   "parent_time_minus_genesis": 305399,
+   "parent_height": 1000,
+   "next_target_hex": "0001306f00000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 4",
+   "parent_time_minus_genesis": 310799,
+   "parent_height": 1000,
+   "next_target_hex": "000169fe00000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 5",
+   "parent_time_minus_genesis": 316201,
+   "parent_height": 1000,
+   "next_target_hex": "0001ae9500000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 6",
+   "parent_time_minus_genesis": 321599,
+   "parent_height": 1000,
+   "next_target_hex": "0001fffb00000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 7",
+   "parent_time_minus_genesis": 299993,
+   "parent_height": 1000,
+   "next_target_hex": "0000fff100000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 8",
+   "parent_time_minus_genesis": 299667,
+   "parent_height": 1000,
+   "next_target_hex": "0000fd4880000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 9",
+   "parent_time_minus_genesis": 298766,
+   "parent_height": 1000,
+   "next_target_hex": "0000f61400000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 10",
+   "parent_time_minus_genesis": 294601,
+   "parent_height": 1000,
+   "next_target_hex": "0000d74a80000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 11",
+   "parent_time_minus_genesis": 289201,
+   "parent_height": 1000,
+   "next_target_hex": "0000b50280000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 12",
+   "parent_time_minus_genesis": 283799,
+   "parent_height": 1000,
+   "next_target_hex": "0000983780000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 13",
+   "parent_time_minus_genesis": 278401,
+   "parent_height": 1000,
+   "next_target_hex": "0000800100000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 14",
+   "parent_time_minus_genesis": 364877,
+   "parent_height": 1000,
+   "next_target_hex": "0008051000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "label": "fraction sweep 15",
+   "parent_time_minus_genesis": 235123,
+   "parent_height": 1000,
+   "next_target_hex": "00001febd0000000000000000000000000000000000000000000000000000000"
   }
  ]
 }

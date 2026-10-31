@@ -10,6 +10,16 @@
 4. A value MUST have exactly one valid encoding. Any other encoding of the same
    value is invalid. This includes non-minimal lengths, trailing bytes,
    unknown flags, and reserved values.
+5. **Parse errors and validity failures.** Both make a block invalid; the
+   distinction only fixes what a parser may reject on its own. A **parser**
+   rejects exactly: non-canonical or out-of-range varints (§2); truncated input;
+   trailing bytes; a count whose minimum size exceeds the remaining input
+   (transactions.md §3); a byte string longer than its field's maximum; an
+   output `policy` other than 0 or 1; a witness `path` other than 0 or 1.
+   Every other rule (versions, non-zero counts, `output_version`, amounts,
+   scheme ids, exact key and signature lengths, recovery delay) is a
+   **validity** rule applied in blocks.md §4. This is why the genesis block,
+   whose output deliberately breaks validity rules, still parses.
 
 ## 2. Compact size (`varint`)
 

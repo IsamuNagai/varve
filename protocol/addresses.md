@@ -17,8 +17,9 @@ exactly, so they remain interoperable.
       policy (u8) ‖ scheme_id (u16 LE) ‖ commitment (32)
       [‖ recovery_scheme_id (u16 LE) ‖ recovery_commitment (32) ‖ recovery_delay (u32 LE)]
 
-- The decoded template is exactly 35 bytes (single policy) or 73 bytes (recovery
-  policy). Decoders MUST reject any other payload length. They MUST NOT apply
+- The decoded payload (the template of transactions.md §1 without its leading
+  `output_version` byte, which the first 5-bit symbol carries) is exactly 35
+  bytes (single policy) or 73 bytes (recovery policy). Decoders MUST reject any other payload length. They MUST NOT apply
   BIP-350's 90-character limit, because recovery addresses exceed it.
 - On mainnet, a single-policy address is 69 characters and a recovery-policy
   address is 130. Testnet adds one character.
@@ -26,6 +27,12 @@ exactly, so they remain interoperable.
   characters. For recovery addresses, a random error goes undetected with
   probability about 2^−30. Wallets SHOULD show recovery addresses with the
   recovery delay spelled out, and ask the user to confirm it.
+- **Not frozen (audit M-03, open question Q-13).** Many Bech32 libraries
+  enforce the 90-character limit and will reject recovery addresses, and a
+  third-party implementer may "fix" a decoder by enforcing it. Before the
+  address format is frozen, an interoperability and usability test must
+  decide between this format, a distinct encoding, or a short recovery
+  descriptor exchanged separately from the address.
 
 ## Decoding
 
