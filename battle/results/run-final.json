@@ -1,0 +1,633 @@
+{
+ "run_id": "run-final",
+ "label": "Run 2: after fixes",
+ "date_utc": "2026-10-31T19:27:52Z",
+ "commit": "812a3f21c2acfedc4e706ede6fa3537b74504eae",
+ "binary_sha256": "d53bef6369a9e2c4e749d3d2199363cff8e6e30271571258250cf859121e9137",
+ "machine": {
+  "cpus": 2,
+  "mem_gb": 8,
+  "os": "Linux"
+ },
+ "scope": "Local only: private regtest nodes on 127.0.0.1. Network-flood tests are out of scope.",
+ "tests": [
+  {
+   "id": "setup-fanout",
+   "category": "Setup",
+   "name": "Valid control block with a 4-input, 400-output transaction",
+   "attack": "control case (not an attack): a valid block with one signature covering four same-key inputs",
+   "expected": "accept",
+   "outcome": "defended",
+   "detail": "Ok(())",
+   "duration_s": 0.73
+  },
+  {
+   "id": "c-inflation",
+   "category": "Consensus",
+   "name": "Coinbase pays 1 lamina too much (inflation)",
+   "attack": "miner creates money: coinbase = subsidy + fees + 1",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-inflation-large",
+   "category": "Consensus",
+   "name": "Coinbase pays 1,000 VARV extra",
+   "attack": "miner creates 1,000 VARV out of thin air",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-bad-merkle",
+   "category": "Consensus",
+   "name": "Header commits to the wrong transaction root",
+   "attack": "valid PoW, but the merkle root does not match the transactions",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: invalid: bad transaction root; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-double-spend-in-block",
+   "category": "Consensus",
+   "name": "Same coin spent twice in one block",
+   "attack": "two transactions in one block spend the same coin",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-duplicate-input",
+   "category": "Consensus",
+   "name": "Transaction lists the same input twice",
+   "attack": "one transaction spends one coin twice to double its value",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-nonexistent-coin",
+   "category": "Consensus",
+   "name": "Spend of a coin that never existed",
+   "attack": "transaction spends an outpoint that is not in the UTXO set",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-immature-coinbase",
+   "category": "Consensus",
+   "name": "Spend of an immature coinbase",
+   "attack": "spends a block reward before the 288-block maturity",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-bad-signature",
+   "category": "Consensus",
+   "name": "Transaction with a corrupted signature",
+   "attack": "one bit of the ML-DSA signature flipped",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.35
+  },
+  {
+   "id": "c-theft-wrong-key",
+   "category": "Consensus",
+   "name": "Thief signs someone else's coin with their own key",
+   "attack": "valid signature by the attacker's key on a coin locked to the victim's key",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-shared-unauthorized",
+   "category": "Consensus",
+   "name": "Shared witness with no earlier signature",
+   "attack": "uses the one-signature-for-many-coins witness without any signature before it",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-shared-theft",
+   "category": "Consensus",
+   "name": "Shared witness used to steal another key's coin",
+   "attack": "attacker signs their own coin and attaches a victim's coin with an empty shared witness",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-unknown-path",
+   "category": "Consensus",
+   "name": "Unknown witness path",
+   "attack": "witness path 3, which no rule defines",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: parse error: unknown witness path; p2p: peer disconnected us",
+   "duration_s": 0.3
+  },
+  {
+   "id": "c-overweight",
+   "category": "Consensus",
+   "name": "Block over the 720,000 weight limit",
+   "attack": "a block stuffed past the weight limit with a 5,100-output transaction",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.36
+  },
+  {
+   "id": "c-future-time",
+   "category": "Consensus",
+   "name": "Timestamp one hour in the future",
+   "attack": "header timestamp 3,600 s ahead (limit: 600 s)",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: timestamp too far in the future (deferred); p2p: still connected",
+   "duration_s": 2.32
+  },
+  {
+   "id": "c-time-at-mtp",
+   "category": "Consensus",
+   "name": "Timestamp not above median time past",
+   "attack": "timestamp equal to the median of the last 11 blocks (time-warp building block)",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: invalid: timestamp not above median time past; p2p: peer disconnected us",
+   "duration_s": 0.3
+  },
+  {
+   "id": "c-easy-target",
+   "category": "Consensus",
+   "name": "Block claims an easier difficulty",
+   "attack": "header target 64x easier than the schedule allows",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: invalid: wrong target; p2p: peer disconnected us",
+   "duration_s": 0.3
+  },
+  {
+   "id": "c-bad-pow",
+   "category": "Consensus",
+   "name": "Block without valid proof of work",
+   "attack": "nonce that does not meet the target",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: invalid: insufficient proof of work; p2p: peer disconnected us",
+   "duration_s": 0.38
+  },
+  {
+   "id": "c-second-coinbase",
+   "category": "Consensus",
+   "name": "Second coinbase transaction",
+   "attack": "a block with two reward transactions",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-no-coinbase",
+   "category": "Consensus",
+   "name": "Block with no transactions at all",
+   "attack": "a valid-PoW header followed by an empty transaction list",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "Some(\"parse error: empty block\")",
+   "duration_s": 0.27
+  },
+  {
+   "id": "c-coinbase-not-first",
+   "category": "Consensus",
+   "name": "Coinbase not in first position",
+   "attack": "a normal transaction placed before the coinbase",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-coinbase-height",
+   "category": "Consensus",
+   "name": "Coinbase commits to the wrong height",
+   "attack": "coinbase input index differs from the block height (duplicate-txid risk)",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-coinbase-extra",
+   "category": "Consensus",
+   "name": "Coinbase extra data over 64 bytes",
+   "attack": "65 bytes of coinbase extra data",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-negative-fee",
+   "category": "Consensus",
+   "name": "Transaction spends more than its inputs",
+   "attack": "outputs exceed inputs by 1 lamina",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-overflow",
+   "category": "Consensus",
+   "name": "Output sum overflow",
+   "attack": "two outputs of MAX_MONEY each",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-unknown-scheme",
+   "category": "Consensus",
+   "name": "Output locked to an unknown signature scheme",
+   "attack": "creates an output with scheme id 3",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-locktime",
+   "category": "Consensus",
+   "name": "Transaction locked until a future height",
+   "attack": "locktime 100 blocks ahead",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-recovery-early",
+   "category": "Consensus",
+   "name": "Recovery key used before its delay",
+   "attack": "recovery-path spend 999 blocks too early",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.34
+  },
+  {
+   "id": "c-invalid-parent",
+   "category": "Consensus",
+   "name": "Valid-looking block built on an invalid parent",
+   "attack": "submits an inflating block, then a well-formed child on top of it",
+   "expected": "reject both; never build on the invalid branch",
+   "outcome": "defended",
+   "detail": "parent: Err(\"invalid: block failed validation\"); child: Err(\"invalid: invalid: parent is invalid\")",
+   "duration_s": 0.2
+  },
+  {
+   "id": "c-malleated-body",
+   "category": "Consensus",
+   "name": "Mutated copy of a real block sent first",
+   "attack": "announces a real header, sends a body that does not match it, then the real block arrives",
+   "expected": "reject the mutated body without marking the real block invalid; accept the real block",
+   "outcome": "defended",
+   "detail": "real block after mutated copy: Ok(()); tip is the real block: true",
+   "duration_s": 1.25
+  },
+  {
+   "id": "c-noncanonical-witness",
+   "category": "Consensus",
+   "name": "Same key signed twice instead of the shared form",
+   "attack": "a relayer re-encodes a transaction's witnesses so its witness id and size change (witness malleability)",
+   "expected": "reject the block and keep the current tip",
+   "outcome": "defended",
+   "detail": "rejected: invalid: block failed validation; p2p: peer disconnected us",
+   "duration_s": 0.35
+  },
+  {
+   "id": "r-double-spend",
+   "category": "Reorg",
+   "name": "Double spend by a longer private chain",
+   "attack": "pays the node's wallet in a public block, then publishes a longer private chain that sends the same coin back to the attacker",
+   "expected": "follow the most-work chain, drop the conflicting payment, and reflect the reversal in the wallet balance",
+   "outcome": "defended",
+   "detail": "public block: Ok(()); switched to private chain: true; reversed payment left in mempool: false; balance before 100.00000000 / after payment {\"addresses\":[\"rvarve1pqqqsp33g8rqfq3qjevxzpj0admtdrkvc9kjncrsqv96x4ze2n3afa58vq667wc\",\"rvarve1pqqqsq8atgsjd9a3vrg6uxlttgt5qn283dd3spv6hsvxkth9xrse929eewe9636\",\"rvarve1pqqqsp9jhugjeu02p988s2ks7lepp6jz30c3za5zvmndafmdkda8kw33dqpvsea\"],\"immature\":\"0.00000000\",\"keys\":3,\"spendable\":\"100.28487500\",\"utxos\":21} / after reorg {\"addresses\":[\"rvarve1pqqqsp33g8rqfq3qjevxzpj0admtdrkvc9kjncrsqv96x4ze2n3afa58vq667wc\",\"rvarve1pqqqsq8atgsjd9a3vrg6uxlttgt5qn283dd3spv6hsvxkth9xrse929eewe9636\",\"rvarve1pqqqsp9jhugjeu02p988s2ks7lepp6jz30c3za5zvmndafmdkda8kw33dqpvsea\"],\"immature\":\"0.00000000\",\"keys\":3,\"spendable\":\"100.00000000\",\"utxos\":20}; p2p: still connected",
+   "duration_s": 4.17
+  },
+  {
+   "id": "r-tie",
+   "category": "Reorg",
+   "name": "Competing block with equal work",
+   "attack": "a second block at the same height arrives after the first",
+   "expected": "keep the first-seen block (no flip-flopping on ties)",
+   "outcome": "defended",
+   "detail": "first: Ok(()); second: Ok(())",
+   "duration_s": 0.14
+  },
+  {
+   "id": "r-invalid-in-longer-chain",
+   "category": "Reorg",
+   "name": "Longer chain (22 blocks) with an invalid block inside",
+   "attack": "publishes a chain with more work than the node's, whose 4th block inflates the supply",
+   "expected": "stay on the valid chain",
+   "outcome": "defended",
+   "detail": "tip unchanged: true",
+   "duration_s": 3.45
+  },
+  {
+   "id": "r-deep",
+   "category": "Reorg",
+   "name": "Deep reorganization (20 blocks replaced)",
+   "attack": "publishes a valid chain one block longer than the node's last 20 blocks",
+   "expected": "switch to the most-work chain cleanly and quickly",
+   "outcome": "defended",
+   "detail": "switched: true in 2.7 s",
+   "duration_s": 5.33
+  },
+  {
+   "id": "m-double-spend",
+   "category": "Mempool",
+   "name": "Conflicting transaction after the first",
+   "attack": "two transactions spending the same coin, the second paying a higher fee",
+   "expected": "accept the first, refuse the conflict",
+   "outcome": "defended",
+   "detail": "first true, second Err(\"conflicts with a mempool transaction (no replacement)\")",
+   "duration_s": 0.0
+  },
+  {
+   "id": "m-zero-fee",
+   "category": "Mempool",
+   "name": "Zero-fee transaction",
+   "attack": "a valid transaction that pays no fee",
+   "expected": "refuse to relay (minimum relay fee)",
+   "outcome": "defended",
+   "detail": "Err(\"fee 0 below minimum relay fee 5456\")",
+   "duration_s": 0.0
+  },
+  {
+   "id": "m-long-chain",
+   "category": "Mempool",
+   "name": "Long chain of unconfirmed transactions",
+   "attack": "40 transactions each spending the previous one before any confirms",
+   "expected": "cap the chain (ancestor limit) instead of growing without bound",
+   "outcome": "defended",
+   "detail": "accepted 26; stopped at 26: too many unconfirmed ancestors (policy)",
+   "duration_s": 0.03
+  },
+  {
+   "id": "f-mutate-rpc",
+   "category": "Fuzzing",
+   "name": "2000 randomly mutated blocks and transactions (RPC)",
+   "attack": "bit flips, random bytes, truncation and insertion applied to a valid block and transaction",
+   "expected": "reject every malformed input without crashing",
+   "outcome": "defended",
+   "detail": "crashes 0, mutated blocks accepted 0",
+   "duration_s": 1.07
+  },
+  {
+   "id": "f-decoder",
+   "category": "Fuzzing",
+   "name": "200000 random messages through the message decoder",
+   "attack": "random bytes decoded as every one of the 14 message types, in process",
+   "expected": "return an error for malformed input, never panic",
+   "outcome": "defended",
+   "detail": "panics: 0; random inputs that happened to decode: 470",
+   "duration_s": 0.18
+  },
+  {
+   "id": "d-parse",
+   "category": "Fuzzing",
+   "name": "Two independent implementations agree on 3,000 mutated transactions",
+   "attack": "randomly mutated transactions checked by the Rust node and by the separate Python reference implementation",
+   "expected": "both implementations reach the same verdict on every input (a disagreement could split the chain)",
+   "outcome": "defended",
+   "detail": "disagreements: 0; node vs its own library: 0; inputs that still parsed: 758",
+   "duration_s": 33.15
+  },
+  {
+   "id": "w-bad-address",
+   "category": "Wallet",
+   "name": "Malformed address",
+   "attack": "sendtoaddress with malformed address",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: no separator",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-wrong-network",
+   "category": "Wallet",
+   "name": "Address from another network",
+   "attack": "sendtoaddress with address from another network",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: address is for a different network",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-zero",
+   "category": "Wallet",
+   "name": "Zero amount",
+   "attack": "sendtoaddress with zero amount",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: amount out of range",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-negative",
+   "category": "Wallet",
+   "name": "Negative amount",
+   "attack": "sendtoaddress with negative amount",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: bad amount -5",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-decimals",
+   "category": "Wallet",
+   "name": "Nine decimal places",
+   "attack": "sendtoaddress with nine decimal places",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: bad amount 1.000000001",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-too-large",
+   "category": "Wallet",
+   "name": "Amount above total supply",
+   "attack": "sendtoaddress with amount above total supply",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: amount out of range",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-insufficient",
+   "category": "Wallet",
+   "name": "More than the wallet holds",
+   "attack": "sendtoaddress with more than the wallet holds",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: insufficient spendable funds: have 10000000000 laminae",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-garbage-amount",
+   "category": "Wallet",
+   "name": "Non-numeric amount",
+   "attack": "sendtoaddress with non-numeric amount",
+   "expected": "refuse with a clear error",
+   "outcome": "defended",
+   "detail": "refused: bad amount 1e3",
+   "duration_s": 0.0
+  },
+  {
+   "id": "w-concurrent",
+   "category": "Wallet",
+   "name": "Twelve payments sent at the same moment",
+   "attack": "12 simultaneous sendtoaddress calls from one wallet",
+   "expected": "every accepted payment is valid (no coin spent twice)",
+   "outcome": "defended",
+   "detail": "10 accepted, 0 accepted-but-invalid; errors: ['conflicts with a mempool transaction (no replacement)']",
+   "duration_s": 0.07
+  },
+  {
+   "id": "s-truncated",
+   "category": "Storage/Recovery",
+   "name": "Block file cut off mid-record",
+   "attack": "the last 777 bytes of the block file are removed (power loss)",
+   "expected": "come back up and re-sync to the honest chain",
+   "outcome": "defended",
+   "detail": "restarted at height 346 (source tip 347); back in sync with the network: True",
+   "duration_s": 1.19
+  },
+  {
+   "id": "s-garbage",
+   "category": "Storage/Recovery",
+   "name": "Random bytes appended to the block file",
+   "attack": "5,000 random bytes appended",
+   "expected": "come back up and re-sync to the honest chain",
+   "outcome": "defended",
+   "detail": "restarted at height 347 (source tip 347); back in sync with the network: True",
+   "duration_s": 0.21
+  },
+  {
+   "id": "s-corrupt-middle",
+   "category": "Storage/Recovery",
+   "name": "Block file corrupted in the middle",
+   "attack": "64 random bytes written over the middle of the block file",
+   "expected": "come back up and re-sync to the honest chain",
+   "outcome": "defended",
+   "detail": "restarted at height 347 (source tip 347); back in sync with the network: True",
+   "duration_s": 0.2
+  },
+  {
+   "id": "s-deleted",
+   "category": "Storage/Recovery",
+   "name": "Block file deleted",
+   "attack": "the whole block file is removed",
+   "expected": "come back up and re-sync to the honest chain",
+   "outcome": "defended",
+   "detail": "restarted at height 5 (source tip 347); back in sync with the network: True",
+   "duration_s": 13.92
+  },
+  {
+   "id": "s-kill-sync",
+   "category": "Storage/Recovery",
+   "name": "Power cut during initial sync",
+   "attack": "process killed with SIGKILL at height 347 while syncing",
+   "expected": "come back up and re-sync to the honest chain",
+   "outcome": "defended",
+   "detail": "restarted at height 347 (source tip 347); back in sync with the network: True",
+   "duration_s": 0.21
+  },
+  {
+   "id": "s-kill-mining",
+   "category": "Storage/Recovery",
+   "name": "Power cut while mining",
+   "attack": "mining node killed with SIGKILL mid-work, then restarted",
+   "expected": "restart with its chain intact and keep mining",
+   "outcome": "defended",
+   "detail": "killed at height 16; restarted at 16; kept mining: True",
+   "duration_s": 161.15
+  }
+ ],
+ "capacity": [
+  {
+   "id": "cap-reorg",
+   "name": "20-block reorganization time",
+   "value": 2.74,
+   "unit": "s",
+   "detail": "from first block sent to new tip, over P2P"
+  },
+  {
+   "id": "cap-tx-accept",
+   "name": "Transactions accepted into the mempool per second (RPC, fully verified)",
+   "value": 1287.0,
+   "unit": "tx/s",
+   "detail": "200 of 200 accepted in 0.16 s"
+  },
+  {
+   "id": "cap-sign",
+   "name": "ML-DSA-65 signatures created per second (test machine)",
+   "value": 8848.995,
+   "unit": "sig/s",
+   "detail": ""
+  },
+  {
+   "id": "cap-full-block",
+   "name": "Full block validation time (ML-DSA signatures)",
+   "value": 0.094,
+   "unit": "s",
+   "detail": "131 signatures, weight 714736, accepted: true"
+  },
+  {
+   "id": "cap-sigs-per-block",
+   "name": "Signature-checked transactions in one full block",
+   "value": 131.0,
+   "unit": "tx",
+   "detail": "single-input ML-DSA transactions"
+  },
+  {
+   "id": "cap-shared-inputs",
+   "name": "Same-key inputs that fit in one block with one signature",
+   "value": 398.0,
+   "unit": "inputs",
+   "detail": "weight 20940"
+  },
+  {
+   "id": "cap-rss",
+   "name": "Peak memory of the node during the whole run",
+   "value": 279.363,
+   "unit": "MB",
+   "detail": "VmHWM"
+  },
+  {
+   "id": "cap-sync",
+   "name": "Full sync of 347 blocks from one peer",
+   "value": 13.893,
+   "unit": "s",
+   "detail": "25.0 blocks/s, every signature verified"
+  }
+ ]
+}

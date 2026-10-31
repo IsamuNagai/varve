@@ -19,7 +19,7 @@ import sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 SITE = os.path.join(ROOT, "site")
 OUT = os.path.join(ROOT, "docs")
-ASSET_VERSION = "5"  # bump when style.css, site.js or theme-init.js change
+ASSET_VERSION = "6"  # bump when style.css, site.js or theme-init.js change
 REPO = "https://github.com/IsamuNagai/varve"
 X_URL = "https://x.com/isanagai"
 

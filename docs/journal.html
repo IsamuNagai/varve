@@ -7,9 +7,9 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Development notes and progress updates from Isamu Nagai.">
 <title>Varve journal</title>
-<script src="theme-init.js?v=5"></script>
-<link rel="stylesheet" href="style.css?v=5">
-<script src="site.js?v=5" defer></script>
+<script src="theme-init.js?v=6"></script>
+<link rel="stylesheet" href="style.css?v=6">
+<script src="site.js?v=6" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
@@ -59,6 +59,17 @@
 <p>Other fixes from the review:</p>
 <ul><li>Real post-quantum signatures and real RandomX hashing are now tested on every change, on both x86_64 and ARM64. They were previously skipped in automated tests.</li><li>The genesis procedure is now fully implemented and tested against real Bitcoin headers, including every possible one-byte tampering.</li><li>A much larger test-vector suite, plus a second implementation of the rules written only from the specification. It agrees with the prototype on every vector.</li><li>An emergency-migration idea that was only a sketch is no longer claimed as a feature. Varve promises only what is specified and tested.</li></ul>
 <p>Every finding and its resolution is public in <code>audits/</code>. This is how I want Varve built: find the problems early, fix them in the open, and never claim more than the code can back up.</p>
+</article>
+<article class="entry block reveal" id="2026-10-31-battle-test">
+<p class="entry-meta"><time datetime="2026-10-31">31 October 2026</time> · Isamu Nagai</p>
+<h2><a href="#2026-10-31-battle-test">The first battle test: two real bugs found, both fixed</a></h2>
+<p>Today we turned on Varve. Not in public yet, but on a private test network where the only job was to break it.</p>
+<p>We built a battle-test harness that starts real nodes and attacks them. It sends blocks that create coins out of thin air, spend the same coin twice, or steal coins with someone else's signature. It sends blocks with impossible timestamps or fake difficulty, and longer secret chains that try to undo a payment that already confirmed. It sends thousands of randomly corrupted blocks, transactions and network messages. Every attack block carries real RandomX proof of work and every signature is a real post-quantum signature, so the node can't reject anything for a cheap reason. A separate implementation of the rules checks the same inputs, and the two must agree on every single one. Then we pulled the plug on running nodes and damaged their data files.</p>
+<p>The first run passed 53 of 55 tests. The two failures were real:</p>
+<ul><li><strong>A damaged spot in a node's own block file made it distrust a good block forever.</strong> The node treated its broken local copy as proof the block was invalid. It then refused the clean copy from other nodes and cut those nodes off. On a live network, one bad disk sector could have isolated a node. Now the node recognises a damaged local copy, throws it away and fetches the block again.</li><li><strong>A transaction's witness data could be re-encoded by anyone relaying it.</strong> Since this week, Varve can cover several coins from the same key with a single signature. A relayer could swap a full signature for that short shared form. That changed the transaction's size and witness ID, though never what it pays or to whom. The rule is now strict: where the shared form applies, it is the only valid form, so every transaction has exactly one valid encoding.</li></ul>
+<p>The second run passed all 55. The two charts, with the date and version tested, are on the <a href="security.html#battle-tests">security page</a>. The harness and raw results are in the repository, so anyone can rerun them.</p>
+<p>The same work brought two improvements of its own. The difficulty schedule now starts two hours after genesis, which removes a burst of too-easy blocks right at launch. Spending many coins from one address now needs only one signature: in the battle test, one transaction spent 398 coins and weighed about 21 KB, where separate signatures would have taken over 2 MB. A full block of 131 separately signed transactions verifies in under 0.1 seconds on a modest two-core machine.</p>
+<p>What this does not prove: no test suite proves there are no bugs. Network-flood testing and an independent human code audit are still ahead, and both must happen before mainnet. The public testnet is where everyone else gets to try.</p>
 </article>
 <article class="entry block reveal" id="2026-10-30-why-varve">
 <p class="entry-meta"><time datetime="2026-10-30">30 October 2026</time> · Isamu Nagai</p>

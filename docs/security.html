@@ -7,9 +7,9 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="How to report a vulnerability, how releases are verified, and a note on seed phrases.">
 <title>Varve security</title>
-<script src="theme-init.js?v=5"></script>
-<link rel="stylesheet" href="style.css?v=5">
-<script src="site.js?v=5" defer></script>
+<script src="theme-init.js?v=6"></script>
+<link rel="stylesheet" href="style.css?v=6">
+<script src="site.js?v=6" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
@@ -41,6 +41,14 @@
 </div>
 </section>
 <div class="wrap narrow prose">
+<section class="block reveal" id="battle-tests">
+<h2>Battle tests</h2>
+<p>We attack our own node on a private test network and publish the results, failures included. Each run starts real nodes and throws invalid blocks at them (made-up coins, double spends, stolen-coin signatures, bad timestamps), along with longer chains that try to undo payments and thousands of corrupted messages. Every attack block carries real RandomX proof of work and every signature is a real post-quantum signature. Two independent implementations must reach the same verdict on every input. We also pull the plug mid-sync and mid-mining and corrupt the node's data files to see whether it recovers.</p>
+<p>The first run on 31 October 2026 passed 53 of 55 tests and found two real problems. The node now fixes both, and the second run passed all 55.</p>
+<figure class="shot"><a href="assets/battle-test-2026-10-31-run-1.png"><img src="assets/battle-test-2026-10-31-run-1.png" alt="Varve battle test run 1, 31 October 2026: 55 tests, 53 handled correctly, 2 problems found" width="1200" height="1124" loading="lazy"></a><figcaption>Run 1, before fixes: two problems found.</figcaption></figure>
+<figure class="shot"><a href="assets/battle-test-2026-10-31-run-2.png"><img src="assets/battle-test-2026-10-31-run-2.png" alt="Varve battle test run 2, 31 October 2026: all 55 tests handled correctly" width="1200" height="1124" loading="lazy"></a><figcaption>Run 2, after fixes: all 55 tests passed.</figcaption></figure>
+<p>What these tests do not cover yet: network flooding and an independent human code audit. Passing them shows the node enforces its rules under attack. It does not prove the absence of bugs. Anyone can rerun them: the harness and raw results are in <a href="https://github.com/IsamuNagai/varve/tree/main/battle"><code>battle/</code></a>.</p>
+</section>
 <section class="block reveal">
 <h2>Reporting a vulnerability</h2>
 <p>Please report vulnerabilities privately using GitHub's private vulnerability reporting: <a href="https://github.com/IsamuNagai/varve/security/advisories/new">https://github.com/IsamuNagai/varve/security/advisories/new</a>. Do not open a public issue for an undisclosed vulnerability.</p>

@@ -58,7 +58,8 @@ if C:
         side += "".join(finding(t) for t in bad)
     if not side:
         side = "<li>No changes.</li>"
-    extra = f'<p class="note">{len(new)} new test{"s" if len(new) != 1 else ""} added since run 1. {"Every test passed." if not bad else ""}</p>'
+    added = f'{len(new)} new test{"s" if len(new) != 1 else ""} added since run 1. ' if new else ""
+    extra = f'<p class="note">{added}{"Every test passed." if not bad else ""}</p>'
 else:
     side_title = "What the battle test found"
     side = "".join(finding(t) for t in bad) or "<li>Nothing: every test passed.</li>"
@@ -66,7 +67,7 @@ else:
 
 CAP = [("cap-full-block", "Full block verified in", lambda v: f"{v * 1000:.0f} ms"),
        ("cap-sigs-per-block", "Signed transactions per full block", lambda v: f"{v:.0f}"),
-       ("cap-shared-inputs", "Same-key coins in one block, one signature", lambda v: f"{v:.0f}"),
+       ("cap-shared-inputs", "Coins spent in one transaction with one signature", lambda v: f"{v:.0f}"),
        ("cap-tx-accept", "Transactions verified per second", lambda v: f"{v:,.0f}"),
        ("cap-sync", "Full re-sync of the test chain", lambda v: f"{v:.1f} s"),
        ("cap-reorg", "Deep reorganization handled in", lambda v: f"{v:.1f} s"),

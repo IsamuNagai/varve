@@ -2,7 +2,7 @@
  "run_id": "run-1",
  "label": "Run 1: first battle test (before fixes)",
  "date_utc": "2026-10-31T19:10:13Z",
- "commit": "56dacfe86a39f206a30857bdd088ce99626e67e0",
+ "commit": "121906a694e1e68550f1a07bc45aedc300ca8ab7",
  "binary_sha256": "96e08d0a1e18536b9f6877f3a3a076630ebf822b565183e9577825509b3ba1b0",
  "machine": {
   "cpus": 2,
