@@ -12,7 +12,7 @@
 | `MTP_WINDOW` | 11 | |
 | `MAX_FUTURE_DRIFT` | 600 s | acceptance only (blocks.md §4) |
 
-## 2. Next target (ASERT, aserti3-2d arithmetic, anchored at genesis)
+## 2. Next target (ASERT, aserti3-2d arithmetic, anchored at genesis + ASERT_ANCHOR_DELAY)
 
 Genesis has height 0, timestamp `t0` and target `INITIAL_TARGET`. The schedule
 is anchored at `t_a = t0 + ASERT_ANCHOR_DELAY`. For a block whose parent has

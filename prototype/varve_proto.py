@@ -434,6 +434,8 @@ class Chain:
             if (o.scheme_id, o.commitment) not in authorized:
                 raise Invalid("no earlier input authorizes this key")
             return None
+        if w.path in (0, 1) and (o.scheme_id, o.commitment) in authorized:
+            raise Invalid("path 2 required for an already authorized key")
         if w.path == 0:
             sid, com = o.scheme_id, o.commitment
         elif w.path == 1:

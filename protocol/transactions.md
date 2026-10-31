@@ -1,4 +1,4 @@
-# Transactions and outputs (normative, draft v0.4)
+# Transactions and outputs (normative, draft v0.5)
 
 Conventions (integer widths, little-endian, canonical `varint`, `bytes`, `H256`)
 are defined in `encoding.md`. "Invalid" means the containing block is invalid.
@@ -72,7 +72,10 @@ the `path` values and the length maxima are parse-time rules; `version = 1` and
 the non-zero counts are validity rules (encoding.md §1.5).
 
 - `txid = H256("VARVE/txid/v1", base)`. Outpoints reference txids, so a change
-  to witness data cannot change a txid (no third-party malleability).
+  to witness data cannot change a txid (no third-party malleability). Because
+  path 2 is mandatory where it applies (§8.2), each valid transaction also has
+  exactly one valid witness layout: nobody but the signers can change its
+  wtxid, size or weight by swapping witness paths.
 - `wtxid = H256("VARVE/wtxid/v1", full)`.
 
 **Parsing limits.** Before allocating storage for `input_count` or
@@ -126,13 +129,22 @@ For path 0 and path 2 the state of `scheme_id` applies; for path 1 the state of
 can still be spent through its recovery path if the recovery scheme is not
 DISABLED.
 
-These three states are the complete v1 lifecycle. At genesis both schemes are
-ACTIVE. A network's lifecycle is a list of `(scheme_id, state, from_height)`
-transitions (upgrades.md §4); the state at height `h` is the state of the last
-transition for that scheme with `from_height ≤ h`, or ACTIVE if there is none.
+These three states are the complete v1 lifecycle. A network's lifecycle is a
+list of `(scheme_id, state, from_height)` transitions (upgrades.md §4). The
+genesis list is empty, so at genesis both schemes are ACTIVE. The state of a
+scheme at height `h` is the `state` of its transition with the greatest
+`from_height ≤ h`, or ACTIVE if it has none.
+
+A lifecycle list is well formed only if, for each scheme: it names a scheme
+defined in this section; its transitions appear in the list in strictly
+increasing `from_height`; and each transition's state comes strictly later in the order
+ACTIVE → NO_NEW_OUTPUTS → DISABLED than the state before it (so ACTIVE is never
+listed and no state repeats). A node MUST refuse to run with a malformed list.
+
 Implementations MUST evaluate creation and spending rules against this table,
-so a transition needs no code change, only a new table entry. A change of state is a consensus upgrade made under
-`protocol/upgrades.md`; it is one-directional (never back to ACTIVE).
+so a transition needs no code change, only a new table entry. A change of state
+is a consensus upgrade made under `protocol/upgrades.md`; it is one-directional
+(never back to ACTIVE).
 
 **Not in v1: spending via commitment.** An emergency "commit–delay–reveal"
 spend path for a broken scheme (ADR-0009) is research only. It needs new
@@ -216,6 +228,13 @@ An input `i` with witness `path = 0x02` is valid iff:
 4. there is an earlier input `j < i` of the same transaction whose witness path
    is 0 or 1 and whose *selected* scheme and commitment (§8 step 3) equal
    `o_i.scheme_id` and `o_i.commitment`.
+
+**Path 2 is mandatory where it applies.** If the spent output `o_i` of an input
+`i` has a primary `(scheme_id, commitment)` equal to the selected scheme and
+commitment of an earlier input with path 0 or 1, input `i` MUST use path 2; a
+path 0 or path 1 witness on such an input is invalid. This makes the witness
+layout unique (§3): a relaying party cannot replace a signed input with a
+3-byte shared entry and change the transaction's wtxid, size or weight.
 
 No signature is verified for input `i`. Input `j`'s signature already commits to
 the whole transaction, including input `i` and every spent output (§7), and was

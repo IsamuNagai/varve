@@ -22,6 +22,15 @@ name = "varve-sys"
 version = "0.1.0"
 
 [[package]]
+name = "varve-testkit"
+version = "0.1.0"
+dependencies = [
+ "varve-consensus",
+ "varve-sys",
+ "varve-wallet",
+]
+
+[[package]]
 name = "varve-wallet"
 version = "0.1.0"
 dependencies = [

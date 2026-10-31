@@ -88,6 +88,39 @@ pub fn scheme_state(lifecycle: &[Transition], id: u16, height: u64) -> Option<Sc
     Some(st)
 }
 
+/// transactions.md §6: a lifecycle list is well formed iff, per scheme, it names a known
+/// scheme, has strictly increasing heights, and only moves forward
+/// (ACTIVE → NO_NEW_OUTPUTS → DISABLED, ACTIVE never listed).
+pub fn lifecycle_well_formed(lifecycle: &[Transition]) -> Result<(), &'static str> {
+    fn rank(s: SchemeState) -> u8 {
+        match s {
+            SchemeState::Active => 0,
+            SchemeState::NoNewOutputs => 1,
+            SchemeState::Disabled => 2,
+        }
+    }
+    let mut last: Vec<(u16, u64, u8)> = Vec::new();
+    for t in lifecycle {
+        if scheme(t.scheme_id, 0).is_none() {
+            return Err("lifecycle names an unknown scheme");
+        }
+        let r = rank(t.state);
+        if r == 0 {
+            return Err("lifecycle lists ACTIVE");
+        }
+        match last.iter_mut().find(|x| x.0 == t.scheme_id) {
+            Some(x) => {
+                if t.from_height <= x.1 || r <= x.2 {
+                    return Err("lifecycle transitions out of order");
+                }
+                *x = (t.scheme_id, t.from_height, r);
+            }
+            None => last.push((t.scheme_id, t.from_height, r)),
+        }
+    }
+    Ok(())
+}
+
 pub fn verify_units_for_sig_len(len: usize) -> u64 {
     match len {
         3309 => 100,

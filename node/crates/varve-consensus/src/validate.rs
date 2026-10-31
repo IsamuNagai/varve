@@ -272,6 +272,10 @@ fn spend_jobs(tx: &Tx, coins: &[Coin], spent: &[Output], height: u64, ids: &Chai
             }
             continue;
         }
+        // §8.2: path 2 is mandatory for an already authorized key (unique witness layout)
+        if (w.path == 0 || w.path == 1) && authorized.contains(&(o.scheme_id, o.commitment)) {
+            return Err(Error::Invalid("path 2 required for an already authorized key"));
+        }
         let (sid, com) = match w.path {
             0 => (o.scheme_id, o.commitment),
             1 => {

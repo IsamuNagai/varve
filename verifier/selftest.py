@@ -1,7 +1,9 @@
 """Self-made consensus cases for rules the shipped vectors do not exercise.
 
-These use real signatures (generated through liboqs) so they need VARVE_LIBOQS.
-Usage: VARVE_LIBOQS=... python3 -I verifier/selftest.py
+Spend cases use real signatures generated through liboqs (VARVE_LIBOQS).
+Without it, keys and signatures are random bytes of the right length and
+signature verification is skipped, so only the non-signature rules are tested;
+the run says so.  Usage: VARVE_LIBOQS=... python3 -I verifier/selftest.py
 """
 
 import ctypes
@@ -18,8 +20,12 @@ NETWORK_ID = b"RVAR"
 FAILURES = []
 
 
+LAST = {"why": ""}
+
+
 def expect(label, ok):
-    print("%-5s %s" % ("ok" if ok else "FAIL", label))
+    why, LAST["why"] = LAST["why"], ""
+    print("%-5s %s%s" % ("ok" if ok else "FAIL", label, "  [%s]" % why if why else ""))
     if not ok:
         FAILURES.append(label)
 
@@ -49,6 +55,20 @@ class Signer:
         return sig.raw[:n.value]
 
 
+class FakeSigner:
+    """Without liboqs: random keys and signatures of the right lengths."""
+
+    def keypair(self, scheme):
+        return os.urandom(v.SCHEMES[scheme][0]), b""
+
+    def sign(self, scheme, sk, msg):
+        return os.urandom(v.SCHEMES[scheme][1])
+
+
+def make_signer(verifier):
+    return Signer(verifier) if verifier is not None else FakeSigner()
+
+
 def fixture_genesis():
     path = os.path.join(HERE, "..", "test-vectors", "genesis.json")
     with open(path) as f:
@@ -76,12 +96,30 @@ def accepts(state, raw):
     try:
         state.validate(raw)
         return True
-    except (v.Invalid, v.ParseError):
+    except (v.Invalid, v.ParseError) as e:
+        LAST["why"] = str(e)
         return False
 
 
-def fresh(verifier):
-    return v.ChainState(NETWORK_ID, fixture_genesis(), verifier)
+def fresh(verifier, lifecycle=v.GENESIS_LIFECYCLE):
+    return v.ChainState(NETWORK_ID, fixture_genesis(), verifier, lifecycle)
+
+
+def make_spender(state, signer):
+    def spend(inputs, outputs, paths_keys):
+        """paths_keys[i] = (scheme, pk, sk, path); path 2 entries stay empty
+        unless pk/sk are given as raw bytes to place in the witness."""
+        tx = v.Tx(1, inputs, outputs, 0,
+                  [v.Witness(p, pk if p != 2 else (pk or b""), b"") for _s, pk, _sk, p in paths_keys])
+        spent = [state.utxo[i].output.serialize() for i in inputs]
+        for i, (scheme, pk, sk, path) in enumerate(paths_keys):
+            if path == 2:
+                tx.witnesses[i].signature = sk or b""  # sk slot carries raw signature bytes for path 2
+                continue
+            msg = v.sighash(NETWORK_ID, state.genesis_id, tx.txid(), i, spent, path)
+            tx.witnesses[i].signature = signer.sign(scheme, sk, msg)
+        return tx
+    return spend
 
 
 def simple_output(amount, scheme, pk):
@@ -153,13 +191,19 @@ def test_mtp(verifier):
 
 
 def test_spends(verifier):
-    signer = Signer(verifier)
+    signer = make_signer(verifier)
     state = fresh(verifier)
     pk1, sk1 = signer.keypair(1)
     pk2, sk2 = signer.keypair(2)
+    pk3, _sk3 = signer.keypair(1)
     # recovery output: primary ML-DSA, recovery SLH-DSA after 3 blocks
     recov = v.Output(1_000_000, 1, v.commitment_for(1, pk1), 1, 1, 2, v.commitment_for(2, pk2), 3)
-    first = [recov, simple_output(2_000_000, 1, pk1)]
+    first = [recov, simple_output(2_000_000, 1, pk1),
+             simple_output(500_000, 1, pk1),      # 2: second output under pk1
+             simple_output(400_000, 2, pk2),      # 3: SLH-DSA primary = recov's recovery key
+             simple_output(300_000, 1, pk3),      # 4: a different key
+             v.Output(200_000, 1, v.commitment_for(1, pk3), 1, 1, 1, v.commitment_for(1, pk1), 3),  # 5: recovery key = pk1
+             simple_output(100_000, 1, pk1)]      # 6: third output under pk1
     state.connect(make_block(state, [coinbase(1, first)]))
     for h in range(2, 290):
         state.connect(make_block(state, [coinbase(h, [simple_output(1, 1, pk1)])]))
@@ -167,15 +211,7 @@ def test_spends(verifier):
     outpoints = sorted(k for k, c in cb1.items() if c.height == 1)
     txid1 = outpoints[0][0]
     out_recov, out_plain = (txid1, 0), (txid1, 1)
-
-    def spend(inputs, outputs, paths_keys):
-        """paths_keys[i] = (scheme, pk, sk, path)"""
-        tx = v.Tx(1, inputs, outputs, 0, [v.Witness(p, pk, b"") for _s, pk, _sk, p in paths_keys])
-        spent = [state.utxo[i].output.serialize() for i in inputs]
-        for i, (scheme, pk, sk, path) in enumerate(paths_keys):
-            msg = v.sighash(NETWORK_ID, state.genesis_id, tx.txid(), i, spent, path)
-            tx.witnesses[i].signature = signer.sign(scheme, sk, msg)
-        return tx
+    spend = make_spender(state, signer)
 
     h = state.height + 1  # 290: coinbase of height 1 is mature (1 + 288 <= 290)
     cb = coinbase(h, [simple_output(1, 1, pk1)])
@@ -209,16 +245,131 @@ def test_spends(verifier):
     # weight of a signed tx: size + 100 verify units per ML-DSA input
     expect("weight formula (1-in 1-out, ML-DSA)",
            pay.weight() == len(pay.full_bytes()) + 100)
+    test_shared(state, spend, cb, txid1, pk1, sk1, pk2, sk2, pk3)
+
+
+def test_shared(state, spend, cb, txid1, pk1, sk1, pk2, sk2, pk3):
+    """transactions.md §8.2 (path 2) at height 290, genesis lifecycle."""
+    recov, plain, plain2, slh, other, rec_pk1, plain3 = [(txid1, i) for i in range(7)]
+    k1 = (1, pk1, sk1, 0)
+    shared = (0, b"", b"", 2)
+    out = [simple_output(1000, 1, pk1)]
+
+    def ok(label, tx):
+        expect(label, accepts(state, make_block(state, [cb, tx])))
+
+    def bad(label, tx):
+        expect(label, not accepts(state, make_block(state, [cb, tx])))
+
+    good = spend([plain, plain2], out, [k1, shared])
+    ok("path 2: second input reuses the first input's key (0 then 2)", good)
+    bad("path 2: before any authorizing input (2 then 0)", spend([plain2, plain], out, [shared, k1]))
+    bad("path 2: alone, no authorizing input", spend([plain2], out, [shared]))
+    bad("path 2: non-empty public key", spend([plain, plain2], out, [k1, (0, pk1, b"", 2)]))
+    bad("path 2: non-empty signature", spend([plain, plain2], out, [k1, (0, b"", b"\x00", 2)]))
+    bad("path 2: one-byte public key", spend([plain, plain2], out, [k1, (0, b"\x01", b"", 2)]))
+    bad("path 2: output under a different key", spend([plain, other], out, [k1, shared]))
+    ok("path 2: authorized by a path-1 input whose recovery (scheme, commitment) equals its primary",
+       spend([recov, slh], out, [(2, pk2, sk2, 1), shared]))
+    bad("path 2: path-1 authorizer does not cover the output's own primary key (pk1)",
+        spend([recov, plain2], out, [(2, pk2, sk2, 1), shared]))
+    ok("path 2: authorized by path 0 of a recovery-policy output",
+       spend([recov, plain2], out, [k1, shared]))
+    bad("path 2: cannot stand in for a recovery spend (output's recovery key = authorizer)",
+        spend([plain, rec_pk1], out, [k1, shared]))
+    ok("path 2: chained 0, 2, 2", spend([plain, plain2, plain3], out, [k1, shared, shared]))
+    # the coinbase of height 3 matures at 291; this block is at 290
+    young = next(k for k, c in state.utxo.items() if c.height == 3)
+    bad("path 2: immature coinbase output", spend([plain, young], out, [k1, shared]))
+    expect("path 2: witness entry is 3 bytes and adds no verify units",
+           good.weight() == len(good.full_bytes()) + 100
+           and len(good.witnesses[1].serialize()) == 3)
+    # Witness malleability: a third party can replace a signed, redundant input
+    # by a path-2 entry.  The txid stays the same; the wtxid changes.
+    both = spend([plain, plain2], out, [k1, k1])
+    ok("path 2: both inputs signed (0 and 0) valid", both)
+    stripped = v.Tx(both.version, both.inputs, both.outputs, both.locktime,
+                    [both.witnesses[0], v.Witness(2, b"", b"")])
+    expect("path 2: stripping a redundant signature keeps the txid (A-22)",
+           stripped.txid() == both.txid() and stripped.wtxid() != both.wtxid())
+    ok("path 2: stripped variant is also valid (A-22)", stripped)
+
+
+def test_lifecycle(verifier):
+    """transactions.md §6: ML-DSA NO_NEW_OUTPUTS from 293, DISABLED from 295."""
+    try:
+        v.check_lifecycle([(1, v.ACTIVE, 0), (1, v.DISABLED, 10), (1, v.NO_NEW_OUTPUTS, 20)])
+        ok = False
+    except ValueError:
+        ok = True
+    expect("lifecycle: table moving back from DISABLED rejected", ok)
+    try:
+        v.check_lifecycle([(1, v.NO_NEW_OUTPUTS, 20), (1, v.DISABLED, 10)])
+        ok = False
+    except ValueError:
+        ok = True
+    expect("lifecycle: table out of height order rejected (A-20)", ok)
+    table = [(1, v.ACTIVE, 0), (2, v.ACTIVE, 0), (1, v.NO_NEW_OUTPUTS, 293), (1, v.DISABLED, 295)]
+    expect("lifecycle: state lookup 292/293/294/295",
+           [v.scheme_state(table, 1, h) for h in (292, 293, 294, 295)]
+           == [v.ACTIVE, v.NO_NEW_OUTPUTS, v.NO_NEW_OUTPUTS, v.DISABLED]
+           and v.scheme_state(table, 2, 10 ** 9) == v.ACTIVE and v.scheme_state(table, 3, 0) is None)
+    signer = make_signer(verifier)
+    state = fresh(verifier, table)
+    pk1, sk1 = signer.keypair(1)
+    pk2, sk2 = signer.keypair(2)
+    rec = v.Output(1_000_000, 1, v.commitment_for(1, pk1), 1, 1, 2, v.commitment_for(2, pk2), 3)
+    state.connect(make_block(state, [coinbase(1, [simple_output(2_000_000, 1, pk1),
+                                                  simple_output(3_000_000, 1, pk1), rec])]))
+    txid1 = next(k for k, c in state.utxo.items() if c.height == 1)[0]
+    a, b, r = (txid1, 0), (txid1, 1), (txid1, 2)
+    slh_out = simple_output(1, 2, pk2)
+    while state.height < 291:
+        state.connect(make_block(state, [coinbase(state.height + 1, [slh_out])]))
+    spend = make_spender(state, signer)
+    k1 = (1, pk1, sk1, 0)
+
+    def block(txs, cb_out=None):
+        h = state.height + 1
+        return make_block(state, [coinbase(h, [cb_out or simple_output(1, 2, pk2)])] + txs)
+
+    expect("lifecycle: ML-DSA output created at 292 (ACTIVE) accepted",
+           accepts(state, block([], simple_output(1, 1, pk1))))
+    state.connect(block([]))  # 292
+    # candidate 293: NO_NEW_OUTPUTS
+    expect("lifecycle: ML-DSA coinbase output while NO_NEW_OUTPUTS rejected",
+           not accepts(state, block([], simple_output(1, 1, pk1))))
+    expect("lifecycle: ML-DSA as recovery scheme while NO_NEW_OUTPUTS rejected",
+           not accepts(state, block([], v.Output(1, 2, v.commitment_for(2, pk2), 1, 1, 1,
+                                                  v.commitment_for(1, pk1), 5))))
+    expect("lifecycle: spend creating an ML-DSA output while NO_NEW_OUTPUTS rejected",
+           not accepts(state, block([spend([a], [simple_output(1_000, 1, pk1)], [k1])])))
+    expect("lifecycle: ML-DSA spend (path 0) while NO_NEW_OUTPUTS accepted",
+           accepts(state, block([spend([a], [simple_output(1_000, 2, pk2)], [k1])])))
+    expect("lifecycle: path 0 then path 2 while NO_NEW_OUTPUTS accepted",
+           accepts(state, block([spend([a, b], [simple_output(1_000, 2, pk2)], [k1, (0, b"", b"", 2)])])))
+    state.connect(block([]))  # 293
+    state.connect(block([]))  # 294
+    # candidate 295: DISABLED
+    expect("lifecycle: ML-DSA spend (path 0) while DISABLED rejected",
+           not accepts(state, block([spend([a], [simple_output(1_000, 2, pk2)], [k1])])))
+    expect("lifecycle: path 0 then path 2 while DISABLED rejected",
+           not accepts(state, block([spend([a, b], [simple_output(1_000, 2, pk2)], [k1, (0, b"", b"", 2)])])))
+    expect("lifecycle: path 0 of a recovery output under a disabled primary rejected",
+           not accepts(state, block([spend([r], [simple_output(1_000, 2, pk2)], [k1])])))
+    expect("lifecycle: path 1 (SLH-DSA) under a disabled primary accepted",
+           accepts(state, block([spend([r], [simple_output(1_000, 2, pk2)], [(2, pk2, sk2, 1)])])))
 
 
 def main():
     verifier = v.load_verifier()
     if verifier is None:
-        sys.exit("selftest needs VARVE_LIBOQS")
+        print("note: VARVE_LIBOQS unset; random keys and signatures, signature checks SKIPPED")
     test_weight_and_structure(verifier)
     test_mtp(verifier)
     test_spends(verifier)
-    print("%d failures" % len(FAILURES))
+    test_lifecycle(verifier)
+    print("%d failures%s" % (len(FAILURES), "" if verifier else " (signatures not verified)"))
     sys.exit(1 if FAILURES else 0)
 
 

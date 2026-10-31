@@ -1,0 +1,11 @@
+[package]
+name = "varve-testkit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Battle-test toolkit for Varve regtest nodes (development only; never shipped in releases)"
+
+[dependencies]
+varve-sys = { path = "../varve-sys" }
+varve-consensus = { path = "../varve-consensus" }
+varve-wallet = { path = "../varve-wallet" }

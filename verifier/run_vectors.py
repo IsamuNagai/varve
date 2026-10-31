@@ -92,6 +92,7 @@ def check_difficulty():
     if not data:
         return
     initial = 1 << 240
+    # parent_time_minus_genesis is t_h - t0; next_target adds ASERT_ANCHOR_DELAY itself.
     for c in data["cases"]:
         got = v.next_target(c["parent_height"], c["parent_time_minus_genesis"], 0, initial)
         want = int(c["next_target_hex"], 16)
@@ -301,6 +302,7 @@ def main():
     check_signatures(verifier)
     check_chain(verifier)
     load("pow.json") and R.skip("pow.json", "proof of work is out of scope for this verifier")
+    load("wallet.json") and R.skip("wallet.json", "wallet derivation is not consensus; out of scope")
     for n in R.notes:
         print("note: " + n)
     print("checks=%d mismatches=%d skipped=%d" % (R.checks, R.mismatches, R.skipped))

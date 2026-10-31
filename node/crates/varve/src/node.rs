@@ -76,7 +76,10 @@ impl Node {
                 eprintln!("[node] rejected block {}: {}", hex(&id), e);
                 return Submit::Rejected(format!("invalid: {}", e));
             }
-            Err(Reject::Local(s)) => return Submit::Rejected(s),
+            Err(Reject::Local(s)) => {
+                eprintln!("[node] set aside block {}: {}", hex(&id), s);
+                return Submit::Rejected(s);
+            }
         };
         if outcome.tip_changed {
             let mut returned = Vec::new();

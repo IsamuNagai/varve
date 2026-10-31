@@ -31,14 +31,14 @@ fn scheme_sys(id: u16) -> varve_sys::Scheme {
 const ML: u16 = SCHEME_ML_DSA_65;
 const SLH: u16 = SCHEME_SLH_DSA_SHA2_128S;
 
-/// ML-DSA: NO_NEW_OUTPUTS from 100, DISABLED from 200 (listed out of order on purpose).
+/// ML-DSA: NO_NEW_OUTPUTS from 100, DISABLED from 200.
 fn ids() -> ChainIds {
     ChainIds {
         network_id: *b"VRVt",
         genesis_id: [7u8; 32],
         lifecycle: vec![
-            Transition { scheme_id: ML, state: SchemeState::Disabled, from_height: 200 },
             Transition { scheme_id: ML, state: SchemeState::NoNewOutputs, from_height: 100 },
+            Transition { scheme_id: ML, state: SchemeState::Disabled, from_height: 200 },
         ],
     }
 }
@@ -170,4 +170,16 @@ fn shared_witness_must_be_empty() {
     tx.witnesses[1].public_key.clear();
     tx.witnesses[1].signature = sig;
     assert!(check_transaction(&tx, 10, &ids, &utxo, true).is_err());
+}
+
+#[test]
+fn lifecycle_lists_must_be_well_formed() {
+    let t = |id, st, h| Transition { scheme_id: id, state: st, from_height: h };
+    assert!(lifecycle_well_formed(&[]).is_ok());
+    assert!(lifecycle_well_formed(&ids().lifecycle).is_ok());
+    assert!(lifecycle_well_formed(&[t(ML, SchemeState::Active, 5)]).is_err());
+    assert!(lifecycle_well_formed(&[t(9, SchemeState::Disabled, 5)]).is_err());
+    assert!(lifecycle_well_formed(&[t(ML, SchemeState::Disabled, 5), t(ML, SchemeState::NoNewOutputs, 9)]).is_err());
+    assert!(lifecycle_well_formed(&[t(ML, SchemeState::NoNewOutputs, 5), t(ML, SchemeState::Disabled, 5)]).is_err());
+    assert!(lifecycle_well_formed(&[t(ML, SchemeState::NoNewOutputs, 5), t(SLH, SchemeState::NoNewOutputs, 5)]).is_ok());
 }

@@ -24,6 +24,7 @@ RECOVERY_DELAY_MAX = (1 << 31) - 1
 HEADER_LEN = 116
 TARGET_SPACING = 300
 ASERT_TAU = 21_600
+ASERT_ANCHOR_DELAY = 7_200  # difficulty.md §1, §2.1: t_a = t0 + D
 MTP_WINDOW = 11
 INITIAL_SUBSIDY = 8_200_000_000
 TAIL_SUBSIDY = 600_000_000
@@ -37,9 +38,54 @@ SCHEMES = {
 }
 MAX_PK_LEN = 1952
 MAX_SIG_LEN = 7856
-# SPEC-AMBIGUITY (A-07): lifecycle states are fixed "per height range"; at
-# genesis both schemes are ACTIVE and "no other state is used", so a scheme is
-# creatable/spendable by either path iff it is in SCHEMES.
+
+# transactions.md §6 and upgrades.md §4: the lifecycle is a table of
+# (scheme_id, state, from_height) transitions.  The state of a scheme at height
+# h is that of the last transition for it with from_height <= h, else ACTIVE.
+ACTIVE, NO_NEW_OUTPUTS, DISABLED = "ACTIVE", "NO_NEW_OUTPUTS", "DISABLED"
+_STATE_RANK = {ACTIVE: 0, NO_NEW_OUTPUTS: 1, DISABLED: 2}
+GENESIS_LIFECYCLE = ((1, ACTIVE, 0), (2, ACTIVE, 0))
+
+
+def check_lifecycle(table):
+    """Validate a lifecycle table and return it as a tuple; raise ValueError.
+
+    SPEC-AMBIGUITY (A-20): "the last transition for that scheme" can mean last
+    in list order or greatest from_height.  The two agree only if each scheme's
+    entries are listed in height order, so such a table is required here, and
+    states may only move forward (one-directional, upgrades.md §5).
+    """
+    last = {}
+    for scheme_id, state, from_height in table:
+        if scheme_id not in SCHEMES:
+            raise ValueError("lifecycle entry for an unknown scheme")
+        if state not in _STATE_RANK or from_height < 0:
+            raise ValueError("bad lifecycle entry")
+        prev = last.get(scheme_id)
+        if prev is not None and (from_height < prev[1] or _STATE_RANK[state] < _STATE_RANK[prev[0]]):
+            raise ValueError("lifecycle not in height order or not one-directional")
+        last[scheme_id] = (state, from_height)
+    return tuple(table)
+
+
+def scheme_state(table, scheme_id, height):
+    """State of scheme_id at height; None for an unknown id (never valid)."""
+    if scheme_id not in SCHEMES:
+        return None
+    state = ACTIVE
+    for entry_scheme, entry_state, from_height in table:
+        if entry_scheme == scheme_id and from_height <= height:
+            state = entry_state
+    return state
+
+
+def can_create(table, scheme_id, height):
+    return scheme_state(table, scheme_id, height) == ACTIVE
+
+
+def can_spend(table, scheme_id, height):
+    return scheme_state(table, scheme_id, height) in (ACTIVE, NO_NEW_OUTPUTS)
+
 
 # subsidy.md: FRAC[k] = floor(2^63 * 2^(-k/64)); embedded, not computed.
 FRAC_Q63 = (
@@ -190,16 +236,16 @@ class Output:
         return Output(amount, scheme_id, commitment, 1, output_version,
                       rec_scheme, rec_commitment, rec_delay)
 
-    def check_creatable(self):
-        """transactions.md §1 and §6 output rules (rule 11.4)."""
+    def check_creatable(self, lifecycle=GENESIS_LIFECYCLE, height=0):
+        """transactions.md §1 and §6 output rules (rule 11.4) at a block height."""
         if not 1 <= self.amount <= MAX_MONEY:
             raise Invalid("output amount out of range")
         if self.output_version != 1:
             raise Invalid("output_version")
-        if self.scheme_id not in SCHEMES:
+        if not can_create(lifecycle, self.scheme_id, height):
             raise Invalid("scheme not creatable")
         if self.policy == 1:
-            if self.recovery_scheme_id not in SCHEMES:
+            if not can_create(lifecycle, self.recovery_scheme_id, height):
                 raise Invalid("recovery scheme not creatable")
             if not 1 <= self.recovery_delay <= RECOVERY_DELAY_MAX:
                 raise Invalid("recovery_delay out of range")
@@ -286,7 +332,7 @@ def read_tx(r):
     witnesses = []
     for _ in range(n_in):
         path = r.uint(1)
-        if path not in (0, 1):
+        if path not in (0, 1, 2):
             raise ParseError("unknown witness path")
         pk = r.varbytes(MAX_PK_LEN)
         sig = r.varbytes(MAX_SIG_LEN)
@@ -463,8 +509,10 @@ def pow_limit_for(initial_target):
 
 
 def next_target(parent_height, parent_time, t0, initial_target):
+    """difficulty.md §2; t0 is the genesis timestamp, the anchor is t0 + D."""
     pow_limit = pow_limit_for(initial_target)
-    exponent = ((parent_time - t0) - TARGET_SPACING * parent_height) * 65536 // ASERT_TAU
+    t_a = t0 + ASERT_ANCHOR_DELAY
+    exponent = ((parent_time - t_a) - TARGET_SPACING * parent_height) * 65536 // ASERT_TAU
     if exponent >= 256 * 65536:
         return pow_limit
     if exponent <= -270 * 65536:
@@ -605,6 +653,7 @@ def draft_params():
         ("SCHEME_0002_VERIFY_UNITS", "u32", 1700),
         ("TARGET_SPACING", "u32", TARGET_SPACING),
         ("ASERT_TAU", "u32", ASERT_TAU),
+        ("ASERT_ANCHOR_DELAY", "u32", ASERT_ANCHOR_DELAY),
         ("MTP_WINDOW", "u32", MTP_WINDOW),
         ("MAX_FUTURE_DRIFT", "u32", 600),
         ("INITIAL_SUBSIDY", "u64", INITIAL_SUBSIDY),
@@ -638,10 +687,11 @@ class Coin:
 class ChainState:
     """Active chain from genesis; UTXO set keyed by (txid, index)."""
 
-    def __init__(self, network_id, genesis_bytes, verifier=None):
+    def __init__(self, network_id, genesis_bytes, verifier=None, lifecycle=GENESIS_LIFECYCLE):
         genesis = parse_block(genesis_bytes)
         self.network_id = network_id
         self.verifier = verifier
+        self.lifecycle = check_lifecycle(lifecycle)
         self.genesis_id = genesis.header.block_id()
         self.t0 = genesis.header.timestamp
         self.initial_target = genesis.header.target
@@ -743,7 +793,7 @@ def validate_block(chain, raw):
         # 11.4 output rules
         out_sum = 0
         for o in tx.outputs:
-            o.check_creatable()
+            o.check_creatable(chain.lifecycle, height)
             out_sum += o.amount
             if out_sum > MAX_MONEY:
                 raise Invalid("11.4: output sum > MAX_MONEY")
@@ -792,21 +842,39 @@ def check_coinbase(tx, height):
         raise Invalid("11.6: coinbase witness")
 
 
+def select_key(o, path, coin, height):
+    """transactions.md §8 step 3 for path 0 or 1: (scheme, commitment)."""
+    if path == 0:
+        return o.scheme_id, o.commitment
+    if o.policy != 1:
+        raise Invalid("11.7: recovery path on single-policy output")
+    if height < coin.height + o.recovery_delay:
+        raise Invalid("11.7: recovery delay")
+    return o.recovery_scheme_id, o.recovery_commitment
+
+
 def check_spends(chain, tx, txid, coins, height):
     spent_serialized = [c.output.serialize() for c in coins]
+    authorized = set()  # (scheme, commitment) selected by earlier path-0/1 inputs
     for idx, (coin, w) in enumerate(zip(coins, tx.witnesses)):
         o = coin.output
         if coin.coinbase and height < coin.height + COINBASE_MATURITY:
             raise Invalid("11.7: coinbase maturity")
-        if w.path == 0:
-            scheme, commitment = o.scheme_id, o.commitment
-        else:
-            if o.policy != 1:
-                raise Invalid("11.7: recovery path on single-policy output")
-            if height < coin.height + o.recovery_delay:
-                raise Invalid("11.7: recovery delay")
-            scheme, commitment = o.recovery_scheme_id, o.recovery_commitment
-        if scheme not in SCHEMES:
+        if w.path == 2:
+            # transactions.md §8.2: replaces steps 3-7; no signature is verified.
+            # SPEC-AMBIGUITY (A-22): the witness is not covered by any signature,
+            # so a third party may swap a redundant signed entry for this one.
+            # SPEC-AMBIGUITY (A-23): the state check below can never fail alone;
+            # the authorizer selected the same scheme at the same height.
+            if w.public_key or w.signature:
+                raise Invalid("11.7: shared witness must be empty")
+            if not can_spend(chain.lifecycle, o.scheme_id, height):
+                raise Invalid("11.7: shared: scheme not spendable")
+            if (o.scheme_id, o.commitment) not in authorized:
+                raise Invalid("11.7: no earlier input authorizes this key")
+            continue
+        scheme, commitment = select_key(o, w.path, coin, height)
+        if not can_spend(chain.lifecycle, scheme, height):
             raise Invalid("11.7: scheme not spendable")
         pk_len, sig_len, _u, _n = SCHEMES[scheme]
         if len(w.public_key) != pk_len or len(w.signature) != sig_len:
@@ -818,6 +886,7 @@ def check_spends(chain, tx, txid, coins, height):
             chain.sig_checks_skipped += 1
         elif not chain.verifier.verify(scheme, w.public_key, msg, w.signature):
             raise Invalid("11.7: bad signature")
+        authorized.add((scheme, commitment))
 
 
 # ---------------------------------------------------------------------------

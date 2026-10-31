@@ -2,6 +2,8 @@
 which mutations the shipped test vectors fail to detect ("survivors").
 
 A survivor is a consensus rule (or boundary) that the vectors do not pin down.
+Each survivor is then run against selftest.py, to tell a rule the vectors miss
+but the spec can exercise from one that no test can reach.
 Usage: python3 -I verifier/mutation_check.py   (set VARVE_LIBOQS for full coverage)
 """
 
@@ -15,6 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import run_vectors as rv  # noqa: E402
+import selftest as st  # noqa: E402
 
 SOURCE = open(os.path.join(HERE, "varve_verify.py")).read()
 
@@ -61,7 +64,7 @@ MUTATIONS = [
     ("empty output list allowed", "if not tx.inputs or not tx.outputs:", "if not tx.inputs:"),
     ("output_version unchecked", "if self.output_version != 1:", "if False:"),
     ("recovery scheme creatability unchecked",
-     "if self.recovery_scheme_id not in SCHEMES:", "if False:"),
+     "if not can_create(lifecycle, self.recovery_scheme_id, height):", "if False:"),
     ("recovery_delay may be 2^32-1",
      "1 <= self.recovery_delay <= RECOVERY_DELAY_MAX", "1 <= self.recovery_delay"),
     ("recovery_delay 0 allowed",
@@ -82,12 +85,12 @@ MUTATIONS = [
      "return Block"),
     ("tx_count 0 accepted", "if count < 1:", "if False:"),
     ("raw size bound removed", "if len(raw) > HEADER_LEN + 5 + MAX_BLOCK_WEIGHT:", "if False:"),
-    ("path-1 check by scheme state ignored (primary scheme used)",
-     "scheme, commitment = o.recovery_scheme_id, o.recovery_commitment",
-     "scheme, commitment = o.scheme_id, o.commitment"),
+    ("path 1 selects the primary scheme and commitment",
+     "return o.recovery_scheme_id, o.recovery_commitment",
+     "return o.scheme_id, o.commitment"),
     ("ASERT: truncation instead of floor for negative exponent",
-     "exponent = ((parent_time - t0) - TARGET_SPACING * parent_height) * 65536 // ASERT_TAU",
-     "_n = ((parent_time - t0) - TARGET_SPACING * parent_height) * 65536\n"
+     "exponent = ((parent_time - t_a) - TARGET_SPACING * parent_height) * 65536 // ASERT_TAU",
+     "_n = ((parent_time - t_a) - TARGET_SPACING * parent_height) * 65536\n"
      "    exponent = -((-_n) // ASERT_TAU) if _n < 0 else _n // ASERT_TAU"),
     ("ASERT: upper early return exclusive",
      "if exponent >= 256 * 65536:", "if exponent > 256 * 65536:"),
@@ -110,6 +113,69 @@ MUTATIONS = [
     ("compact: sign bit alone is negative",
      "if bits & 0x00800000 and word:", "if bits & 0x00800000:"),
     ("sighash: path omitted", "+ spent_hash + bytes([path]))", "+ spent_hash)"),
+    # --- v0.4: anchored ASERT (difficulty.md §2, params.md) ---
+    ("ASERT: anchor delay ignored (anchored at t0)",
+     "t_a = t0 + ASERT_ANCHOR_DELAY", "t_a = t0"),
+    ("ASERT: anchor delay with the wrong sign",
+     "t_a = t0 + ASERT_ANCHOR_DELAY", "t_a = t0 - ASERT_ANCHOR_DELAY"),
+    ("params: ASERT_ANCHOR_DELAY entry omitted",
+     '        ("ASERT_ANCHOR_DELAY", "u32", ASERT_ANCHOR_DELAY),\n', ""),
+    ("params: ASERT_ANCHOR_DELAY encoded as u64",
+     '("ASERT_ANCHOR_DELAY", "u32", ASERT_ANCHOR_DELAY)', '("ASERT_ANCHOR_DELAY", "u64", ASERT_ANCHOR_DELAY)'),
+    # --- v0.4: witness path 2 (encoding.md §1.5, transactions.md §8.2) ---
+    ("parse: path 2 rejected", "if path not in (0, 1, 2):", "if path not in (0, 1):"),
+    ("parse: path 3 accepted", "if path not in (0, 1, 2):", "if path not in (0, 1, 2, 3):"),
+    ("path 2: non-empty public key allowed", "if w.public_key or w.signature:", "if w.signature:"),
+    ("path 2: non-empty signature allowed", "if w.public_key or w.signature:", "if w.public_key:"),
+    ("path 2: no authorizing input required",
+     "if (o.scheme_id, o.commitment) not in authorized:", "if False:"),
+    ("path 2: authorizer may be a later input",
+     "authorized = set()  # (scheme, commitment) selected by earlier path-0/1 inputs",
+     "authorized = {(c.output.scheme_id, c.output.commitment) if w.path == 0 else"
+     " (c.output.recovery_scheme_id, c.output.recovery_commitment)"
+     " for c, w in zip(coins, tx.witnesses) if w.path in (0, 1)}"),
+    ("path 2: authorizer matched on commitment only",
+     "if (o.scheme_id, o.commitment) not in authorized:",
+     "if o.commitment not in {c for _s, c in authorized}:"),
+    ("path 2: authorizer matched on scheme only",
+     "if (o.scheme_id, o.commitment) not in authorized:",
+     "if o.scheme_id not in {s for s, _c in authorized}:"),
+    ("path 2: only path-0 inputs authorize",
+     "        authorized.add((scheme, commitment))",
+     "        if w.path == 0:\n            authorized.add((scheme, commitment))"),
+    ("path 2: authorizer contributes its output's primary key even on path 1",
+     "        authorized.add((scheme, commitment))", "        authorized.add((o.scheme_id, o.commitment))"),
+    ("path 2: coinbase maturity not applied",
+     "if coin.coinbase and height < coin.height + COINBASE_MATURITY:",
+     "if coin.coinbase and w.path != 2 and height < coin.height + COINBASE_MATURITY:"),
+    ("path 2: lifecycle state not checked",
+     "if not can_spend(chain.lifecycle, o.scheme_id, height):", "if False:"),
+    ("path 2: verify units charged for a path-2 entry",
+     "units = sum(verify_units(len(w.signature)) for w in self.witnesses)",
+     "units = sum(verify_units(len(w.signature)) if w.path != 2 else 100 for w in self.witnesses)"),
+    # --- v0.4: lifecycle table (transactions.md §6) ---
+    ("lifecycle: table ignored (always ACTIVE)",
+     "    state = ACTIVE\n    for entry_scheme", "    return ACTIVE\n    for entry_scheme"),
+    ("lifecycle: creation allowed while NO_NEW_OUTPUTS",
+     "return scheme_state(table, scheme_id, height) == ACTIVE",
+     "return scheme_state(table, scheme_id, height) in (ACTIVE, NO_NEW_OUTPUTS)"),
+    ("lifecycle: spending allowed while DISABLED",
+     "return scheme_state(table, scheme_id, height) in (ACTIVE, NO_NEW_OUTPUTS)",
+     "return scheme_state(table, scheme_id, height) is not None"),
+    ("lifecycle: spending refused while NO_NEW_OUTPUTS",
+     "return scheme_state(table, scheme_id, height) in (ACTIVE, NO_NEW_OUTPUTS)",
+     "return scheme_state(table, scheme_id, height) == ACTIVE"),
+    ("lifecycle: first matching transition instead of last",
+     "            state = entry_state\n    return state", "            return entry_state\n    return state"),
+    ("lifecycle: from_height exclusive", "from_height <= height:", "from_height < height:"),
+    ("lifecycle: path 1 checked against the primary scheme's state",
+     "if not can_spend(chain.lifecycle, scheme, height):",
+     "if not can_spend(chain.lifecycle, o.scheme_id, height):"),
+    ("lifecycle: recovery creatability checks the primary scheme",
+     "if not can_create(lifecycle, self.recovery_scheme_id, height):",
+     "if not can_create(lifecycle, self.scheme_id, height):"),
+    ("lifecycle: creation checked at height 0, not the block height",
+     "o.check_creatable(chain.lifecycle, height)", "o.check_creatable(chain.lifecycle, 0)"),
 ]
 
 
@@ -135,6 +201,22 @@ def run_with(module):
     return rv.R.mismatches
 
 
+def selftest_with(module):
+    """Run selftest.py against a mutant; return its failure count."""
+    st.v = module
+    st.FAILURES = []
+    verifier = module.load_verifier()
+    with contextlib.redirect_stdout(io.StringIO()):
+        try:
+            st.test_weight_and_structure(verifier)
+            st.test_mtp(verifier)
+            st.test_spends(verifier)
+            st.test_lifecycle(verifier)
+        except Exception as e:  # a crash also counts as detection
+            st.FAILURES.append("crashed: %s" % type(e).__name__)
+    return len(st.FAILURES)
+
+
 def main():
     survivors = []
     for name, old, new in MUTATIONS:
@@ -145,10 +227,10 @@ def main():
             name += " (crashed: %s)" % type(e).__name__
         print("%-8s %s" % ("killed" if killed else "SURVIVED", name))
         if not killed:
-            survivors.append(name)
-    print("\n%d mutations, %d survived" % (len(MUTATIONS), len(survivors)))
-    for s in survivors:
-        print("  survivor: " + s)
+            survivors.append((name, selftest_with(build(old, new))))
+    print("\n%d mutations, %d survived the vectors" % (len(MUTATIONS), len(survivors)))
+    for s, caught in survivors:
+        print("  survivor: %s  [selftest: %s]" % (s, "caught" if caught else "NOT caught"))
 
 
 if __name__ == "__main__":

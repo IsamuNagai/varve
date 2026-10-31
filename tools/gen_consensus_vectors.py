@@ -307,10 +307,14 @@ def signed_vectors(pq):
          shared([0, 2], mutate=lambda tx: setattr(tx.witnesses[1], "signature", tx.witnesses[0].signature)), "invalid")
     case("shared: path 2 for an output under a different key", N,
          shared([0, 2], inputs=[(cb3, 0), (t2, 0)]), "invalid")
-    case("shared: both inputs signed (path 0 and 0)", N, shared([0, 0]), "valid")
+    case("shared: second same-key input signed again instead of path 2 (non-canonical)", N, shared([0, 0]), "invalid")
+    case("shared: path 2 spending an immature coinbase", N,
+         shared([0, 2], inputs=[(cb3, 0), (B.base[-1].txs[0], 0)]), "invalid")
     # recovery signature (SLH key) authorizes a later output whose primary key is that SLH key
     case("shared: recovery-path signature authorizes a later primary output of the same key", 294,
          shared([1, 2], inputs=[(t1, 1), (t2, 0)]), "valid")
+    case("shared: later input of the recovery-authorized key signed again (path 1 then 0)", 294,
+         shared([1, 0], inputs=[(t1, 1), (t2, 0)]), "invalid")
     case("shared: recovery-path signature too early (delay not met)", 293,
          shared([1, 2], inputs=[(t1, 1), (t2, 0)]), "invalid")
     # value rules

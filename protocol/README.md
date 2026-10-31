@@ -10,9 +10,9 @@ Keywords MUST, MUST NOT, SHOULD, and MAY are used as in RFC 2119.
 | File | Status |
 | --- | --- |
 | `encoding.md` | Draft v0.2: integers, varint, hashing, network id |
-| `transactions.md` | Draft v0.3: outputs, inputs, txid/wtxid, coinbase, locktime, schemes and v1 lifecycle, signature message, spending rules, recovery trust model, weight |
+| `transactions.md` | Draft v0.5: outputs, inputs, txid/wtxid, coinbase, locktime, schemes and v1 lifecycle, signature message, spending rules, recovery trust model, weight |
 | `blocks.md` | Draft v0.3: header, Merkle root, validation order, arbitrary-precision chainwork, chain selection, sync policy |
-| `difficulty.md` | Draft v0.2: aserti3-2d, timestamp rules |
+| `difficulty.md` | Draft v0.3: aserti3-2d anchored two hours after genesis, timestamp rules |
 | `subsidy.md` | Draft v0.2: exact integer schedule |
 | `genesis.md` | Draft v0.3: construction from six Bitcoin headers, exact anchor validation |
 | `pow.md` | Draft v0.3: RandomX v2 at a pinned commit with the Varve salt, key rotation, vectors |

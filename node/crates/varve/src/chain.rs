@@ -156,6 +156,7 @@ impl Chain {
         if !params.launchable {
             return Err(format!("network {} is not launchable (draft parameters)", params.name));
         }
+        varve_consensus::params::lifecycle_well_formed(&params.lifecycle).map_err(|e| format!("network {}: {}", params.name, e))?;
         let genesis = genesis_block(&params).map_err(|e| format!("genesis: {}", e))?;
         let gid = genesis.header.block_id();
         let mut store = Store::open(datadir).map_err(|e| e.to_string())?;
@@ -414,7 +415,9 @@ impl Chain {
         }
         let pos = self.index.get(id)?.file_pos?;
         let b = Block::parse(&self.store.read_at(pos).ok()?).ok()?;
-        if b.header.block_id() != *id {
+        // A stored body that no longer matches its header means local corruption (disk
+        // error, partial overwrite), never an invalid block: report it as unreadable.
+        if b.header.block_id() != *id || b.txs.is_empty() || varve_consensus::block::merkle_root(&b.txs.iter().map(|t| t.wtxid()).collect::<Vec<_>>()) != b.header.tx_root {
             return None;
         }
         Some(b)
@@ -492,7 +495,14 @@ impl Chain {
             }
             for id in path {
                 let Some(b) = self.load_block(&id) else {
-                    eprintln!("[chain] block {} unreadable; skipping its branch", varve_consensus::encoding::hex(&id));
+                    // Forget the damaged local copy so the block is fetched again from peers
+                    // (missing_blocks); the block itself is not invalid.
+                    eprintln!("[chain] stored copy of block {} is unreadable or corrupt; will fetch it again", varve_consensus::encoding::hex(&id));
+                    if !self.pending.contains_key(&id) {
+                        if let Some(e) = self.index.get_mut(&id) {
+                            e.file_pos = None;
+                        }
+                    }
                     unusable.insert(id);
                     break;
                 };
@@ -741,5 +751,38 @@ mod tests {
         let a3 = mine(&c, &mut vm, a2id, t + 20, 3, s);
         let out = c.accept_block(a3, None).unwrap();
         assert!(out.tip_changed && c.height() == 3, "honest block extending the tip must be accepted");
+    }
+
+    #[test]
+    fn corrupt_stored_block_is_refetched_not_marked_invalid() {
+        // battle test run 1: a damaged block file made the node mark an honest block
+        // invalid forever and ban every peer that offered it
+        let (mut c, mut vm, t) = setup("corrupt");
+        let s = subsidy(1);
+        let a1 = mine(&c, &mut vm, c.genesis_id, t + 1, 1, s);
+        let a1id = a1.header.block_id();
+        c.accept_block(a1, None).unwrap();
+        let a2 = mine(&c, &mut vm, a1id, t + 2, 2, s);
+        let a2id = a2.header.block_id();
+        c.accept_block(a2.clone(), None).unwrap();
+        let a3 = mine(&c, &mut vm, a2id, t + 3, 3, s);
+        c.accept_block(a3, None).unwrap();
+        assert_eq!(c.height(), 3);
+        let path = c.store.path.clone();
+        let params = c.params.clone();
+        drop(c);
+        // flip the last byte of A2's record (its coinbase extra): still parses, root mismatch
+        let mut data = std::fs::read(&path).unwrap();
+        let raw = a2.serialize();
+        let at = data.windows(raw.len()).position(|w| w == &raw[..]).unwrap();
+        data[at + raw.len() - 1] ^= 0xff;
+        std::fs::write(&path, &data).unwrap();
+        let mut c = Chain::open(params, path.parent().unwrap()).unwrap();
+        assert_eq!(c.height(), 1, "chain stops before the damaged block");
+        assert_ne!(c.index[&a2id].status, Status::Invalid, "damaged local copy must not make the block invalid");
+        assert!(!c.has_data(&a2id), "the damaged copy is forgotten so it can be fetched again");
+        assert!(c.missing_blocks(16).contains(&a2id), "and the node asks peers for it");
+        c.accept_block(a2, Some(1)).unwrap();
+        assert_eq!(c.height(), 3, "the clean copy from a peer restores the chain (A3 still on disk)");
     }
 }
