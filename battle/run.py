@@ -30,6 +30,7 @@ TMP = tempfile.mkdtemp(prefix="varve-battle-")
 PROCS, TESTS, CAPACITY = {}, [], []
 T_START = datetime.now(timezone.utc)
 BASE = 52000 + (os.getpid() % 50) * 20
+MINE_TO = ""
 
 
 def log(m):
@@ -245,12 +246,12 @@ def group_kill_mining():
     t0 = time.time()
     port = BASE + 14
     d = os.path.join(TMP, "m-kill")
-    start("M", port, "--mine", "--threads", "1", "--nolisten", datadir=d)
+    start("M", port, "--mine", "--mine-to", MINE_TO, "--threads", "1", "--nolisten", datadir=d)
     wait_for(lambda: int(rpc("M", "getblockcount")) >= 15, 900)
     h_before = int(rpc("M", "getblockcount"))
     stop("M", kill=True)
     try:
-        start("M", port, "--mine", "--threads", "1", "--nolisten", datadir=d)
+        start("M", port, "--mine", "--mine-to", MINE_TO, "--threads", "1", "--nolisten", datadir=d)
         h_restart = int(rpc("M", "getblockcount"))
         grew = wait_for(lambda: int(rpc("M", "getblockcount")) > h_restart + 2, 600)
         ok = h_restart >= h_before - 1 and grew
@@ -332,8 +333,17 @@ def group_storage(src_dir, tip_hash, tip_h):
 def main():
     log(f"temp dir {TMP}")
     os.makedirs(os.path.join(HERE, "results"), exist_ok=True)
+    global MINE_TO
     addr = subprocess.run([KIT, "address"], capture_output=True, text=True, check=True).stdout.strip()
+    MINE_TO = addr
     port = BASE
+    # node A's own wallet (encrypted; receives test payments, used by the wallet group)
+    pf = os.path.join(TMP, "wallet-pass.txt")
+    with open(pf, "w") as f:
+        f.write("battle test passphrase\n")
+    os.makedirs(os.path.join(TMP, "A"), exist_ok=True)
+    subprocess.run([BIN, "wallet", "create", "--network", "regtest", "--datadir", os.path.join(TMP, "A"), "--passphrase-file", pf],
+                   check=True, capture_output=True, timeout=60)
     # 1. a funded chain: node A mines 320 blocks to the test kit's key
     start("A", port, "--mine", "--threads", "1", "--mine-to", addr, "--nolisten")
     target = 320
@@ -349,7 +359,9 @@ def main():
     if alive("A"):
         group_diff()
     if alive("A"):
+        rpc("A", "walletpassphrase", "battle test passphrase", "3600")
         group_wallet()
+        rpc("A", "walletlock")
     metric("cap-rss", "Peak memory of the node during the whole run", hwm_mb("A"), "MB", "VmHWM")
     tip_h, tip_hash = int(rpc("A", "getblockcount")), rpc("A", "getbestblockhash")
     # storage tests run on copies of A's data directory

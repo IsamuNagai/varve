@@ -30,7 +30,8 @@ varve — Varve reference node, miner and wallet (TESTNET SOFTWARE)
 USAGE:
   varve node   [options]               run a node (add --mine to mine)
   varve rpc    [options] METHOD [ARGS] call a running node
-  varve wallet [options] balance | address | newaddress | send ADDRESS AMOUNT [FEERATE]
+  varve wallet [options] create | import | address | balance | newaddress
+                         | send ADDRESS AMOUNT [FEERATE] | phrase | repair
   varve version
 
 OPTIONS:
@@ -42,17 +43,25 @@ OPTIONS:
   --seed HOST        extra peer to connect to (repeatable)
   --rpcport N        local RPC port (default: P2P port + 1); bound to 127.0.0.1 only
   --mine             mine new blocks (pays to your wallet's first address)
-  --mine-to ADDRESS  pay mined coins to this address instead
+  --mine-to ADDRESS  pay mined coins to this address instead (no keys needed on
+                     this machine; for example an address from Strata)
   --threads N        mining threads (default: all CPU cores)
   --light            mine in light mode (256 MiB instead of ~2.1 GiB, slower)
   --api-port N       serve the public read-only API (node/API.md) on port N
   --api-bind ADDR    address for the API (default 127.0.0.1; use a TLS proxy to publish)
   --api-trust-proxy  rate-limit by the last X-Forwarded-For address (behind a proxy only)
+  --passphrase-file F  read the wallet passphrase from a file (automation and tests)
+
+WALLET:
+  The wallet is encrypted with your passphrase and restorable from 24 words (the same
+  format as the Strata wallet). The node only needs public addresses to mine and to show
+  balances; private keys are decrypted only for a payment and wiped right after.
 
 RPC METHODS:
   getblockchaininfo getblockcount getbestblockhash getblockhash getblock
   getmininginfo getpeerinfo getconnectioncount getmempoolinfo getrawmempool
-  getbalance getnewaddress sendtoaddress sendrawtransaction submitblock uptime stop
+  getbalance getnewaddress sendtoaddress walletpassphrase walletlock
+  sendrawtransaction submitblock uptime stop
 ";
 
 struct Args {
@@ -71,6 +80,7 @@ struct Args {
     api_port: Option<u16>,
     api_bind: Option<String>,
     api_trust_proxy: bool,
+    passphrase_file: Option<PathBuf>,
     rest: Vec<String>,
 }
 
@@ -93,6 +103,7 @@ fn parse_args() -> Result<Args, String> {
         api_port: None,
         api_bind: None,
         api_trust_proxy: false,
+        passphrase_file: None,
         rest: vec![],
     };
     while let Some(x) = it.next() {
@@ -112,6 +123,7 @@ fn parse_args() -> Result<Args, String> {
             "--api-port" => a.api_port = Some(val("--api-port")?.parse().map_err(|_| "bad --api-port")?),
             "--api-bind" => a.api_bind = Some(val("--api-bind")?),
             "--api-trust-proxy" => a.api_trust_proxy = true,
+            "--passphrase-file" => a.passphrase_file = Some(PathBuf::from(val("--passphrase-file")?)),
             "-h" | "--help" => a.cmd = "help".into(),
             s if s.starts_with("--") => return Err(format!("unknown option {}", s)),
             _ => a.rest.push(x),
@@ -203,17 +215,16 @@ fn run_node(a: Args) -> i32 {
         }
     };
     eprintln!("[chain] genesis {}", varve_consensus::encoding::hex(&chain.genesis_id));
-    let wallet = match wallet::Wallet::open_or_create(&dir) {
+    let wallet = match wallet::Wallet::open(&dir) {
         Ok(w) => w,
         Err(e) => {
             eprintln!("error: wallet: {}", e);
             return 1;
         }
     };
-    eprintln!(
-        "[wallet] note: the node's built-in wallet ({}) stores its keys UNENCRYPTED. It is meant for mining on testnet; keep coins in Strata.",
-        dir.join("wallet.json").display()
-    );
+    if wallet.exists() {
+        eprintln!("[wallet] encrypted wallet loaded (public addresses only; keys stay encrypted until a payment)");
+    }
     let pay_to = if a.mine {
         match &a.mine_to {
             Some(addr) => match address::decode(hrp, addr) {
@@ -223,7 +234,13 @@ fn run_node(a: Args) -> i32 {
                     return 1;
                 }
             },
-            None => Some(wallet.output_for(0)),
+            None => match wallet.mining_output() {
+                Ok(o) => Some(o),
+                Err(e) => {
+                    eprintln!("error: --mine: {}", e);
+                    return 1;
+                }
+            },
         }
     } else {
         None
@@ -243,6 +260,16 @@ fn run_node(a: Args) -> i32 {
     };
     let node = node::Node::new(cfg, chain, wallet);
     p2p::start(node.clone());
+    {
+        // lock the wallet again when its unlock period ends
+        let n = node.clone();
+        std::thread::spawn(move || {
+            while n.running() {
+                std::thread::sleep(Duration::from_secs(2));
+                n.wallet.lock().unwrap().expire();
+            }
+        });
+    }
     let stats = pay_to.map(|o| {
         let threads = a.threads.unwrap_or_else(|| std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1));
         eprintln!("[miner] {} threads, {} mode", threads, if a.light { "light" } else { "fast" });
@@ -303,41 +330,141 @@ fn run_rpc(a: &Args, method: String, params: Vec<String>) -> i32 {
     }
 }
 
+/// Read a secret from the terminal without echo (Unix), or from --passphrase-file.
+fn read_secret(a: &Args, prompt: &str) -> Result<String, String> {
+    if let Some(f) = &a.passphrase_file {
+        let t = std::fs::read_to_string(f).map_err(|e| format!("--passphrase-file: {}", e))?;
+        return Ok(t.lines().next().unwrap_or("").to_string());
+    }
+    read_hidden(prompt)
+}
+
+fn read_hidden(prompt: &str) -> Result<String, String> {
+    use std::io::Write;
+    eprint!("{}", prompt);
+    let _ = std::io::stderr().flush();
+    #[cfg(unix)]
+    let echo_off = std::process::Command::new("stty").arg("-echo").stdin(std::process::Stdio::inherit()).status().map(|s| s.success()).unwrap_or(false);
+    let mut line = String::new();
+    let r = std::io::stdin().read_line(&mut line);
+    #[cfg(unix)]
+    if echo_off {
+        let _ = std::process::Command::new("stty").arg("echo").stdin(std::process::Stdio::inherit()).status();
+        eprintln!();
+    }
+    r.map_err(|e| e.to_string())?;
+    Ok(line.trim_end_matches(['\r', '\n']).to_string())
+}
+
+fn new_passphrase(a: &Args) -> Result<String, String> {
+    let p = read_secret(a, "Choose a wallet passphrase (at least 10 characters): ")?;
+    wallet::check_passphrase(&p)?;
+    if a.passphrase_file.is_none() && read_hidden("Repeat the passphrase: ")? != p {
+        return Err("the passphrases do not match".into());
+    }
+    Ok(p)
+}
+
 fn run_wallet(a: &Args) -> i32 {
     let sub = a.rest.first().map(|s| s.as_str()).unwrap_or("");
-    let (m, params): (&str, Vec<String>) = match sub {
-        "balance" => ("getbalance", vec![]),
-        "newaddress" => ("getnewaddress", vec![]),
-        "address" => {
-            // first address, without contacting the node
-            let p = match params_for(a) {
-                Ok(p) => p,
-                Err(e) => {
-                    eprintln!("error: {}", e);
-                    return 1;
-                }
-            };
-            let dir = datadir(a);
-            let _ = make_private_dir(&dir);
-            return match wallet::Wallet::open_or_create(&dir) {
-                Ok(w) => {
-                    println!("{}", w.address(p.hrp, 0));
-                    0
-                }
-                Err(e) => {
-                    eprintln!("error: {}", e);
-                    1
-                }
-            };
-        }
-        "send" => {
-            eprintln!("note: this wallet's keys are stored unencrypted (mining wallet). Use Strata to hold coins.");
-            ("sendtoaddress", a.rest.iter().skip(1).cloned().collect())
-        }
-        _ => {
-            eprintln!("usage: varve wallet balance | address | newaddress | send ADDRESS AMOUNT [FEERATE]");
-            return 2;
+    let p = match params_for(a) {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("error: {}", e);
+            return 1;
         }
     };
-    run_rpc(a, m.to_string(), params)
+    let dir = datadir(a);
+    let fail = |e: String| {
+        eprintln!("error: {}", e);
+        1
+    };
+    match sub {
+        "create" | "import" => {
+            if let Err(e) = make_private_dir(&dir) {
+                return fail(e.to_string());
+            }
+            let words = if sub == "import" {
+                match read_hidden("Enter your 24-word recovery phrase: ") {
+                    Ok(w) => Some(w),
+                    Err(e) => return fail(e),
+                }
+            } else {
+                None
+            };
+            let pass = match new_passphrase(a) {
+                Ok(p) => p,
+                Err(e) => return fail(e),
+            };
+            match wallet::Wallet::create(&dir, &pass, words.as_deref()) {
+                Ok(phrase) => {
+                    if sub == "create" {
+                        println!("Your recovery phrase (write it down on paper, keep it secret; it is shown only now):\n");
+                        for (i, w) in phrase.split_whitespace().enumerate() {
+                            print!("{:>2}. {:<10}{}", i + 1, w, if i % 4 == 3 { "\n" } else { " " });
+                        }
+                        println!("\nAnyone with these words can take the coins. The same words open this wallet in Strata.");
+                    }
+                    match wallet::Wallet::open(&dir) {
+                        Ok(w) => println!("First address: {}", w.address(p.hrp, 0, 0)),
+                        Err(e) => return fail(e),
+                    }
+                    println!("Wallet saved, encrypted, in {}. Restart the node if it is running.", dir.display());
+                    0
+                }
+                Err(e) => fail(e),
+            }
+        }
+        "address" => match wallet::Wallet::open(&dir).and_then(|w| w.mining_output().map(|o| address::encode(p.hrp, &o))) {
+            Ok(addr) => {
+                println!("{}", addr);
+                0
+            }
+            Err(e) => fail(e),
+        },
+        "phrase" => match read_secret(a, "Wallet passphrase: ").and_then(|pass| wallet::Wallet::phrase(&dir, &pass)) {
+            Ok(w) => {
+                println!("{}", w);
+                0
+            }
+            Err(e) => fail(e),
+        },
+        "repair" => match read_secret(a, "Wallet passphrase: ").and_then(|pass| wallet::Wallet::repair(&dir, &pass)) {
+            Ok(()) => {
+                println!("Public address list rebuilt. Restart the node if it is running.");
+                0
+            }
+            Err(e) => fail(e),
+        },
+        "balance" => run_rpc(a, "getbalance".into(), vec![]),
+        "newaddress" => run_rpc(a, "getnewaddress".into(), vec![]),
+        "send" => {
+            let args: Vec<String> = a.rest.iter().skip(1).cloned().collect();
+            if args.len() < 2 {
+                return fail("usage: varve wallet send ADDRESS AMOUNT [FEERATE]".into());
+            }
+            let pass = match read_secret(a, "Wallet passphrase: ") {
+                Ok(p) => p,
+                Err(e) => return fail(e),
+            };
+            let port = rpc_port(a, a.port.unwrap_or(p.default_port));
+            // unlock for one minute, pay, lock again right away
+            if let Err(e) = rpc::client_call(&dir, port, "walletpassphrase", vec![pass, "60".into()]) {
+                return fail(e);
+            }
+            let r = rpc::client_call(&dir, port, "sendtoaddress", args);
+            let _ = rpc::client_call(&dir, port, "walletlock", vec![]);
+            match r {
+                Ok(txid) => {
+                    println!("{}", txid);
+                    0
+                }
+                Err(e) => fail(e),
+            }
+        }
+        _ => {
+            eprintln!("usage: varve wallet create | import | address | balance | newaddress | send ADDRESS AMOUNT [FEERATE] | phrase | repair");
+            2
+        }
+    }
 }

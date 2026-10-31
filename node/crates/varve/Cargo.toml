@@ -12,3 +12,4 @@ path = "src/main.rs"
 [dependencies]
 varve-sys = { path = "../varve-sys" }
 varve-consensus = { path = "../varve-consensus" }
+varve-wallet = { path = "../varve-wallet" }

@@ -17,6 +17,7 @@ version = "0.1.0"
 dependencies = [
  "varve-consensus",
  "varve-sys",
+ "varve-wallet",
 ]
 
 [[package]]

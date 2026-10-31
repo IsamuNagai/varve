@@ -155,6 +155,12 @@ def main():
 
     nd = os.path.join(TMP, "node")
     os.makedirs(nd, exist_ok=True)
+    # the node's own (encrypted) wallet receives the test payments
+    pf = os.path.join(TMP, "node-pass.txt")
+    with open(pf, "w") as f:
+        f.write("node test passphrase\n")
+    subprocess.run([VARVE, "wallet", "create", "--network", "regtest", "--datadir", nd, "--passphrase-file", pf],
+                   check=True, capture_output=True, timeout=60)
     log = open(os.path.join(nd, "log.txt"), "a")
     node = subprocess.Popen([VARVE, "node", "--network", "regtest", "--datadir", nd, "--port", str(NODE_PORT), "--nolisten",
                              "--mine", "--threads", "1", "--mine-to", mine_to, "--api-port", str(API_PORT)], stdout=log, stderr=subprocess.STDOUT)

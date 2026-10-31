@@ -89,8 +89,9 @@
 <details><summary>Quick start</summary>
 <ol>
 <li>Download and unpack the file for your system from the releases page (the same download as Strata; both programs are included).</li>
-<li>Start mining on the testnet: <code>varve node --mine</code></li>
-<li>Check progress: <code>varve rpc getmininginfo</code> and <code>varve wallet balance</code>. Mined coins can be spent after 288 blocks, about a day.</li>
+<li>Copy a receiving address from Strata, then start mining to it: <code>varve node --mine --mine-to tvarve1…</code>. The node then holds no keys at all.</li>
+<li>Or give the node its own encrypted wallet first: <code>varve wallet create</code> (it shows 24 words once; write them down), then <code>varve node --mine</code>.</li>
+<li>Check progress: <code>varve rpc getmininginfo</code>. Mined coins can be spent after 288 blocks, about a day.</li>
 </ol>
 <p class="muted">Mining in the fastest mode needs about 2.1 GB of free memory; add <code>--light</code> on small machines. To run a public server node, see the setup guide.</p>
 </details>

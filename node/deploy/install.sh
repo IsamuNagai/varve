@@ -4,12 +4,14 @@
 #   curl -fsSL https://raw.githubusercontent.com/IsamuNagai/varve/main/node/deploy/install.sh -o install.sh
 #   less install.sh                      # read it first
 #   sudo sh install.sh                   # node only
-#   sudo MINE=1 sh install.sh            # node + miner (uses all cores)
+#   sudo MINE=1 MINE_TO=tvarve1... sh install.sh   # node + miner paying to your address
 #
 # Options (environment variables):
 #   REF=<tag, commit or branch> source to build (default: main). Prefer a release
 #                               tag (for example REF=v0.1.0): a tag is fixed, main moves
-#   MINE=1                      also mine; MINE_THREADS=N to limit cores
+#   MINE=1 MINE_TO=<address>    also mine, paying to this address (for example one from
+#                               the Strata wallet): no private keys are stored on the
+#                               server. MINE_THREADS=N limits cores
 #   PORT=39900                  public P2P port
 #   API=1                       serve the public read-only API (node/API.md) on
 #                               127.0.0.1:39911, for a TLS proxy such as Caddy
@@ -25,6 +27,7 @@ REF="${REF:-main}"
 PORT="${PORT:-39900}"
 MINE="${MINE:-0}"
 MINE_THREADS="${MINE_THREADS:-}"
+MINE_TO="${MINE_TO:-}"
 API="${API:-0}"
 REPO="https://github.com/IsamuNagai/varve.git"
 
@@ -32,6 +35,10 @@ REPO="https://github.com/IsamuNagai/varve.git"
 printf '%s' "$REF" | grep -Eq '^[A-Za-z0-9._/-]+$' || { echo "REF contains unsupported characters"; exit 1; }
 printf '%s' "$PORT" | grep -Eq '^[0-9]+$' || { echo "PORT must be a number"; exit 1; }
 [ -z "$MINE_THREADS" ] || printf '%s' "$MINE_THREADS" | grep -Eq '^[0-9]+$' || { echo "MINE_THREADS must be a number"; exit 1; }
+if [ "$MINE" = "1" ]; then
+  [ -n "$MINE_TO" ] || { echo "MINE=1 needs MINE_TO=<your address> (for example from the Strata wallet), so no keys live on the server"; exit 1; }
+  printf '%s' "$MINE_TO" | grep -Eq '^tvarve1[02-9ac-hj-np-z]{6,130}$' || { echo "MINE_TO does not look like a Varve testnet address"; exit 1; }
+fi
 command -v apt-get >/dev/null || { echo "this script supports Debian/Ubuntu (apt)"; exit 1; }
 if [ "$REF" = "main" ]; then
   echo "note: building the moving 'main' branch. For a fixed, reviewable version use a release tag: REF=v0.1.0"
@@ -84,7 +91,7 @@ if [ "$API" = "1" ]; then
   ARGS="$ARGS --api-port 39911 --api-trust-proxy"
 fi
 if [ "$MINE" = "1" ]; then
-  ARGS="$ARGS --mine"
+  ARGS="$ARGS --mine --mine-to $MINE_TO"
   [ -n "$MINE_THREADS" ] && ARGS="$ARGS --threads $MINE_THREADS"
 fi
 

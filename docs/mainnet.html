@@ -95,7 +95,7 @@
 <li><span class="pill todo">Not started</span><div><b>Reproducible builds</b><p>Anyone can rebuild a release and get identical files.</p></div></li>
 <li><span class="pill todo">Not started</span><div><b>Several independent release signers</b></div></li>
 <li><span class="pill todo">Not started</span><div><b>Protected repository</b><p>Changes to the main branch only through reviewed pull requests with all checks passing, and signed release tags.</p></div></li>
-<li><span class="pill todo">Not started</span><div><b>No unencrypted keys in the node</b><p>The node's built-in wallet is meant for mining on testnet and stores its keys unencrypted. Before mainnet it will be encrypted or removed; Strata is the wallet for holding coins.</p></div></li>
+<li><span class="pill done">Done</span><div><b>No unencrypted keys in the node</b><p>The node's built-in wallet is encrypted with your passphrase and restorable from 24 words, in the same format as Strata. The node mines and shows balances from public addresses only; private keys are decrypted just long enough to sign a payment. Servers can mine to an address with no keys on the machine at all.</p></div></li>
 </ul>
 </section>
 <section class="block reveal">

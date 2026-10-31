@@ -98,13 +98,39 @@ def api(name, path):
         return json.loads(r.read())
 
 
+PASSFILE = os.path.join(TMP, "wallet-pass.txt")
+
+
+def make_wallet(name):
+    """Encrypted node wallet (varve wallet create), as a user would make it."""
+    d = os.path.join(TMP, name)
+    os.makedirs(d, exist_ok=True)
+    with open(PASSFILE, "w") as f:
+        f.write("e2e test passphrase\n")
+    out = subprocess.run([BIN, "wallet", "create", "--network", "regtest", "--datadir", d, "--passphrase-file", PASSFILE],
+                         capture_output=True, text=True, timeout=60)
+    assert out.returncode == 0, out.stderr
+    assert len([l for l in out.stdout.splitlines() if l.strip()[:3].strip(". ").isdigit()]) >= 6, "recovery phrase printed"
+
+
+def send(name, addr, amount):
+    """varve wallet send: unlocks with the passphrase, pays, locks again."""
+    _, d, port = PROCS[name]
+    out = subprocess.run([BIN, "wallet", "send", "--network", "regtest", "--datadir", d, "--port", str(port), "--passphrase-file", PASSFILE,
+                          addr, amount], capture_output=True, text=True, timeout=120)
+    if out.returncode != 0:
+        raise RuntimeError(out.stderr.strip())
+    return out.stdout.strip()
+
+
 def ok(msg):
     print(f"ok   {msg}", flush=True)
 
 
 try:
-    start("A", 51000, "--nolisten")
-    stop("A")  # restart listening (A must accept B); first run just creates its wallet
+    for n in ("A", "B", "C"):
+        make_wallet(n)
+    ok("encrypted wallets created for A, B and C")
     start("A", 51000, "--mine", "--threads", "1", "--api-port", str(API["A"]))
     start("B", 51010, "--connect", "127.0.0.1:51000", "--api-port", str(API["B"]))
     wait(lambda: int(rpc("A", "getblockcount")) >= 300, "A mines 300 blocks")
@@ -117,7 +143,13 @@ try:
     ok(f"A balance: spendable {bal['spendable']}, immature {bal['immature']}")
 
     b_addr = rpc("B", "getnewaddress")
-    txid = rpc("A", "sendtoaddress", b_addr, "12.5")
+    try:
+        rpc("A", "sendtoaddress", b_addr, "12.5")
+        raise SystemExit("a locked wallet must refuse to pay")
+    except RuntimeError as e:
+        assert "locked" in str(e), e
+    ok("locked wallet refuses to pay")
+    txid = send("A", b_addr, "12.5")
     ok(f"A sent 12.5 to B: {txid}")
     wait(lambda: txid in rpc("B", "getrawmempool"), "tx relayed to B's mempool", 60)
     ok("payment relayed to B's mempool")
@@ -126,10 +158,11 @@ try:
 
     # a second payment to the SAME address, then B spends both coins at once:
     # one signature plus a shared witness (transactions.md §8.2)
-    txid2 = rpc("A", "sendtoaddress", b_addr, "7.5")
+    txid2 = send("A", b_addr, "7.5")
     wait(lambda: float(rpcj("B", "getbalance")["spendable"]) == 20.0, "second payment confirmed at B", 120)
     a_addr = rpc("A", "getnewaddress")
-    txid3 = rpc("B", "sendtoaddress", a_addr, "15")
+    txid3 = send("B", a_addr, "15")
+    assert rpcj("B", "getbalance")["unlocked_seconds"] == 0, "wallet locks again after sending"
     wait(lambda: api("A", f"tx/{txid3}")["txid"] == txid3, "B's two-coin spend relayed to A (mempool or mined)", 60)
     wait(lambda: txid3 not in rpc("A", "getrawmempool") and float(rpcj("B", "getbalance")["spendable"]) < 5.0, "two-coin spend confirmed", 120)
     ok(f"B spent two same-key coins with one signature: {txid3}")

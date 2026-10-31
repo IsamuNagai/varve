@@ -277,21 +277,35 @@ pub fn call(node: &Arc<Node>, method: &str, p: &Json, miner: &Option<Arc<MinerSt
         "getnewaddress" => {
             let hrp = node.chain.lock().unwrap().params.hrp;
             let mut w = node.wallet.lock().unwrap();
-            let i = w.new_key()?;
-            Ok(Json::str(w.address(hrp, i)))
+            let i = w.new_receive()?;
+            Ok(Json::str(w.address(hrp, 0, i)))
+        }
+        "walletpassphrase" => {
+            let pass = p_str(p, 0)?;
+            let secs: u64 = p_str(p, 1).ok().and_then(|s| s.parse().ok()).unwrap_or(60);
+            node.wallet.lock().unwrap().unlock(&pass, secs.min(crate::wallet::MAX_UNLOCK_SECS))?;
+            Ok(Json::str("unlocked"))
+        }
+        "walletlock" => {
+            node.wallet.lock().unwrap().lock();
+            Ok(Json::str("locked"))
         }
         "getbalance" | "getwalletinfo" => {
             let c = node.chain.lock().unwrap();
             let mp = node.mempool.lock().unwrap();
             let w = node.wallet.lock().unwrap();
+            if !w.exists() {
+                return Err("this node has no wallet: create one with `varve wallet create`, then restart the node".into());
+            }
             let spent: std::collections::HashSet<_> = mp.txs.values().flat_map(|e| e.tx.inputs.clone()).collect();
             let b = w.balance(&c.utxo, c.height(), &|op| spent.contains(op));
             Ok(Json::obj(vec![
                 ("spendable", Json::str(fmt_amount(b.spendable))),
                 ("immature", Json::str(fmt_amount(b.immature))),
                 ("utxos", Json::num(b.utxos)),
-                ("keys", Json::num(w.keys.len())),
-                ("addresses", Json::Arr((0..w.keys.len()).map(|i| Json::str(w.address(c.params.hrp, i))).collect())),
+                ("encrypted", Json::Bool(true)),
+                ("unlocked_seconds", Json::num(w.unlocked_secs())),
+                ("addresses", Json::Arr(w.addresses_used(c.params.hrp).into_iter().map(Json::str).collect())),
             ]))
         }
         "sendtoaddress" => {

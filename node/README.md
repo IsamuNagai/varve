@@ -22,17 +22,33 @@ downloaded: the node uses the standard library only.
 
 ## Mine on the testnet
 
-    ./target/release/varve node --mine --seed <seed-node-address>
+The simplest and safest way is to mine straight to an address from the
+[Strata](crates/strata/) wallet. The node then holds no keys at all:
 
-On first start the node creates a wallet in `~/.varve/testnet/wallet.json` and
-mines to its first address. Check progress from another terminal:
+    ./target/release/varve node --mine --mine-to <your tvarve1... address>
+
+Or give the node its own wallet first. It is encrypted with your passphrase
+and can be restored from 24 words, which also open it in Strata:
+
+    ./target/release/varve wallet create      # shows the 24 words once: write them down
+    ./target/release/varve node --mine
+
+The node only needs public addresses to mine and to show balances. The private
+keys stay encrypted on disk and are decrypted only while a payment is signed.
+Check progress from another terminal:
 
     ./target/release/varve rpc getmininginfo
     ./target/release/varve wallet balance
 
-Mined coins can be spent after 288 blocks (about a day). Send them with:
+Mined coins can be spent after 288 blocks (about a day). `wallet send` asks
+for your passphrase, unlocks the wallet for at most a minute, pays and locks
+it again:
 
     ./target/release/varve wallet send <address> <amount>
+
+Other wallet commands: `wallet import` (restore from 24 words), `wallet phrase`
+(show the words again, after your passphrase), `wallet address`,
+`wallet newaddress`, and `wallet repair` (rebuild the public address list).
 
 Mining uses all cores in RandomX fast mode, which needs about 2.1 GiB of free
 memory. Use `--threads N` to limit cores and `--light` on small machines.
@@ -98,10 +114,9 @@ forwarded addresses can only be trusted when the proxy is the only client.
 - On Windows, liboqs is compiled with clang-cl: built with MSVC's own
   compiler, its SLH-DSA code fails the NIST ACVP key-generation vectors. The
   test suite checks this on every change on every platform.
-- The node's built-in wallet (`varve wallet …`, used for mining) stores keys
-  **unencrypted** in `wallet.json`. Back it up and never share it. For holding
-  coins, use Strata, which encrypts its wallet file and uses the seeded
-  derivation of `protocol/wallet.md`.
+- The node's built-in wallet uses the same encrypted file format and seeded
+  derivation as Strata (`protocol/wallet.md`). It is simple on purpose (one
+  account, ML-DSA keys only); Strata is the full wallet.
 - API indexes live in memory and are rebuilt at start-up.
 - One implementation is not enough for mainnet (ADR-0010): an independent
   second node implementation is required.
