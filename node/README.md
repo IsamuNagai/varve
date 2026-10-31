@@ -58,7 +58,9 @@ api.example.org {
 ```
 
 Then start the node with `--api-port 39911 --api-trust-proxy`, so that rate
-limits apply per visitor instead of to the proxy.
+limits apply per visitor instead of to the proxy. The node refuses
+`--api-trust-proxy` unless the API listens on a loopback address, because
+forwarded addresses can only be trusted when the proxy is the only client.
 
 ## What is implemented
 
@@ -81,9 +83,12 @@ limits apply per visitor instead of to the proxy.
 
 ## Known limitations (to fix before any mainnet candidate)
 
-- Not yet implemented from p2p.md: presync (§5.3), compact blocks (§7),
-  the full address manager with network-group buckets and anti-eclipse
-  rules (§4, §10), verification-cost token buckets (§8), orphan transactions,
+- Implemented from p2p.md §8 and §10: per-peer verification-cost token
+  buckets, disconnection of peers that relay invalid signatures, at most 8
+  inbound connections per network group (IPv4 /16, IPv6 /32), and at most one
+  outbound connection per group among learned addresses, chosen at random.
+- Not yet implemented: presync (§5.3), compact blocks (§7), the full address
+  manager with buckets and anti-eclipse rules (§4, §10), orphan transactions,
   Tor/I2P. The node is therefore weaker against denial-of-service and eclipse
   attacks than the specification requires.
 - Storage keeps the UTXO set in memory and replays `blocks.dat` on start.
@@ -109,3 +114,7 @@ Battle-test results: [`battle/`](../battle/).
 
     cargo test --release                       # unit tests + every test-vector file
     python3 -I tests/e2e_regtest.py target/release/varve   # multi-node network test
+    python3 -I tests/strata_e2e.py target/release/strata target/release/varve   # wallet payments
+    target/release/varve-fuzz --seconds 300    # randomized fuzzing of every parser
+
+Battle tests (attacks on a private local network) are in [`../battle/`](../battle/).

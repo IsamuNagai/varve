@@ -1487,7 +1487,7 @@
     const ep = h('input', { class: 'input mono', value: st.api_endpoint, autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', maxlength: 200 });
     const epErr = errorSlot();
     const epBtn = h('button', { class: 'btn small', type: 'submit' }, 'Save and reload');
-    const epForm = h('form', { class: 'stack', novalidate: true }, field('Node API address', ep, h('span', { class: 'hint', text: 'Strata reads balances and history from this Varve node API. Use an https:// address, or http://127.0.0.1:PORT for a node on this computer.' })), epErr, h('div', null, epBtn));
+    const epForm = h('form', { class: 'stack', novalidate: true }, field('Node API address', ep, h('span', { class: 'hint', text: 'Strata reads balances and history from this Varve node API. Use an https:// address, or http://127.0.0.1:PORT for a node on this computer. A node you do not run yourself could hide coins or show a wrong history, but it can never move your coins: every payment is checked and signed here. Your own node is the most trustworthy choice.' })), epErr, h('div', null, epBtn));
     epForm.addEventListener('submit', (ev) => {
       ev.preventDefault();
       epErr.set('');

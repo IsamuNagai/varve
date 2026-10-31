@@ -36,3 +36,4 @@ dist/
 
 # Local build directories
 .build/
+fuzz-crashes/

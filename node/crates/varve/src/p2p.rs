@@ -6,7 +6,7 @@ use std::net::{IpAddr, Shutdown, SocketAddr, TcpListener, TcpStream, ToSocketAdd
 use std::sync::mpsc::{sync_channel, SyncSender, TrySendError};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 
 use crate::chain::{now, Id, Reject, BLOCK_DOWNLOAD_WINDOW};
@@ -23,6 +23,14 @@ const MAX_ADDRS: usize = 10_000;
 const SEND_QUEUE: usize = 4096;
 /// p2p.md §11: per-peer send buffer; reading from the peer pauses while it is exceeded.
 const SEND_BUFFER_BYTES: usize = 5_000_000;
+/// Inbound connections allowed from one network group (IPv4 /16, IPv6 /32);
+/// loopback is exempt (local tools and tests).
+const MAX_INBOUND_PER_GROUP: usize = 8;
+/// p2p.md §8 verification-cost accounting: a per-peer token bucket in verify_units
+/// (100 per ML-DSA-65 signature, 1,700 per SLH-DSA). Transactions beyond the budget are
+/// dropped without being verified and without penalty.
+const TX_BUDGET_RATE: f64 = 2_000.0;
+const TX_BUDGET_BURST: f64 = 100_000.0;
 
 pub struct PeerHandle {
     pub addr: SocketAddr,
@@ -42,6 +50,8 @@ pub struct PeerHandle {
     pub inflight: HashSet<Id>,
     pub sent_getaddr_reply: bool,
     pub orphan_headers: u32,
+    /// loose-transaction verification budget (tokens, last refill)
+    tx_budget: (f64, Instant),
 }
 
 #[derive(Default)]
@@ -163,7 +173,9 @@ fn listen_loop(node: Arc<Node>, l: TcpListener) {
         {
             let mut peers = node.peers.lock().unwrap();
             let inbound = peers.map.values().filter(|p| !p.outbound).count();
-            if peers.is_banned(&addr.ip()) || inbound >= node.cfg.max_inbound {
+            let group = netgroup(&addr.ip());
+            let same_group = group.as_ref().map(|g| peers.map.values().filter(|p| !p.outbound && netgroup(&p.addr.ip()).as_ref() == Some(g)).count()).unwrap_or(0);
+            if peers.is_banned(&addr.ip()) || inbound >= node.cfg.max_inbound || same_group >= MAX_INBOUND_PER_GROUP {
                 let _ = s.shutdown(Shutdown::Both);
                 continue;
             }
@@ -195,17 +207,27 @@ fn connman_loop(node: Arc<Node>) {
             for s in &fixed {
                 candidates.extend(resolve(s, port));
             }
+            let n_fixed = candidates.len();
+            let mut p = node.peers.lock().unwrap();
             if node.cfg.connect.is_empty() {
-                let p = node.peers.lock().unwrap();
+                // learned addresses in random order, so whoever announces addresses most
+                // often or most recently cannot decide whom we connect to
                 let mut learned: Vec<SocketAddr> = p.addrs.keys().copied().collect();
-                learned.sort_by_key(|a| std::cmp::Reverse(p.addrs[a]));
+                for i in (1..learned.len()).rev() {
+                    let j = (rand_u64() % (i as u64 + 1)) as usize;
+                    learned.swap(i, j);
+                }
                 candidates.extend(learned.into_iter().take(64));
             }
-            let mut p = node.peers.lock().unwrap();
+            // at most one outbound peer per network group among learned addresses
+            let used_groups: HashSet<Vec<u8>> = p.map.values().filter(|x| x.outbound).filter_map(|x| netgroup(&x.addr.ip())).collect();
             let t = now();
-            let pick = candidates.into_iter().find(|a| {
-                !connected.contains(a) && !p.is_banned(&a.ip()) && p.failed.get(a).map(|&f| t > f + 60).unwrap_or(true)
-            });
+            let pick = candidates.into_iter().enumerate().find(|(i, a)| {
+                !connected.contains(a)
+                    && !p.is_banned(&a.ip())
+                    && p.failed.get(a).map(|&f| t > f + 60).unwrap_or(true)
+                    && (*i < n_fixed || netgroup(&a.ip()).map(|g| !used_groups.contains(&g)).unwrap_or(true))
+            }).map(|(_, a)| a);
             if let Some(a) = pick {
                 p.failed.insert(a, t); // cleared on success
                 drop(p);
@@ -309,6 +331,7 @@ fn run_peer(node: Arc<Node>, stream: TcpStream, addr: SocketAddr, outbound: bool
                 inflight: HashSet::new(),
                 sent_getaddr_reply: false,
                 orphan_headers: 0,
+                tx_budget: (TX_BUDGET_BURST, Instant::now()),
             },
         );
         id
@@ -608,11 +631,39 @@ fn handle(node: &Arc<Node>, id: u64, outbound: bool, m: Msg) -> Result<(), Strin
             request_blocks(node, id);
         }
         Msg::Tx(t) => {
+            // verification-cost budget (p2p.md §8): drop, without verifying, what exceeds it
+            let cost: f64 = t.witnesses.iter().map(|w| varve_consensus::params::verify_units_for_sig_len(w.signature.len()) as f64).sum();
+            let allowed = {
+                let mut p = node.peers.lock().unwrap();
+                match p.map.get_mut(&id) {
+                    Some(ph) => {
+                        let now_i = Instant::now();
+                        let (tokens, at) = ph.tx_budget;
+                        let tokens = (tokens + now_i.duration_since(at).as_secs_f64() * TX_BUDGET_RATE).min(TX_BUDGET_BURST);
+                        if tokens >= cost {
+                            ph.tx_budget = (tokens - cost, now_i);
+                            true
+                        } else {
+                            ph.tx_budget = (tokens, now_i);
+                            false
+                        }
+                    }
+                    None => false,
+                }
+            };
+            if !allowed {
+                return Ok(());
+            }
             if let Err(e) = node.submit_tx(t, Some(id)) {
-                // policy rejections are never penalized (p2p.md §10.4); bad signatures could be,
-                // but this node only drops them for now
+                // policy rejections are never penalized (p2p.md §10.4), but an invalid
+                // signature is: honest nodes verify before relaying, so it can only be
+                // a deliberate attempt to waste verification work
                 if e.contains("bad signature") {
-                    eprintln!("[p2p] peer {} relayed a transaction with a bad signature", id);
+                    // p2p.md §8: charged ten times the cost, and disconnected
+                    if let Some(ph) = node.peers.lock().unwrap().map.get_mut(&id) {
+                        ph.tx_budget.0 -= 9.0 * cost;
+                    }
+                    return Err("relayed a transaction with an invalid signature".into());
                 }
             }
         }
@@ -653,3 +704,38 @@ fn request_blocks(node: &Arc<Node>, id: u64) {
     p.send(id, Msg::GetData(req.into_iter().map(|b| (INV_BLOCK, b)).collect()));
 }
 
+
+/// Network group of an address for diversity rules: IPv4 /16, IPv6 /32 (IPv4-mapped
+/// IPv6 counts as IPv4). None for loopback, which is exempt.
+pub fn netgroup(ip: &IpAddr) -> Option<Vec<u8>> {
+    let v4 = match ip {
+        IpAddr::V4(a) => Some(*a),
+        IpAddr::V6(a) => a.to_ipv4_mapped(),
+    };
+    match (v4, ip) {
+        (Some(a), _) if a.is_loopback() => None,
+        (Some(a), _) => Some(vec![4, a.octets()[0], a.octets()[1]]),
+        (None, IpAddr::V6(a)) if a.is_loopback() => None,
+        (None, IpAddr::V6(a)) => {
+            let o = a.octets();
+            Some(vec![6, o[0], o[1], o[2], o[3]])
+        }
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod group_tests {
+    use super::*;
+    #[test]
+    fn network_groups() {
+        let g = |s: &str| netgroup(&s.parse().unwrap());
+        assert_eq!(g("127.0.0.1"), None);
+        assert_eq!(g("::1"), None);
+        assert_eq!(g("203.0.113.5"), g("203.0.200.9"));
+        assert_ne!(g("203.0.113.5"), g("203.1.113.5"));
+        assert_eq!(g("::ffff:203.0.113.5"), g("203.0.113.77"));
+        assert_eq!(g("2001:db8:1:2::1"), g("2001:db8:ffff::2"));
+        assert_ne!(g("2001:db8::1"), g("2001:db9::1"));
+    }
+}

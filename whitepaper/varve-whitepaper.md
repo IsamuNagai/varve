@@ -49,7 +49,7 @@ will arrive, and this paper does not pretend to. Varve starts from a simpler
 observation: money meant to be held for decades should not depend on any single
 cryptographic assumption lasting forever. *If neutral digital money were
 designed today for a 50 to 100 year horizon, what would it look like?* Varve is
-one serious answer: quantum-resistant from genesis, able to change its
+one serious answer: post-quantum signatures from genesis, able to change its
 cryptography without a restart, and launched so fairly that no one starts ahead.
 
 ## 2. Design principles
@@ -155,7 +155,10 @@ SLH-DSA-SHA2-128s signature on one 2.1 GHz core, so the signatures of a
 worst-case full block verify in under 50 ms on a single ordinary core. In the
 first battle test (31 October 2026), a full block of 131 signed transactions was
 accepted end to end, including parsing, all checks and storage, in under 0.1 s
-on a two-core machine.
+on a two-core machine. These are benchmarks, not guarantees: the per-signature
+measurements and the machine they ran on are in
+`simulations/benchmarks/pq-signatures.txt`, the block arithmetic in
+`simulations/capacity.py`, and the end-to-end figure in `battle/results/`.
 
 ## 6. Cryptographic agility
 

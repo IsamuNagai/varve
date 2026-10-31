@@ -159,6 +159,18 @@ fn datadir(a: &Args) -> PathBuf {
     })
 }
 
+/// Create the data directory and make it owner-only (0700) on Unix, so files added
+/// later never depend on their own permissions to stay private.
+fn make_private_dir(dir: &std::path::Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(dir)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700))?;
+    }
+    Ok(())
+}
+
 fn rpc_port(a: &Args, p2p: u16) -> u16 {
     a.rpcport.unwrap_or(p2p + 1)
 }
@@ -172,7 +184,7 @@ fn run_node(a: Args) -> i32 {
         }
     };
     let dir = datadir(&a);
-    if let Err(e) = std::fs::create_dir_all(&dir) {
+    if let Err(e) = make_private_dir(&dir) {
         eprintln!("error: cannot create {}: {}", dir.display(), e);
         return 1;
     }
@@ -198,6 +210,10 @@ fn run_node(a: Args) -> i32 {
             return 1;
         }
     };
+    eprintln!(
+        "[wallet] note: the node's built-in wallet ({}) stores its keys UNENCRYPTED. It is meant for mining on testnet; keep coins in Strata.",
+        dir.join("wallet.json").display()
+    );
     let pay_to = if a.mine {
         match &a.mine_to {
             Some(addr) => match address::decode(hrp, addr) {
@@ -237,13 +253,18 @@ fn run_node(a: Args) -> i32 {
         return 1;
     }
     if let Some(port) = a.api_port {
-        let bind = match a.api_bind.as_deref().unwrap_or("127.0.0.1").parse() {
+        let bind: std::net::IpAddr = match a.api_bind.as_deref().unwrap_or("127.0.0.1").parse() {
             Ok(b) => b,
             Err(_) => {
                 eprintln!("error: bad --api-bind");
                 return 1;
             }
         };
+        if a.api_trust_proxy && !bind.is_loopback() {
+            // forwarded addresses can only be trusted when the only client is a local proxy
+            eprintln!("error: --api-trust-proxy needs the API on a loopback address (put the TLS proxy in front of 127.0.0.1)");
+            return 1;
+        }
         if let Err(e) = api::start(node.clone(), api::ApiConfig { bind, port, trust_proxy: a.api_trust_proxy }) {
             eprintln!("error: {}", e);
             return 1;
@@ -297,7 +318,7 @@ fn run_wallet(a: &Args) -> i32 {
                 }
             };
             let dir = datadir(a);
-            let _ = std::fs::create_dir_all(&dir);
+            let _ = make_private_dir(&dir);
             return match wallet::Wallet::open_or_create(&dir) {
                 Ok(w) => {
                     println!("{}", w.address(p.hrp, 0));
@@ -309,7 +330,10 @@ fn run_wallet(a: &Args) -> i32 {
                 }
             };
         }
-        "send" => ("sendtoaddress", a.rest.iter().skip(1).cloned().collect()),
+        "send" => {
+            eprintln!("note: this wallet's keys are stored unencrypted (mining wallet). Use Strata to hold coins.");
+            ("sendtoaddress", a.rest.iter().skip(1).cloned().collect())
+        }
         _ => {
             eprintln!("usage: varve wallet balance | address | newaddress | send ADDRESS AMOUNT [FEERATE]");
             return 2;

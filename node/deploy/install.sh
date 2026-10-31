@@ -7,7 +7,8 @@
 #   sudo MINE=1 sh install.sh            # node + miner (uses all cores)
 #
 # Options (environment variables):
-#   REF=<git commit or branch>  source to build (default: main)
+#   REF=<tag, commit or branch> source to build (default: main). Prefer a release
+#                               tag (for example REF=v0.1.0): a tag is fixed, main moves
 #   MINE=1                      also mine; MINE_THREADS=N to limit cores
 #   PORT=39900                  public P2P port
 #   API=1                       serve the public read-only API (node/API.md) on
@@ -32,6 +33,9 @@ printf '%s' "$REF" | grep -Eq '^[A-Za-z0-9._/-]+$' || { echo "REF contains unsup
 printf '%s' "$PORT" | grep -Eq '^[0-9]+$' || { echo "PORT must be a number"; exit 1; }
 [ -z "$MINE_THREADS" ] || printf '%s' "$MINE_THREADS" | grep -Eq '^[0-9]+$' || { echo "MINE_THREADS must be a number"; exit 1; }
 command -v apt-get >/dev/null || { echo "this script supports Debian/Ubuntu (apt)"; exit 1; }
+if [ "$REF" = "main" ]; then
+  echo "note: building the moving 'main' branch. For a fixed, reviewable version use a release tag: REF=v0.1.0"
+fi
 
 echo "== installing build tools"
 apt-get update -q
@@ -58,9 +62,12 @@ runuser -u varve-build -- sh -c "
   cd /opt/varve-build
   [ -d src ] || git clone -q $REPO src
   cd src
-  git fetch -q --prune origin
-  # a full commit id is used as-is; anything else is taken from origin (never a stale local branch)
-  if printf '%s' '$REF' | grep -Eq '^[0-9a-f]{40}$'; then git checkout -q --detach '$REF'; else git checkout -q --detach 'origin/$REF'; fi
+  git fetch -q --prune --prune-tags --tags --force origin
+  # a full commit id is used as-is; a release tag as published; anything else is taken
+  # from origin (never a stale local branch)
+  if printf '%s' '$REF' | grep -Eq '^[0-9a-f]{40}$'; then git checkout -q --detach '$REF'
+  elif git rev-parse -q --verify 'refs/tags/$REF' >/dev/null; then git checkout -q --detach 'refs/tags/$REF'
+  else git checkout -q --detach 'origin/$REF'; fi
   git log -1 --format='building commit %H'
   # build from a plain exported tree (no .git inside), independent of host git configuration
   rm -rf /opt/varve-build/build && mkdir /opt/varve-build/build

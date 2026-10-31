@@ -69,6 +69,9 @@ jobs:
         env:
           VARVE_DEPS: ${{ runner.temp }}/deps
         run: cargo build --release --locked
+      - name: Fuzz every parser (2 minutes, random seed)
+        if: runner.os == 'Linux'
+        run: node/target/release/varve-fuzz --seconds 120 --out fuzz-crashes
       - name: Multi-node end-to-end test (regtest)
         if: runner.os == 'Linux'
         env:

@@ -27,6 +27,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "varve-fuzz"
+version = "0.1.0"
+dependencies = [
+ "varve-consensus",
+ "varve-sys",
+ "varve-wallet",
+]
+
+[[package]]
 name = "varve-sys"
 version = "0.1.0"
 

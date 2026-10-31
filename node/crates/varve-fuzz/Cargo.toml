@@ -1,0 +1,11 @@
+[package]
+name = "varve-fuzz"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Randomized mutation fuzzer for every Varve parser (development only; never shipped)"
+
+[dependencies]
+varve-sys = { path = "../varve-sys" }
+varve-consensus = { path = "../varve-consensus" }
+varve-wallet = { path = "../varve-wallet" }

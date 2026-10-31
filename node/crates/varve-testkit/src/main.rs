@@ -1023,6 +1023,14 @@ fn group_mempool(k: &mut Kit) {
     }
     k.emit("m-long-chain", "Mempool", "Long chain of unconfirmed transactions", "40 transactions each spending the previous one before any confirms", "cap the chain (ancestor limit) instead of growing without bound", if accepted <= 26 { "defended" } else { "degraded" }, &format!("accepted {}; {}", accepted, first_err), t0);
 
+    // one transaction with a corrupted signature, relayed by a peer
+    let t0 = Instant::now();
+    let mut bad = k.pay(&coins[3..4], vec![key.out(coins[3].1.output.amount - 300_000)], &[&key]);
+    bad.witnesses[0].signature[9] ^= 1;
+    let r = p2p_send(k.p2pport, &k.params, k.cids.genesis_id, &[wire::Msg::Tx(bad)]);
+    let cut = r.contains("disconnected");
+    k.emit("m-invalid-sig-relay", "Mempool", "Peer relays a transaction with an invalid signature", "a peer sends one transaction whose signature fails verification", "drop it and disconnect the peer (honest nodes verify before relaying)", if cut { "defended" } else { "degraded" }, &r, t0);
+
     // throughput: sign + submit N independent txs
     let n = if k.quick { 60 } else { 200 };
     let mut txs = vec![];

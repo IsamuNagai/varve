@@ -41,7 +41,7 @@ what that money should look like if it were designed today for the next
 hundred years, and answers with a fair-launched proof-of-work network built
 around four ideas:
 
-- **Quantum-resistant from genesis.** Every coin is protected by the NIST
+- **Post-quantum signatures from genesis.** Every coin is protected by the NIST
   standards ML-DSA (FIPS 204) and SLH-DSA (FIPS 205), a hash-based scheme as
   an independent second family. There are no elliptic-curve coins to migrate,
   ever.
