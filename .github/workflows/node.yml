@@ -53,6 +53,17 @@ jobs:
         env:
           VARVE_DEPS: ${{ runner.temp }}/deps
         run: cargo test --release --locked
+      - name: Test diagnostics (on failure)
+        if: failure()
+        working-directory: node
+        env:
+          VARVE_DEPS: ${{ runner.temp }}/deps
+        run: |
+          cargo test --release --locked --no-fail-fast > "$RUNNER_TEMP/test-out.txt" 2>&1 || true
+          grep -nE "^test .* FAILED|panicked at|^error|^---- " "$RUNNER_TEMP/test-out.txt" | head -20 | while IFS= read -r l; do
+            echo "::error title=test failure::$(printf '%s' "$l" | cut -c1-400)"
+          done
+          grep -nE -A6 "panicked at" "$RUNNER_TEMP/test-out.txt" | head -40 | tr '\n\r' '  ' | cut -c1-3000 | sed 's/^/::error title=panic detail::/'
       - name: Build release binary
         working-directory: node
         env:
