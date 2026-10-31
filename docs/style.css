@@ -518,3 +518,39 @@ main > .section:last-of-type { padding-bottom: 7rem; }
   .only-dark { display: none !important; }
   .only-light { display: block !important; }
 }
+
+/* X icon in the nav */
+.nav .nav-icon { display: inline-flex; align-items: center; padding: 0.35rem 0.6rem; }
+.nav .nav-icon svg { width: 0.95rem; height: 0.95rem; fill: currentColor; }
+
+/* Journal */
+.entry-meta { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.02em; margin: 0 0 0.35rem; }
+.entry h2 a { color: inherit; text-decoration: none; }
+.entry h2 a:hover { color: var(--accent-text); }
+.latest { padding: 1.5rem 1.75rem; }
+.latest h3 { margin: 0 0 0.6rem; }
+.latest h3 a { color: inherit; text-decoration: none; }
+.latest p:last-child { margin-bottom: 0; }
+
+/* Whitepaper and other long Markdown content */
+.prose pre {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  background: var(--tint);
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  overflow-x: auto;
+  margin: 0 0 1.2rem;
+}
+.prose pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+.prose hr { border: 0; border-top: 1px solid var(--line-soft); margin: 2.5rem 0; }
+.table-wrap { overflow-x: auto; margin: 0 0 1.4rem; }
+.prose table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.prose th, .prose td { border-bottom: 1px solid var(--line-soft); padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; }
+.prose th { font-weight: 600; color: var(--fg); border-bottom-color: var(--line); }
+.whitepaper h2 { margin: 2.6rem 0 0.9rem; }
+.whitepaper h3 { margin: 1.8rem 0 0.6rem; }
+.whitepaper ol, .whitepaper ul { padding-left: 1.4rem; }
+.whitepaper li { margin-bottom: 0.35rem; }
+.page-head .actions { justify-content: flex-start; }

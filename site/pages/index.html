@@ -1,0 +1,104 @@
+<section class="hero">
+<div class="strata" aria-hidden="true"></div>
+<div class="wrap hero-inner">
+<div class="hero-logo"><img class="only-light" src="assets/varve-logo-dark.png" alt="Varve logo" width="520" height="539"><img class="only-dark" src="assets/varve-logo-light.png" alt="" width="520" height="539" aria-hidden="true"></div>
+<p class="pill">Testnet phase</p>
+<h1>Money built to outlast its cryptography</h1>
+<p class="lead">Varve is open-source proof-of-work money for the next hundred years: quantum-resistant signatures from the very first block, cryptography that can be upgraded without restarting the chain, and a launch so fair that not even its creator gets a head start.</p>
+<p class="actions"><a class="btn primary" href="whitepaper.html">Read the whitepaper</a><a class="btn" href="https://github.com/IsamuNagai/varve">Explore the code</a></p>
+</div>
+</section>
+
+<div class="wrap note-wrap">
+<aside class="warning reveal" role="note" aria-labelledby="warn-h">
+<h2 id="warn-h">Scam warning</h2>
+<p><strong>Mainnet has not launched and no coin can be bought.</strong> There will never be a presale, ICO, premine, founder or team allocation, or airdrop. Varve is its own blockchain, so there is no "contract address" on any other chain. Anyone selling "Varve" or "VARV" today is running a scam.</p>
+</aside>
+</div>
+
+<section class="section" aria-labelledby="principles">
+<div class="wrap">
+<p class="eyebrow reveal">Why Varve</p>
+<h2 class="reveal" id="principles">Four ideas, built in from block one</h2>
+<ul class="grid cards stagger">
+<li class="card reveal"><span class="num">01</span><h3>Quantum-resistant from genesis</h3><p>Every coin is protected by the new NIST standards ML-DSA (FIPS 204) and SLH-DSA (FIPS 205). There are no elliptic-curve coins to rescue later, because there never were any.</p></li>
+<li class="card reveal"><span class="num">02</span><h3>Cryptography that can evolve</h3><p>Every output records which signature scheme protects it. New schemes can be added and weak ones retired by a planned upgrade, without a new coin or a restart.</p></li>
+<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths for inheritance, disaster recovery and cold storage, under an independent hash-based scheme. No smart-contract machinery required.</p></li>
+<li class="card reveal"><span class="num">04</span><h3>Verifiable on a laptop</h3><p>Block capacity is set by what an ordinary computer can check, and a full block verifies in under 50 ms on one core. Anyone can audit the whole chain.</p></li>
+</ul>
+</div>
+</section>
+
+<section class="section" aria-labelledby="progress">
+<div class="wrap">
+<p class="eyebrow reveal">Progress</p>
+<h2 class="reveal" id="progress">Built in the open, checked three ways</h2>
+<dl class="spec stagger">
+<div class="row reveal"><dt>Specification</dt><dd>Normative documents for every consensus rule, P2P and wallets, with public decision records</dd></div>
+<div class="row reveal"><dt>Implementations</dt><dd>A prototype, an independent verifier written only from the spec, and the reference node agree on every consensus test vector</dd></div>
+<div class="row reveal"><dt>Reference node</dt><dd>Rust node, miner and wallet with no third-party Rust dependencies, tested on Linux and macOS, x86_64 and ARM64</dd></div>
+<div class="row reveal"><dt>Testnet</dt><dd>Genesis anchored to Bitcoin blocks 973,970–973,975; opens to public mining with its first seed node</dd></div>
+<div class="row reveal"><dt>Reviews</dt><dd>An independent human review of the protocol and an AI-assisted review of the node code, every finding resolved or tracked in public audit records; a public, named security audit comes next</dd></div>
+</dl>
+</div>
+</section>
+
+<section class="section" aria-labelledby="glance">
+<div class="wrap">
+<p class="eyebrow reveal">Design at a glance</p>
+<h2 class="reveal" id="glance">Conservative where it matters, new where it counts</h2>
+<dl class="spec stagger">
+<div class="row reveal"><dt>Ledger</dt><dd>UTXO with typed outputs; single key, or key plus timelocked recovery</dd></div>
+<div class="row reveal"><dt>Signatures</dt><dd>ML-DSA-65 primary, SLH-DSA-SHA2-128s recovery, SHA3-256 key commitments</dd></div>
+<div class="row reveal"><dt>Proof of work</dt><dd>RandomX v2 with a Varve-specific salt, so ordinary CPUs can mine</dd></div>
+<div class="row reveal"><dt>Issuance</dt><dd>82 varve per block, smooth 8-year half-life, then a permanent 6 varve tail</dd></div>
+<div class="row reveal"><dt>Difficulty</dt><dd>ASERT, adjusted every block; recovers from hashrate swings in hours</dd></div>
+<div class="row reveal"><dt>Fair launch</dt><dd>Genesis derived from six future Bitcoin blocks: no premine, no head start</dd></div>
+</dl>
+</div>
+</section>
+
+<section class="section" aria-labelledby="roadmap">
+<div class="wrap">
+<p class="eyebrow reveal">Roadmap</p>
+<h2 class="reveal" id="roadmap">Ten phases, each ending at a gate</h2>
+<!-- status:begin -->
+<!-- status:end -->
+<p class="muted reveal">Mainnet launches when the gates are met, not before: a public specification, adversarial testnets, and independent security review. Its genesis comes from six future Bitcoin blocks, so everyone starts at the same moment.</p>
+</div>
+</section>
+
+<section class="section" aria-labelledby="journal-latest">
+<div class="wrap narrow">
+<p class="eyebrow reveal">From the journal</p>
+<h2 class="reveal" id="journal-latest">Latest update</h2>
+<div class="card reveal latest">
+{{LATEST_JOURNAL}}
+<p><a href="journal.html">All journal entries</a></p>
+</div>
+</div>
+</section>
+
+<section class="section" aria-labelledby="units">
+<div class="wrap">
+<p class="eyebrow reveal">Units</p>
+<h2 class="reveal" id="units">One varve, one hundred million laminae</h2>
+<p class="units reveal"><span>1 varve = 100,000,000 laminae</span><span class="dot" aria-hidden="true"></span><span>ticker VARV</span></p>
+<p class="muted reveal">A varve is a layer of sediment laid down once a year, year after year, for millennia: a record that is hard to fake and slow to build.</p>
+</div>
+</section>
+
+<section class="section" aria-labelledby="more">
+<div class="wrap">
+<p class="eyebrow reveal">Read more</p>
+<h2 class="reveal" id="more">Where to go next</h2>
+<ul class="grid links stagger">
+<li class="card reveal"><a class="card-link" href="whitepaper.html"><h3>Whitepaper</h3><p>The full design, in one read</p></a></li>
+<li class="card reveal"><a class="card-link" href="journal.html"><h3>Journal</h3><p>Development notes and progress</p></a></li>
+<li class="card reveal"><a class="card-link" href="about.html"><h3>About</h3><p>Principles and deliberate non-goals</p></a></li>
+<li class="card reveal"><a class="card-link" href="forum.html"><h3>Forum</h3><p>Join the technical discussion</p></a></li>
+<li class="card reveal"><a class="card-link" href="security.html"><h3>Security</h3><p>Report vulnerabilities, verify releases</p></a></li>
+<li class="card reveal"><a class="card-link" href="faq.html"><h3>FAQ</h3><p>Common questions, answered straight</p></a></li>
+</ul>
+</div>
+</section>

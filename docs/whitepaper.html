@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
-<meta name="description" content="The draft Varve whitepaper is kept in the repository and will change as the specification develops.">
+<meta name="description" content="Varve: Long-Horizon Proof-of-Work Money with Post-Quantum Ownership, by Isamu Nagai.">
 <title>Varve whitepaper</title>
-<script src="theme-init.js?v=4"></script>
-<link rel="stylesheet" href="style.css?v=4">
-<script src="site.js?v=4" defer></script>
+<script src="theme-init.js?v=5"></script>
+<link rel="stylesheet" href="style.css?v=5">
+<script src="site.js?v=5" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
@@ -22,10 +22,12 @@
 <a href="index.html">Home</a>
 <a href="about.html">About</a>
 <a href="whitepaper.html" aria-current="page">Whitepaper</a>
+<a href="journal.html">Journal</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
 <a class="nav-ext" href="https://github.com/IsamuNagai/varve">GitHub</a>
+<a class="nav-ext nav-icon" href="https://x.com/isanagai" aria-label="Isamu Nagai on X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.3 4.7H5.5l11.2 14.5z"/></svg></a>
 </nav>
 <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode"><svg class="only-dark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="only-light" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
 </div>
@@ -34,16 +36,84 @@
 <section class="page-head">
 <div class="wrap narrow">
 <p class="eyebrow">Whitepaper</p>
-<h1>Whitepaper</h1>
-<p class="lead">Author: Isamu Nagai (pen name).</p>
+<h1>Varve: Long-Horizon Proof-of-Work Money with Post-Quantum Ownership</h1>
+<p class="lead">Isamu Nagai · Draft 0.3 (specification and testnet phase). Parameters may still change before mainnet.</p>
+<p class="actions"><a class="btn" href="https://github.com/IsamuNagai/varve/blob/main/whitepaper/varve-whitepaper.md">Source in the repository</a><a class="btn" href="https://github.com/IsamuNagai/varve/commits/main/whitepaper/varve-whitepaper.md">Revision history</a></p>
 </div>
 </section>
-<div class="wrap narrow prose">
-<section class="block reveal">
-<p>The draft whitepaper lives in the repository at <code>whitepaper/varve-whitepaper.md</code>. It is a draft and will change as the specification develops.</p>
-<p class="actions"><a class="btn primary" href="https://github.com/IsamuNagai/varve/blob/main/whitepaper/varve-whitepaper.md">Read the whitepaper in the repository</a></p>
-<p>Changes are tracked in the repository's commit history. Corrections and review comments are welcome as issues.</p>
-</section>
+<div class="wrap narrow prose whitepaper">
+<h2 id="abstract">Abstract</h2>
+<p>Varve is peer-to-peer electronic money built to stay secure, verifiable and spendable for a century, through whatever cryptographic change that century brings. New units enter circulation only through proof of work. Ownership is protected by standardized post-quantum signatures from the very first block, so there are no legacy elliptic-curve coins to migrate, ever. Every output records which signature scheme protects it, so schemes can be added, retired or replaced by deliberate upgrades without restarting the chain or touching existing coins. Outputs can carry a timelocked recovery path under an independent, hash-based scheme. Issuance follows a fixed, smooth schedule ending in a small permanent tail that funds security forever. There is no premine, no allocation and no privileged party: genesis is derived from six future Bitcoin blocks, so nobody, not even the author, can start mining early.</p>
+<p>Labels used in this paper: <strong>[FACT]</strong> externally verifiable statement; <strong>[DESIGN]</strong> a decision of this protocol; <strong>[ASSUMPTION]</strong> something the design relies on but cannot prove; <strong>[OPEN]</strong> unresolved.</p>
+<h2 id="1-why-varve">1. Why Varve</h2>
+<p>[FACT] Bitcoin proved that scarce digital money can exist without a trusted party. Its signatures (ECDSA and Schnorr over secp256k1) are secure against today's computers, but a sufficiently large quantum computer running Shor's algorithm would break them, and with them the ownership of every coin whose public key is visible.</p>
+<p>[FACT] In 2024 NIST finalized the first post-quantum signature standards: ML-DSA (FIPS 204, lattice-based) and SLH-DSA (FIPS 205, hash-based).</p>
+<p>[FACT] Bitcoin developers have drafted post-quantum output types and migration plans (BIP-360, BIP-361, hash-based signature proposals). As of late 2026 none has an activation schedule.</p>
+<p>[ASSUMPTION] Moving an existing monetary network off a broken signature scheme is as much a social problem as a technical one. Coins whose owners never move force a choice between freezing them and letting them be stolen.</p>
+<p>Nobody knows when, or whether, a cryptographically relevant quantum computer will arrive, and this paper does not pretend to. Varve starts from a simpler observation: money meant to be held for decades should not depend on any single cryptographic assumption lasting forever. <em>If neutral digital money were designed today for a 50 to 100 year horizon, what would it look like?</em> Varve is one serious answer: quantum-resistant from genesis, able to change its cryptography without a restart, and launched so fairly that no one starts ahead.</p>
+<h2 id="2-design-principles">2. Design principles</h2>
+<p>In priority order: correctness, security, simplicity, cryptographic adaptability, independent verification, decentralization, predictable monetary rules, permissionless participation, long-term maintainability, and performance.</p>
+<p>Consequences:</p>
+<ul><li>[DESIGN] No general smart-contract virtual machine, token platform, or on-chain governance. Every consensus feature is permanent attack surface, and money that must last a century should have very little of it.</li><li>[DESIGN] Throughput is limited by what an ordinary computer can verify, not by demand, so anyone can check the whole chain themselves.</li><li>[DESIGN] No component may require the author's continued participation.</li></ul>
+<h2 id="3-transaction-model">3. Transaction model</h2>
+<p>[DESIGN] Varve uses unspent transaction outputs (UTXOs). Each output is typed:</p>
+<pre><code>amount (u64 laminae) | output_version (u8) | policy (u8) |
+scheme_id (u16) | commitment (32 bytes) | [recovery fields]</code></pre>
+<p>The <strong>commitment</strong> is a domain-separated SHA3-256 hash of the scheme id and the public key. Public keys appear on chain only when an output is spent, so an unspent coin is protected by a hash even if its signature scheme weakens.</p>
+<p>Two policies exist at launch:</p>
+<ol><li><strong>Single authorization:</strong> a valid signature under <code>scheme_id</code> for the committed key.</li><li><strong>Primary or recovery:</strong> either the primary signature, or, after a relative delay of <code>recovery_delay</code> blocks since the output confirmed, a signature under the independent recovery scheme and key.</li></ol>
+<p>[DESIGN] There is no script language. New policies require a coordinated upgrade of all nodes (a hard fork), because unknown policies are invalid rather than anyone-can-spend. The two policies cover the main long-term custody needs: inheritance, disaster recovery and dormant cold storage. Consensus knows nothing about heirs or deaths; it evaluates only signatures, paths and block heights. After its delay, a recovery key is a second owner, not a revocation switch: it must be trusted like the primary key.</p>
+<p>[DESIGN] Amounts are 64-bit unsigned integers in laminae; 1 varve = 10^8 laminae. All consensus arithmetic is checked integer arithmetic. Any overflow invalidates.</p>
+<h2 id="4-proof-of-work">4. Proof of work</h2>
+<p>[DESIGN] Blocks are produced by proof of work, so new units go to whoever contributes computation, not to existing holders or insiders.</p>
+<p>[FACT] No proof-of-work algorithm prevents specialized hardware forever. RandomX was designed for general-purpose CPUs and was audited four times in 2019; a commercial RandomX ASIC now exists, and RandomX v2 was released in 2026 in response.</p>
+<p>[DESIGN] Varve uses RandomX v2 with every audited default unchanged except its salt, set to a Varve-specific value, exactly as the RandomX authors recommend for new chains, so existing rented hashrate and pools cannot simply be pointed at Varve. Specialized RandomX hardware has so far been roughly 1–4× as efficient as good CPUs, against roughly a million-fold for SHA-256 ASICs, so an ordinary computer can still mine meaningfully. SHA-256d remains the documented fallback.</p>
+<p>[FACT] A small proof-of-work chain is vulnerable to anyone who can rent or redirect more hashrate than its honest total. Monero, a far larger network, saw 6- and 18-block reorganizations in 2025 driven by a single mining operation. Varve will be weakest when it is youngest; recipients of large payments should wait for many confirmations in the early years.</p>
+<p>Difficulty adjusts every block using ASERT (absolutely scheduled exponentially rising targets) with a six-hour half-life. Anchored to genesis, it has no adjustment window to exploit and recovers from sudden hashrate departures in hours rather than weeks.</p>
+<h2 id="5-post-quantum-authorization">5. Post-quantum authorization</h2>
+<p>[DESIGN] Two schemes are active at genesis:</p>
+<div class="table-wrap"><table><thead><tr><th>scheme_id</th><th>Scheme</th><th>Public key</th><th>Signature</th><th>Assumption</th><th>Role</th></tr></thead><tbody><tr><td>0x0001</td><td>ML-DSA-65 (FIPS 204)</td><td>1,952 B</td><td>3,309 B</td><td>Module lattices (MLWE/MSIS)</td><td>Everyday spending</td></tr><tr><td>0x0002</td><td>SLH-DSA-SHA2-128s (FIPS 205)</td><td>32 B</td><td>7,856 B</td><td>Hash functions only</td><td>Recovery, long-term storage</td></tr></tbody></table></div>
+<p>[ASSUMPTION] The two families fail independently: a break of lattice problems does not imply a break of SHA-2, and vice versa. SLH-DSA in particular relies only on the security of hash functions, the most conservative assumption in modern cryptography.</p>
+<p>The price is size. A typical one-input, two-output ML-DSA-65 transaction is about 5.4 KB, against roughly 0.2 KB for a Bitcoin Taproot transaction. [DESIGN] Varve deliberately accepts lower throughput rather than weaker assumptions or unstandardized cryptography.</p>
+<p>[DESIGN] Transaction weight counts serialized bytes, a verification cost per signature, and net growth of the UTXO set, so a block of expensive-to-verify signatures cannot exceed the time budget of a block of cheap ones.</p>
+<p>[DESIGN] Blocks target 300 seconds. The maximum block weight is 720,000, about 76 GB of chain growth per year at sustained full blocks. Measured verification times set the weights: about 29 µs per ML-DSA-65 signature and about 0.6 ms per SLH-DSA-SHA2-128s signature on one 2.1 GHz core. A full block verifies in under 50 ms in the worst case, on a single ordinary core.</p>
+<h2 id="6-cryptographic-agility">6. Cryptographic agility</h2>
+<p>Each scheme id has a consensus state:</p>
+<div class="table-wrap"><table><thead><tr><th>State</th><th>New outputs</th><th>Spending</th></tr></thead><tbody><tr><td>ACTIVE</td><td>allowed</td><td>allowed</td></tr><tr><td>NO_NEW_OUTPUTS</td><td>rejected</td><td>allowed</td></tr><tr><td>DISABLED</td><td>rejected</td><td>only through an output's recovery path</td></tr></tbody></table></div>
+<p>[DESIGN] Transitions happen only by a consensus upgrade at a fixed height, are one-directional, and are never triggered automatically by an oracle. An output can only be spent under the scheme it committed to, so downgrade attacks are impossible by construction. Future standardized schemes enter as new scheme ids through a scheduled, height-activated upgrade (protocol/upgrades.md): no new currency, no restart, and no change to existing outputs.</p>
+<p><strong>What agility can and cannot do.</strong></p>
+<ul><li><em>Gradual weakening:</em> stop new outputs under the weakened scheme and let users move funds at leisure. No losses.</li><li><em>Practical break:</em> unspent outputs whose public keys were never revealed remain protected by their hash commitments, but spending reveals the key and invites a race. [RESEARCH, not in v1] A commit–delay–reveal spend path could address this; it needs new consensus state and many unresolved rules (ADR-0009), so v1 does not include or rely on it.</li><li><em>Outputs with a recovery path</em> can be moved under the independent hash-based scheme without any race.</li><li><em>Cannot be solved:</em> outputs whose keys are already public through address reuse, owners who neither migrate nor added a recovery path, and simultaneous breaks of both families. Agility greatly reduces these risks; it does not remove them.</li></ul>
+<h2 id="7-monetary-issuance">7. Monetary issuance</h2>
+<p>[DESIGN] The block subsidy decays smoothly with an eight-year half-life until it reaches a fixed tail, then stays constant forever. It is computed from block height using an integer lookup table fixed in consensus.</p>
+<p>Normalized supply (100 = what an equivalent hard-capped, four-year-halving schedule would ever issue):</p>
+<div class="table-wrap"><table><thead><tr><th>Year</th><th>1</th><th>4</th><th>10</th><th>20</th><th>50</th><th>100</th></tr></thead><tbody><tr><td>Supply</td><td>8.3</td><td>29.3</td><td>58.0</td><td>82.3</td><td>104.6</td><td>134.6</td></tr><tr><td>Annual inflation</td><td>—</td><td>28.0%</td><td>7.0%</td><td>2.0%</td><td>0.58%</td><td>0.45%</td></tr></tbody></table></div>
+<p>Why this shape:</p>
+<ol><li><strong>Fairer early distribution.</strong> A four-year-halving schedule issues 12.5% of its total in the first year, when the network is smallest and least decentralized. This schedule issues 8.3%, leaving more for those who join later.</li><li><strong>A permanent security budget.</strong> Under a hard cap, miner revenue eventually depends entirely on fees. A fixed absolute tail keeps mining funded forever while inflation trends toward zero, and it offsets coins lost over time.</li></ol>
+<p>[DESIGN] The numbers (ADR-0004, protocol/subsidy.md): the subsidy starts at <strong>82 varve</strong> per block and falls by a factor 2^(−1/64) every 13,149 blocks (an eight-year half-life at 300-second blocks), computed exactly from a 64-entry integer table. It reaches the <strong>6 varve</strong> tail at block 3,182,059, about 30 years after launch, and stays there.</p>
+<p>Fees go to miners in full. There are no burns, developer fees or taxes.</p>
+<h2 id="8-network">8. Network</h2>
+<p>[DESIGN] Nodes discover peers through fallback seed addresses and peer exchange, none of which is consensus infrastructure. Nodes keep diverse outbound connections to resist eclipse attacks and check every message's size before allocating memory for it. The reference node supports IPv4 and IPv6; Tor and I2P support are specified and planned. Software never updates itself.</p>
+<h2 id="9-fair-launch">9. Fair launch</h2>
+<p>[DESIGN] Nobody, including the author, receives coins except by mining under the same rules as everyone else.</p>
+<ol><li>The specification, source code, wallet, and <strong>the exact mining software the author will use</strong> are published weeks in advance. Builds are reproducible, and at least two independent builders must match.</li><li>A public release-candidate testnet rehearses the launch procedure.</li><li>Consensus parameters are frozen, and a future Bitcoin block height H is announced.</li><li>Genesis is a hash over a domain tag, a commitment to all consensus parameters, and <strong>all six</strong> Bitcoin block headers H through H+5. Each header must link to the previous one and meet Bitcoin's real difficulty for that period, fixed in advance. Until Bitcoin block H+5 exists, nobody can know the genesis hash or mine block 1. The genesis timestamp is the median of the six Bitcoin timestamps, so no single Bitcoin miner controls it.</li><li>The genesis coinbase is unspendable, and genesis contains nothing else.</li></ol>
+<p>After genesis, Varve never consults Bitcoin again. [OPEN] Mainnet must also bound the easy-block burst that would follow a launch long after genesis time (open question Q-17).</p>
+<h2 id="10-status">10. Status</h2>
+<p>As of October 2026:</p>
+<ul><li><strong>Specification.</strong> Normative documents cover encoding, transactions, blocks, difficulty, subsidy, proof of work, genesis, upgrades, P2P and wallets.</li><li><strong>Three agreeing implementations of the rules.</strong> A disposable prototype, an independent verifier written only from the specification, and the reference node all pass the same consensus test vectors, including real ML-DSA and SLH-DSA signatures and RandomX hashes on x86_64 and ARM64.</li><li><strong>Reference node.</strong> A Rust node, miner and wallet with no third-party Rust dependencies, tested across separate nodes: mining, sync, signed payments, chain reorganizations and restarts.</li><li><strong>Testnet.</strong> Genesis is anchored to Bitcoin blocks 973,970–973,975, verified by every node at start-up. A public testnet opens once its first seed node is online.</li><li><strong>Reviews.</strong> An independent human review of the protocol found one critical and several high-severity design issues, all fixed in the current specification. An AI-assisted review of the node code found no divergence from the specification. Every finding is resolved or tracked in public audit records. A public, named security audit is still ahead.</li></ul>
+<h2 id="11-security-considerations">11. Security considerations</h2>
+<p>The main risks, in rough order of likelihood:</p>
+<ol><li><strong>Low hashrate.</strong> Deep reorganizations and double spends by rented or redirected hashrate, especially in the first years.</li><li><strong>No adoption.</strong> Without users, the chain cannot fund its own security.</li><li><strong>Consensus bugs.</strong> Mitigated by specification-first development, test vectors checked by independent implementations, fuzzing, and review.</li><li><strong>Signature implementation flaws.</strong> Side channels, faults and weak randomness. Mitigated by audited implementations and hedged signing.</li><li><strong>Specialized hardware and botnets.</strong> Both can concentrate mining.</li><li><strong>Chain growth.</strong> It must never price out independent verification.</li><li><strong>Social capture.</strong> A founder cult, a dominant implementation, or a contested emergency fork after a cryptographic break.</li></ol>
+<p>AI-assisted analysis contributed to this work. It is not a security audit: mainnet requires independent, named human review.</p>
+<h2 id="12-limitations">12. Limitations</h2>
+<ul><li>Throughput is low by design, about 0.4 transactions per second at full blocks. Varve is a base settlement layer, built for value that must last.</li><li>Transactions are large compared with elliptic-curve systems.</li><li>There is no multisignature at launch; post-quantum threshold signatures are still maturing.</li><li>There is no public key derivation, so watch-only wallets need exported commitments.</li><li>The proof-of-work choice has serious tradeoffs, as every option does.</li><li>If Bitcoin completes a post-quantum migration, Varve's distinction narrows to what it was designed around from the start: no legacy elliptic-curve outputs, built-in agility and recovery, and a launch with no allocation.</li></ul>
+<h2 id="13-launch-criteria">13. Launch criteria</h2>
+<p>Mainnet launches only if all of the following hold:</p>
+<ul><li>The specification lets two independent teams build compatible nodes without asking what a rule means.</li><li>Public adversarial testnets have run without unresolved critical findings.</li><li>Independent reviews of cryptography, consensus, networking and wallet code are complete, with all critical and high findings resolved.</li><li>Reproducible builds match across independent builders.</li></ul>
+<p>These criteria are the promise: Varve launches when it is ready, and not before.</p>
+<hr>
+<p><em>Varve is open source under MIT or Apache-2.0. Source: github.com/IsamuNagai/varve · Updates: x.com/isanagai</em></p>
+<h2 id="references">References</h2>
+<ol><li>S. Nakamoto, "Bitcoin: A Peer-to-Peer Electronic Cash System," 2008.</li><li>NIST, FIPS 204: Module-Lattice-Based Digital Signature Standard, 2024.</li><li>NIST, FIPS 205: Stateless Hash-Based Digital Signature Standard, 2024.</li><li>NIST, IR 8610: Status Report on the Second Round of the Additional Digital Signature Schemes, 2026.</li><li>BIP-350: Bech32m format for v1+ witness addresses.</li><li>BIP-360 (Pay to Merkle Root) and BIP-361 (Post Quantum Migration and Legacy Signature Sunset), drafts.</li><li>tevador et al., RandomX specification; OSTIF, "Four audits of RandomX," 2019.</li><li>Bitcoin Cash, aserti3-2d difficulty adjustment specification, 2020.</li></ol>
 </div>
 </main>
 <footer class="site-footer">
@@ -53,15 +123,16 @@
 <nav class="foot-nav" aria-label="Footer">
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
+<a href="journal.html">Journal</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
-<a href="https://github.com/IsamuNagai/varve">Source repository</a>
+<a href="https://github.com/IsamuNagai/varve">Source code</a>
+<a href="https://x.com/isanagai">X</a>
 </nav>
 </div>
-<p>Varve is an open-source, research-stage protocol. No network or coin exists yet. Anyone selling "Varve" or "VARV" today is running a scam.</p>
+<p>Mainnet has not launched and no coin can be bought. There will never be a presale, ICO, premine or airdrop: anyone selling "Varve" or "VARV" is running a scam.</p>
 <p>Open source under MIT or Apache-2.0.</p>
-<p>Isamu Nagai is a pen name and does not refer to any real person.</p>
 </div>
 </footer>
 </body>

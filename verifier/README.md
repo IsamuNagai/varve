@@ -1,7 +1,7 @@
 # Varve independent verifier
 
-A second, independent implementation of the Varve consensus rules, written
-from `protocol/*.md` and `test-vectors/*.json` only. Its purpose is to expose
+A second implementation of the Varve consensus rules, written by a separate AI
+agent from `protocol/*.md` and `test-vectors/*.json` only. Its purpose is to expose
 ambiguities in the specification and disagreements between the specification
 and the vectors. Python 3 standard library plus ctypes (liboqs) only.
 

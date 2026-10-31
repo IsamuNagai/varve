@@ -1,7 +1,9 @@
 # Reference node review, 2026-10-31: resolution record
 
-An independent reviewer that had not written the code audited the first version
-of the Rust node (`node/`) against the specification, before any public release.
+A separate AI reviewer, given the code and the specification but not the
+author's reasoning, audited the first version of the Rust node (`node/`) before
+any public release. This is AI-assisted review, not a substitute for the
+independent human audit required before mainnet.
 **No consensus divergence was found**: parsing, validity and arithmetic rules
 match the spec, and the node passes every test-vector file. The findings concern
 chain-state management, peer-to-peer resource limits, and the install script.

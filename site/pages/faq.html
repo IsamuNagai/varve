@@ -1,0 +1,55 @@
+<section class="page-head">
+<div class="wrap narrow">
+<p class="eyebrow">FAQ</p>
+<h1>FAQ</h1>
+<p class="lead">Common questions, answered straight.</p>
+</div>
+</section>
+<div class="wrap narrow prose">
+<div class="qa-list stagger">
+<details class="qa reveal" open>
+<summary>Is there a coin I can buy?</summary>
+<div class="answer"><p>No. Mainnet has not launched, and when it does, coins will exist only through mining. There will never be a presale, ICO, premine, founder or team allocation, or airdrop. Anyone selling "Varve" or "VARV" today is a scammer.</p></div>
+</details>
+<details class="qa reveal">
+<summary>Is there a contract address?</summary>
+<div class="answer"><p>No, and there never will be. Contract addresses belong to tokens that live on another blockchain, such as Ethereum or Solana. Varve is its own blockchain, like Bitcoin. Any "Varve token" or "VARV contract" is a scam.</p></div>
+</details>
+<details class="qa reveal">
+<summary>What stage is the project at?</summary>
+<div class="answer"><p>The specification is written, three independent implementations of the rules agree on every test vector, and the reference node, miner and wallet work. The testnet genesis is fixed, and the public testnet opens with its first seed node. A public, named security audit and the fair launch come after that.</p></div>
+</details>
+<details class="qa reveal">
+<summary>Can I mine?</summary>
+<div class="answer"><p>Soon, on the testnet. Testnet coins have no value: they exist so anyone can test the software, try to break it, and help harden it before mainnet. Mining uses ordinary CPUs. Instructions will appear here and in the <a href="journal.html">journal</a> when the testnet opens.</p></div>
+</details>
+<details class="qa reveal">
+<summary>Will Varve really protect against quantum computers?</summary>
+<div class="answer"><p>Varve uses ML-DSA and SLH-DSA, the post-quantum signature standards NIST finalized in 2024 after years of public analysis. They are designed to resist known quantum attacks, and SLH-DSA relies only on hash functions, a very conservative assumption. No cryptography is proven unbreakable, which is exactly why Varve uses two independent families and can retire a weakened scheme by a planned upgrade. Nobody knows when large quantum computers will arrive; Varve is built so that it does not need to know.</p></div>
+</details>
+<details class="qa reveal">
+<summary>Is it better than Bitcoin?</summary>
+<div class="answer"><p>It makes different choices. Against quantum computers its design is stronger: there are no elliptic-curve coins to migrate. Bitcoin, on the other hand, has seventeen years of battle-testing and enormous mining power, and a young network has to earn that kind of trust. Varve's goal is not to replace Bitcoin but to offer sound money built for the next century from day one.</p></div>
+</details>
+<details class="qa reveal">
+<summary>Can the creator mine early?</summary>
+<div class="answer"><p>No. Mainnet genesis is derived from six future Bitcoin blocks, so nobody, including the creator, can know it or mine on it before those blocks exist.</p></div>
+</details>
+<details class="qa reveal">
+<summary>Does Varve support smart contracts or tokens?</summary>
+<div class="answer"><p>No. There is no smart-contract VM and no token platform. Native timelocked recovery paths are the extent of its scripting, by design: less surface, fewer ways to fail.</p></div>
+</details>
+<details class="qa reveal">
+<summary>What are the units?</summary>
+<div class="answer"><p>The unit is the varve, the smallest unit is the lamina, and 1 varve = 100,000,000 laminae. The ticker is VARV.</p></div>
+</details>
+<details class="qa reveal">
+<summary>Who is behind Varve?</summary>
+<div class="answer"><p>Varve was started by Isamu Nagai, who posts progress in the <a href="journal.html">journal</a> and on <a href="https://x.com/isanagai">X</a>. Everything is open, so the protocol can be checked rather than trusted, and nothing depends on any one person.</p></div>
+</details>
+<details class="qa reveal">
+<summary>How can I help?</summary>
+<div class="answer"><p>Read the <a href="whitepaper.html">whitepaper</a> and the specification, try to break them, and open issues in the <a href="https://github.com/IsamuNagai/varve">repository</a>. Once the testnet opens, run a node and mine. Report vulnerabilities privately as described on the <a href="security.html">security page</a>.</p></div>
+</details>
+</div>
+</div>

@@ -32,6 +32,7 @@ jobs:
           python3 -I tools/params.py
           python3 -I tools/gen_genesis_vectors.py > /dev/null
           python3 -I tools/gen_consensus_vectors.py
+          python3 -I tools/build-site.py --check
           python3 -I tools/status.py --check
           python3 -I simulations/capacity.py > simulations/capacity-results.txt
           git diff --exit-code -- test-vectors simulations/capacity-results.txt

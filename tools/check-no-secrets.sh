@@ -63,7 +63,7 @@ if [ "${1:-}" = "--history" ]; then
     [ -n "$hits" ] && { echo "FAIL (history): $desc"; echo "$hits"; echo; echo x >> "$TMPF"; }
   done
   [ -s "$TMPF" ] && fail=1
-  # Author/committer identities must be the pen name only.
+  # Author/committer identities must be the project identity only.
   ids=$(git log --all --format='%an <%ae>%n%cn <%ce>' | sort -u | grep -vE "^(Isamu Nagai <$ALLOW_EMAIL>|GitHub <noreply@github\.com>)$")
   report "unexpected commit identity in history" "$ids"
 fi

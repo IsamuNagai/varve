@@ -33,7 +33,7 @@ stated), **Deferred** (deliberately out of v1, with reason), **Open**.
 | M-05 | Difficulty ADR quoted the effect for the wrong tau | Fixed | ADR-0005 now uses tau = 6 h and separates the one-time offset (≈1.94%) from the steady-state effect |
 | M-06 | capacity.py used stale benchmark numbers | Fixed | capacity.py reads the committed benchmark file; results regenerated and checked in CI; ADR-0006 figures updated |
 | M-07 | RandomX reference wording too loose | Fixed | pow.md pins one source commit; vectors on two architectures; RISC-V required before RC |
-| M-08 | Main branch unprotected; commits unsigned | Partly fixed | `.github/CODEOWNERS` added. Branch protection (no force pushes or deletion, required checks) needs the repository owner to enable it in GitHub settings. Signed commits and signed release manifests are deferred to release engineering, where a key-custody plan for a pseudonymous maintainer will be defined |
+| M-08 | Main branch unprotected; commits unsigned | Partly fixed | `.github/CODEOWNERS` added. Branch protection (no force pushes or deletion, required checks) needs the repository owner to enable it in GitHub settings. Signed commits and signed release manifests are deferred to release engineering, where a key-custody plan for the maintainer will be defined |
 | M-09 | No normative P2P specification | Fixed (draft) | `protocol/p2p.md` v0.2, consistent with blocks.md §5–6 |
 | M-10 | Wallet key and backup format unresolved | Partly fixed | `protocol/wallet.md` v0.1 draft (seed words, separate recovery seed, SHAKE256 derivation, gap limit, watch-only). Needs wallet and hardware review and vectors |
 

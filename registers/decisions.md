@@ -7,7 +7,7 @@ Never reverse a decision silently. Supersede it with a new ADR and update this t
 | D-001 | Name | ACCEPTED | Varve (protocol, network, currency) | — | Blocking trademark or domain conflict |
 | D-002 | Ticker | ACCEPTED | VARV | D-001 | Exchange symbol conflict |
 | D-003 | Smallest unit | ACCEPTED | lamina; 1 varve = 10^8 laminae | ADR-0004 | — |
-| D-004 | Author pen name | ACCEPTED | Isamu Nagai | — | Notable collision |
+| D-004 | Author name | ACCEPTED | Isamu Nagai | — | — |
 | ADR-0001 | Ledger | ACCEPTED | UTXO with typed outputs, closed policy set | — | Unmet custody need |
 | ADR-0002 | Signatures | PROPOSED | ML-DSA-65 primary, SLH-DSA-SHA2-128s recovery, SHA3-256 commitments, 3-state v1 lifecycle | ADR-0001 | Cryptanalysis; FIPS 206 final |
 | ADR-0003 | PoW | ACCEPTED (spec v0.1, low–medium confidence) | RandomX v2, salt "VarveRX\x01", key every 2,048 blocks (lag 64); SHA-256d fallback | ADR-0005 | v2 review; hardware > 5× CPU efficiency; Phase 3 |

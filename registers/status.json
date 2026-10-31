@@ -45,13 +45,13 @@
    "n": 7,
    "name": "Testnets",
    "state": "upcoming",
-   "note": "testnet genesis fixed (Bitcoin blocks 973,970-973,975); public launch needs an always-on server"
+   "note": "testnet genesis fixed (Bitcoin blocks 973,970-973,975); opens with its first seed node"
   },
   {
    "n": 8,
    "name": "Independent review",
    "state": "upcoming",
-   "note": "one anonymous informal review done (audits/); formal public review pending"
+   "note": "one independent human protocol review and AI-assisted code reviews done (audits/); public, named security audit pending"
   },
   {
    "n": 9,

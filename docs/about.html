@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
-<meta name="description" content="About Varve: design principles, design direction and what the protocol deliberately does not build.">
+<meta name="description" content="What Varve is, the principles behind it, and what it deliberately does not build.">
 <title>About Varve</title>
-<script src="theme-init.js?v=4"></script>
-<link rel="stylesheet" href="style.css?v=4">
-<script src="site.js?v=4" defer></script>
+<script src="theme-init.js?v=5"></script>
+<link rel="stylesheet" href="style.css?v=5">
+<script src="site.js?v=5" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
@@ -22,10 +22,12 @@
 <a href="index.html">Home</a>
 <a href="about.html" aria-current="page">About</a>
 <a href="whitepaper.html">Whitepaper</a>
+<a href="journal.html">Journal</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
 <a class="nav-ext" href="https://github.com/IsamuNagai/varve">GitHub</a>
+<a class="nav-ext nav-icon" href="https://x.com/isanagai" aria-label="Isamu Nagai on X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.3 4.7H5.5l11.2 14.5z"/></svg></a>
 </nav>
 <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode"><svg class="only-dark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="only-light" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
 </div>
@@ -35,10 +37,14 @@
 <div class="wrap narrow">
 <p class="eyebrow">About</p>
 <h1>About Varve</h1>
-<p class="lead">Varve is a specification for a proof-of-work cryptocurrency, developed in the open. The currency unit is the varve (lowercase), the smallest unit is the lamina (1 varve = 100,000,000 laminae), and the ticker is VARV. No coin exists yet.</p>
+<p class="lead">Varve is proof-of-work money designed for a century-long horizon: scarce, permissionless, fairly launched, and protected by post-quantum cryptography from its first block. The unit is the varve, the smallest unit is the lamina (1 varve = 100,000,000 laminae), and the ticker is VARV.</p>
 </div>
 </section>
 <div class="wrap narrow prose">
+<section class="block reveal">
+<h2>The idea</h2>
+<p>Bitcoin proved that digital money can be scarce without anyone in charge. But the signatures that protect every Bitcoin today could be broken by a large enough quantum computer, and moving a live network to new cryptography is as much a social problem as a technical one. Nobody knows when that day comes. Varve is built so the answer never depends on it: quantum-resistant signatures from genesis, the ability to change cryptography by plan rather than by crisis, and a launch where no one, including its creator, starts ahead.</p>
+</section>
 <section class="block reveal">
 <h2>Design principles</h2>
 <ul class="chips stagger">
@@ -46,27 +52,27 @@
 </ul>
 </section>
 <section class="block reveal">
-<h2>Design direction</h2>
+<h2>What makes it different</h2>
 <ul class="list stagger">
-<li class="reveal">UTXO ledger.</li>
-<li class="reveal">Signatures: ML-DSA (<a href="https://csrc.nist.gov/pubs/fips/204/final">FIPS 204</a>) from genesis, with SLH-DSA (<a href="https://csrc.nist.gov/pubs/fips/205/final">FIPS 205</a>) as an independent recovery family. These are post-quantum: quantum-resistant signatures under currently understood attack models.</li>
-<li class="reveal">Typed outputs and a defined algorithm lifecycle, so algorithms can be introduced and retired in an orderly way.</li>
-<li class="reveal">Proof of work: RandomX v2 with a Varve-specific salt, chosen for specification v0.1 and reviewed again before launch.</li>
-<li class="reveal">Smooth issuance with a small permanent tail emission.</li>
-<li class="reveal">Native timelocked recovery paths.</li>
+<li class="reveal"><strong>Post-quantum signatures from genesis:</strong> ML-DSA (<a href="https://csrc.nist.gov/pubs/fips/204/final">FIPS 204</a>) for everyday spending and SLH-DSA (<a href="https://csrc.nist.gov/pubs/fips/205/final">FIPS 205</a>), which relies only on hash functions, as an independent second family.</li>
+<li class="reveal"><strong>Cryptographic agility:</strong> typed outputs and a defined lifecycle, so schemes can be introduced and retired in an orderly way, without a restart.</li>
+<li class="reveal"><strong>Built-in recovery:</strong> native timelocked recovery paths for inheritance and disaster recovery.</li>
+<li class="reveal"><strong>CPU-friendly mining:</strong> RandomX v2 with a Varve-specific salt.</li>
+<li class="reveal"><strong>Sound, predictable issuance:</strong> a smooth 8-year half-life and a small permanent tail that funds security forever.</li>
+<li class="reveal"><strong>A truly fair launch:</strong> genesis derived from six future Bitcoin blocks; no premine and no allocation.</li>
 </ul>
 </section>
 <section class="block reveal">
 <h2>What Varve deliberately does not build</h2>
 <ul class="list stagger">
-<li class="reveal">A smart-contract virtual machine.</li>
+<li class="reveal">A smart-contract virtual machine. Every feature is permanent attack surface.</li>
 <li class="reveal">A token platform or a place to issue other assets.</li>
-<li class="reveal">A presale, ICO, premine, founder or team allocation, or airdrop.</li>
+<li class="reveal">A presale, ICO, premine, founder or team allocation, or airdrop. Ever.</li>
 </ul>
 </section>
 <section class="block reveal">
-<h2>Authorship</h2>
-<p>The draft whitepaper is credited to Isamu Nagai. Isamu Nagai is a pen name and does not refer to any real person.</p>
+<h2>Who builds it</h2>
+<p>Varve was started by Isamu Nagai, who writes the specification, the reference node and the <a href="journal.html">development journal</a>. Follow updates on <a href="https://x.com/isanagai">X</a>. By design, nothing in Varve depends on any one person: the specification, code and every decision are public, so anyone can verify, rebuild and continue the work.</p>
 </section>
 </div>
 </main>
@@ -77,15 +83,16 @@
 <nav class="foot-nav" aria-label="Footer">
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
+<a href="journal.html">Journal</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
-<a href="https://github.com/IsamuNagai/varve">Source repository</a>
+<a href="https://github.com/IsamuNagai/varve">Source code</a>
+<a href="https://x.com/isanagai">X</a>
 </nav>
 </div>
-<p>Varve is an open-source, research-stage protocol. No network or coin exists yet. Anyone selling "Varve" or "VARV" today is running a scam.</p>
+<p>Mainnet has not launched and no coin can be bought. There will never be a presale, ICO, premine or airdrop: anyone selling "Varve" or "VARV" is running a scam.</p>
 <p>Open source under MIT or Apache-2.0.</p>
-<p>Isamu Nagai is a pen name and does not refer to any real person.</p>
 </div>
 </footer>
 </body>

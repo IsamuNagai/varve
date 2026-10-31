@@ -5,20 +5,23 @@
   <img src="assets/brand/varve-logo-dark.png" alt="Varve" width="200">
 </picture>
 
-<h3>Long-horizon proof-of-work money with post-quantum ownership</h3>
+<h3>Proof-of-work money built to outlast its cryptography</h3>
 
 <p>
   <a href="https://isamunagai.github.io/varve/">Website</a> ·
   <a href="whitepaper/varve-whitepaper.md">Whitepaper</a> ·
+  <a href="https://isamunagai.github.io/varve/journal.html">Journal</a> ·
   <a href="adr/">Design decisions</a> ·
   <a href="protocol/">Specification</a> ·
-  <a href="https://github.com/IsamuNagai/varve/discussions">Discussions</a>
+  <a href="https://github.com/IsamuNagai/varve/discussions">Discussions</a> ·
+  <a href="https://x.com/isanagai">X</a>
 </p>
 
 <p>
-  <img alt="Status: specification phase" src="https://img.shields.io/badge/status-specification%20phase-8a6d3b">
+  <img alt="Status: testnet phase" src="https://img.shields.io/badge/status-testnet%20phase-8a6d3b">
   <img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20%7C%20Apache--2.0-4c6a92">
-  <a href="https://github.com/IsamuNagai/varve/actions/workflows/hygiene.yml"><img alt="Hygiene checks" src="https://github.com/IsamuNagai/varve/actions/workflows/hygiene.yml/badge.svg"></a>
+  <a href="https://github.com/IsamuNagai/varve/actions/workflows/node.yml"><img alt="Node build and tests" src="https://github.com/IsamuNagai/varve/actions/workflows/node.yml/badge.svg"></a>
+  <a href="https://github.com/IsamuNagai/varve/actions/workflows/crypto.yml"><img alt="Cryptography and proof-of-work checks" src="https://github.com/IsamuNagai/varve/actions/workflows/crypto.yml/badge.svg"></a>
 </p>
 
 </div>
@@ -26,35 +29,39 @@
 ---
 
 > [!WARNING]
-> **No network and no coin exist.** There will never be a presale, ICO, premine,
-> founder allocation, or airdrop. Anyone selling "Varve" or "VARV" today is
+> **Mainnet has not launched and no coin can be bought.** There will never be a
+> presale, ICO, premine, founder allocation, or airdrop, and Varve has no
+> "contract address" on any other chain. Anyone selling "Varve" or "VARV" is
 > running a scam. No one from this project will ever ask for your seed phrase.
 
 ## Overview
 
-Varve is an open-source research project asking one question: *if neutral
-digital money were designed today for a 50 to 100 year horizon, what should it
-look like?*
+Bitcoin proved that money can be scarce without anyone in charge. Varve asks
+what that money should look like if it were designed today for the next
+hundred years, and answers with a fair-launched proof-of-work network built
+around four ideas:
 
-The working answer is a scarce, permissionless, fair-launched proof-of-work
-network built around four ideas:
+- **Quantum-resistant from genesis.** Every coin is protected by the NIST
+  standards ML-DSA (FIPS 204) and SLH-DSA (FIPS 205), a hash-based scheme as
+  an independent second family. There are no elliptic-curve coins to migrate,
+  ever.
+- **Cryptography that can evolve.** Every output records its signature scheme.
+  New schemes are added and weak ones retired by planned upgrades, without a
+  new coin or a restart.
+- **Custody that outlives keys.** Native timelocked recovery paths for
+  inheritance, disaster recovery and cold storage, with no smart-contract VM.
+  After its delay, a recovery key is a second owner, not a revocation switch
+  ([details](protocol/transactions.md#81-recovery-trust-model-informative)).
+- **Verifiable on a laptop.** Block capacity is set by what an ordinary computer
+  can check; a full block verifies in under 50 ms on one core.
 
-- **Post-quantum ownership from genesis.** It uses standardized signatures:
-  ML-DSA (FIPS 204), plus SLH-DSA (FIPS 205) as an independent recovery family.
-  It has no legacy elliptic-curve outputs to migrate.
-- **Cryptographic agility.** Every output records its signature scheme. Schemes
-  are added, deprecated and retired through a defined lifecycle, without
-  restarting the chain.
-- **Custody that outlives keys.** Native timelocked recovery paths support
-  inheritance, disaster recovery and long-term cold storage, with no
-  smart-contract VM. After its delay, a recovery key is a second owner, not a
-  revocation switch ([details](protocol/transactions.md#81-recovery-trust-model-informative)).
-- **Verification by ordinary people.** Block capacity is limited by what an
-  ordinary computer can verify, not by demand.
-
-The specification is the authority. Reference code begins only once the
-specification is precise enough for two independent teams to implement it
-compatibly.
+**Where it stands.** The specification covers every consensus rule. A
+prototype, a verifier written only from the specification, and the reference
+node agree on every consensus test vector, including real post-quantum
+signatures and RandomX hashes. The [reference node](node/) mines, syncs,
+sends payments and survives reorganizations in multi-node tests on every
+change. The testnet genesis is fixed, and the public testnet opens with its
+first seed node. Mainnet follows only after a public, named security audit.
 
 ## Design at a glance
 
@@ -68,6 +75,7 @@ compatibly.
 | Capacity and fees | ~5-minute blocks; weight = bytes + verification + UTXO growth; market fees | [ADR-0006](adr/0006-block-interval-weight-and-fees.md) |
 | Addresses | Bech32m with prefixes `varve` / `tvarve` | [ADR-0007](adr/0007-address-format.md) |
 | Launch | Genesis derived from six future Bitcoin block headers; no premine | [ADR-0008](adr/0008-fair-launch-and-genesis.md) |
+| Reference node | Rust, no third-party crates; pinned liboqs and RandomX | [ADR-0011](adr/0011-reference-node-architecture.md) |
 | Crypto emergencies | v1: lifecycle states and recovery paths. Commit–delay–reveal deferred to research | [ADR-0009](adr/0009-emergency-migration-commit-delay-reveal.md) |
 
 **Units:** 1 varve = 100,000,000 laminae · **Ticker:** VARV
@@ -93,9 +101,9 @@ flowchart LR
 ✓ done · ◐ in progress. Generated from `registers/status.json`.
 <!-- status:end -->
 
-Every phase ends at a gate. The project stops rather than launches if the
-design cannot pass independent review, keep verification affordable, or remain
-independent of its author.
+Every phase ends at a gate. Mainnet launches when the gates are met, not
+before, and its genesis comes from six future Bitcoin blocks, so everyone
+starts at the same moment.
 
 ## Repository
 
@@ -112,13 +120,14 @@ independent of its author.
 | [`registers/`](registers/) | Decision register, threat model, research sources, open questions, project status |
 | [`simulations/`](simulations/) | Reproducible models (issuance, difficulty, capacity) |
 | [`tools/`](tools/) | Vector generators, pinned RandomX and liboqs builds, hygiene scanners |
-| [`docs/`](docs/) | Project website, served by GitHub Pages |
+| [`docs/`](docs/) | Project website, served by GitHub Pages (generated from [`site/`](site/) by `tools/build-site.py`) |
 | [`assets/brand/`](assets/brand/) | Logo files |
 
 ## Contributing
 
-Review is the most valuable contribution right now. Read the ADRs, try to break
-them, and open an issue with evidence. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Review is the most valuable contribution right now. Read the specification and
+the ADRs, try to break them, and open an issue with evidence. Once the testnet
+opens, run a node and mine. See [CONTRIBUTING.md](CONTRIBUTING.md).
 Engineering discussion takes place in
 [Discussions](https://github.com/IsamuNagai/varve/discussions). Price talk does not belong here.
 
@@ -133,5 +142,4 @@ mainnet requires independent human review.
 
 Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
 
-<sub>The whitepaper is written under the pen name Isamu Nagai, which does not
-refer to any real person. The protocol is meant to matter more than its author.</sub>
+<sub>Started by Isamu Nagai · progress in the <a href="https://isamunagai.github.io/varve/journal.html">journal</a> and on <a href="https://x.com/isanagai">X</a>. Nothing in Varve depends on any one person.</sub>
