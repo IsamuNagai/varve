@@ -90,8 +90,9 @@ limits apply per visitor instead of to the proxy.
   Simple and inspectable; slower to start as the chain grows.
 - Chain selection scans the block index for each new block; fine for testnet,
   to be replaced by a candidate set before mainnet.
-- Windows builds are being added to CI; until a release includes them, use
-  WSL, or Linux/macOS.
+- On Windows, liboqs is compiled with clang-cl: built with MSVC's own
+  compiler, its SLH-DSA code fails the NIST ACVP key-generation vectors. The
+  test suite checks this on every change on every platform.
 - The node's built-in wallet (`varve wallet …`, used for mining) stores keys
   **unencrypted** in `wallet.json`. Back it up and never share it. For holding
   coins, use Strata, which encrypts its wallet file and uses the seeded
