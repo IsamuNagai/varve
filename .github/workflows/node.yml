@@ -73,6 +73,15 @@ jobs:
           # the service account must not be able to modify the build or the binary
           ! sudo -u varve test -w /opt/varve-build/src
           ! sudo -u varve test -w /usr/local/bin/varve
+      - name: Diagnostics (on failure)
+        if: failure()
+        run: |
+          for f in $(sudo find /opt/varve-build -name "*.log" 2>/dev/null | head -10); do
+            echo "::error title=$(basename "$f")::$(sudo tail -c 700 "$f" | tr '\n\r' '  ')"
+          done
+          out=$(sudo runuser -u varve-build -- sh -c 'cd /opt/varve-build/src/node && /opt/varve-build/.cargo/bin/cargo build --release --locked 2>&1' | tail -40 | tr '\n\r' '  ' | tail -c 3500)
+          echo "::error title=cargo build::$out"
+          echo "::error title=env::$(sudo runuser -u varve-build -- sh -c 'echo HOME=$HOME; id; command -v cmake git cc c++' | tr '\n' ' ')"
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
