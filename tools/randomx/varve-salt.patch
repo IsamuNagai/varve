@@ -1,0 +1,13 @@
+diff --git a/src/configuration.h b/src/configuration.h
+index aac8914..bba2a37 100644
+--- a/src/configuration.h
++++ b/src/configuration.h
+@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #define RANDOMX_ARGON_LANES        1
+ 
+ //Argon2d salt
+-#define RANDOMX_ARGON_SALT         "RandomX\x03"
++#define RANDOMX_ARGON_SALT          "VarveRX\x01"
+ 
+ //Number of random Cache accesses per Dataset item. Minimum is 2.
+ #define RANDOMX_CACHE_ACCESSES     8

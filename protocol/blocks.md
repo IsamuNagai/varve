@@ -1,4 +1,4 @@
-# Blocks, validation order, and chain selection (normative, draft v0.2)
+# Blocks, validation order, and chain selection (normative, draft v0.3)
 
 ## 1. Header (116 bytes)
 
@@ -80,30 +80,65 @@ sequential evaluation.
 ## 5. Chain selection
 
 - `work(target) = floor(2^256 / (target + 1))`.
-- Nodes follow the valid chain with the greatest cumulative work.
-- On equal work, a node keeps the chain it received first.
-- There are no checkpoints and no consensus finality rules: a node follows any
-  reorganization to a valid chain with more work.
+- `chainwork(B)` is the sum of `work(target)` over every block from genesis
+  through B, genesis included. It is a **mathematical non-negative integer**:
+  it never wraps and never saturates. A single block can contribute up to 2^255,
+  so implementations MUST use arbitrary-precision integers, or a fixed width
+  proven sufficient. For example, 320 bits suffices for 2^64 blocks.
+- Nodes follow the valid chain with the greatest `chainwork`.
+- On equal `chainwork`, a node keeps the chain it received first.
+- There are no checkpoints and no consensus finality rules. A node follows any
+  reorganization to a valid chain with greater `chainwork`.
+
+**Other counters.** Heights are u64 (transactions.md §0). The block's total fees
+are summed with checked u64 arithmetic. A sum above `MAX_MONEY` is invalid; this
+cannot occur on a valid chain, because every input already exists. The RandomX
+seed-height formula (pow.md §3) uses u64 and is only evaluated where it cannot
+underflow.
 
 ## 6. Synchronization and denial-of-service protection (node policy)
 
-None of the following changes which chain is valid or best. It only controls
-what a node spends resources on.
+Nothing in this section changes which chain is valid or best. It only decides
+the order and rate at which a node spends resources. protocol/p2p.md gives the
+full message-level rules.
 
-1. **Headers first.** Nodes download and check headers (steps 2–6) before
-   blocks. Peers that send a header failing step 2, 4, 5 or 6 are disconnected.
-2. **Work gate.** A node stores and fully validates a competing branch only once
-   its headers prove cumulative work ≥ the work of the node's active chain at
-   the fork point + `GATE_WORK`. `GATE_WORK` is the work of 144 blocks at the
-   active tip's current target. A node never downloads block bodies for a
-   branch below this gate.
+**Overriding rule.** A node MUST download and fully validate any header chain
+whose verified cumulative work exceeds the `chainwork` of its active tip.
+Anti-DoS limits apply only to branches with **less** total work than the active
+tip. No limit in this section may delay a better chain beyond normal bandwidth
+and scheduling.
+
+1. **Headers first.** Nodes download headers before blocks. Each header passes
+   steps 2–6 of §4. A peer that sends a header failing step 2, 4, 5 or 6 is
+   disconnected and banned.
+2. **Inferior branches.** For a branch whose header chainwork is ≤ the active
+   tip's, a node MAY postpone downloading block bodies until either:
+   - its chainwork exceeds the active tip's; or
+   - it is within `GATE_WORK` of the active tip's chainwork. `GATE_WORK` is the
+     work of 6 blocks at the active tip's target. This lets near-tie forks be
+     prepared early.
+
+   The threshold is always measured against the active tip's total chainwork,
+   never against the fork point. So a shorter-but-heavier fork is never blocked.
 3. **Bounded cheap work.** `POW_LIMIT` is `INITIAL_TARGET × 256`
-   (difficulty.md §1). Even an abandoned branch carries real work per block, so
-   old-fork header floods cost the attacker real hashing.
-4. **Cache budget.** A node keeps at most two RandomX caches (current and next
-   key). Building a cache for a branch's key requires the branch to pass the
-   work gate first.
-5. **First sync.** A new node MAY use a release-supplied `MIN_CHAIN_WORK` value
-   so that it ignores header chains with less total work. This value is a
-   resource limit, not a checkpoint. Any chain with more work than it is still
-   evaluated purely by consensus rules.
+   (difficulty.md §1). Every block of every branch carries real work.
+4. **RandomX caches are budgeted, never gated on verified work.**
+   - A node MAY build the cache for a branch's key as soon as that branch's
+     headers, up to the key's seed block, pass the cheap checks of §4 steps 2–5:
+     syntax, linkage, median time past, and target.
+   - Cache construction is limited by a budget: at most 3 resident caches
+     (current key, next key, and one least-recently-used slot), plus a global and
+     per-peer rate limit on builds.
+   - A peer whose headers fail proof of work under a cache built for its branch
+     is banned. That makes repeated forced builds costly to the sender.
+   - Because a branch only needs one cache per 2,048 blocks, honest forks across
+     a key rotation always fit within the budget.
+5. **First sync.** A new node MAY use a release-supplied `MIN_CHAIN_WORK`, and
+   ignore header chains with less total work during initial download. This is a
+   resource limit, not a checkpoint. Any chain above it is evaluated purely by
+   consensus rules.
+
+**Correction note.** Draft v0.2 measured `GATE_WORK` (144 blocks) from the fork
+point. An independent audit (2026-10-31, C-01) showed that this could leave a
+node on a lower-work chain. It also found that gating RandomX caches on
+verified work was circular (H-01). Both rules are replaced above.

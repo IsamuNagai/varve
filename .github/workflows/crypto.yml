@@ -1,0 +1,32 @@
+name: crypto
+
+# Real post-quantum signatures and real RandomX proof of work, built from
+# pinned upstream commits, on x86_64 and ARM64 (audit findings H-03, H-04, H-05).
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pq-and-pow:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0, pinned
+        with:
+          persist-credentials: false
+      - name: Build pinned liboqs (ML-DSA-65, SLH-DSA-SHA2-128s)
+        run: sh tools/liboqs/build.sh "$RUNNER_TEMP/liboqs"
+      - name: Prototype tests with real signatures (none skipped)
+        env:
+          VARVE_LIBOQS: ${{ runner.temp }}/liboqs/build/lib/liboqs.so
+          VARVE_REQUIRE_LIBOQS: "1"
+        run: python3 -I prototype/test_proto.py -v
+      - name: Build pinned, patched RandomX and verify all PoW vectors
+        run: sh tools/randomx/build_and_check.sh "$RUNNER_TEMP/randomx"

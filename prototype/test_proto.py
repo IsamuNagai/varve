@@ -41,6 +41,28 @@ class Vectors(unittest.TestCase):
         self.assertEqual(v.commitment(2, bytes((255 - i) % 256 for i in range(32))).hex(), a["commitments"]["slhdsa128s"])
 
 
+class ChainSelection(unittest.TestCase):
+    def test_chainwork_never_wraps(self):
+        # target = 1 gives work 2^255; two such blocks sum to 2^256, which does not fit in u256 (audit H-02)
+        h = v.Header(bytes(32), bytes(32), 0, 1)
+        self.assertEqual(v.work(1), 2 ** 255)
+        self.assertEqual(v.chainwork([h, h]), 2 ** 256)
+
+    def test_heavier_shorter_fork_is_always_validated(self):
+        # audit C-01: active branch has 1 block after the fork, candidate has 2 at the same target
+        t = 2 ** 240
+        fork_work = 1000 * v.work(t)
+        active = fork_work + 1 * v.work(t)
+        candidate = fork_work + 2 * v.work(t)
+        self.assertEqual(v.sync_action(candidate, active, t), "validate")
+
+    def test_far_inferior_branch_may_be_postponed(self):
+        t = 2 ** 240
+        active = 1000 * v.work(t)
+        self.assertEqual(v.sync_action(active - 100 * v.work(t), active, t), "may_postpone")
+        self.assertEqual(v.sync_action(active - 3 * v.work(t), active, t), "validate")   # near-tie prepared early
+
+
 class Genesis(unittest.TestCase):
     def test_seed_depends_on_every_header(self):
         base = v.genesis_block(PARAMS_HASH, fake_btc_headers(), INIT_TARGET).header.block_id()
@@ -94,6 +116,7 @@ class ChainEndToEnd(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.pq = v.PQ()
+        cls.addClassCleanup(cls.pq.close)
         cls.pk_a, cls.sk_a = cls.pq.keypair(1)     # ML-DSA-65: everyday key
         cls.pk_r, cls.sk_r = cls.pq.keypair(2)     # SLH-DSA-128s: recovery key
         cls.pk_b, cls.sk_b = cls.pq.keypair(1)
@@ -205,4 +228,10 @@ class ChainEndToEnd(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    # With VARVE_REQUIRE_LIBOQS=1 (CI crypto job), any skipped test is a failure (audit H-03).
+    prog = unittest.main(exit=False)
+    result = prog.result
+    if os.environ.get("VARVE_REQUIRE_LIBOQS") and result.skipped:
+        print(f"FAIL: {len(result.skipped)} test(s) skipped although real signatures are required")
+        sys.exit(1)
+    sys.exit(0 if result.wasSuccessful() else 1)

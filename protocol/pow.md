@@ -1,11 +1,12 @@
-# Proof of work (normative, draft v0.2)
+# Proof of work (normative, draft v0.3)
 
 ## 1. Algorithm
 
-`POW(key, input)` is **RandomX v2** as defined by the reference implementation
-`tevador/RandomX` release v2.0.1 (or a later release producing identical
-hashes) and its specification `doc/specs.md`, with exactly one configuration
-change:
+`POW(key, input)` is the **RandomX v2** algorithm as specified in
+`doc/specs.md` of `tevador/RandomX` at commit
+`ff6daa17fde3bb9032bbad15db16cad908deaee0` (algorithm version 2, selected with
+`RANDOMX_FLAG_V2`). That document defines consensus, not any library version.
+The configuration has exactly one change:
 
 | Parameter | Monero default | Varve |
 | --- | --- | --- |
@@ -17,6 +18,13 @@ salt per project, to prevent hashrate-rental attacks and pool redirection.
 
 Implementations MUST produce bit-identical outputs in every mode: light,
 fast, interpreter, JIT, software AES, and hardware AES.
+
+**Reference build.** The reference build uses that exact commit plus
+`tools/randomx/varve-salt.patch`, applied by `tools/randomx/build_and_check.sh`.
+The script verifies the commit and the SHA-256 of the patched file before and
+after patching, and the build fails on any difference. Moving to a different
+upstream commit is a deliberate change: it needs a new review, regenerated
+vectors, and green multi-architecture CI.
 
 ## 2. Input and comparison
 
@@ -46,9 +54,10 @@ Mining in fast mode uses about 2 GiB of dataset per key.
 
 ## 5. Test vectors
 
-`test-vectors/pow.json` lists hashes for fixed keys and inputs. They were
-produced with `tools/pow_vectors.c` against `tevador/RandomX` commit
-`ff6daa17fde3bb9032bbad15db16cad908deaee0`, using `RANDOMX_FLAG_V2` and the Varve
-salt. The unmodified build at that commit passes the RandomX test suite. The portable interpreter and the JIT with hardware AES were cross-checked
-and give identical results. The same program built with the default salt gives
-different hashes, confirming the salt change takes effect.
+`test-vectors/pow.json` holds 64 vectors: 4 keys (including the empty key and a
+long key) × 16 inputs of 116 bytes (all-zero, all-0xFF, a byte pattern, and 13
+pseudo-random inputs). The CI workflow `crypto.yml` builds the pinned, patched
+RandomX on **x86_64 and ARM64**. It checks every vector in portable mode
+(interpreter, software AES) and in fast mode (JIT, hardware AES where
+available). A mismatch blocks release. More architectures, notably RISC-V, are
+needed before a release candidate.

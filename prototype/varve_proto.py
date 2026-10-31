@@ -228,19 +228,39 @@ class PQ:
                                           ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p]
         self.lib.OQS_SIG_verify.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t,
                                             ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p]
+        self.lib.OQS_SIG_free.restype = None
+        self.lib.OQS_SIG_free.argtypes = [ctypes.c_void_p]
         self.handles = {sid: self.lib.OQS_SIG_new(v[0].encode()) for sid, v in SCHEMES.items()}
         if not all(self.handles.values()):
+            self.close()
             raise RuntimeError("liboqs lacks a required scheme")
+
+    def close(self):
+        """Free liboqs handles (audit L-02)."""
+        for sid, h in list(self.handles.items()):
+            if h:
+                self.lib.OQS_SIG_free(h)
+            self.handles[sid] = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
 
     def keypair(self, sid):
         _, pk_len, sk_len, _, _ = SCHEMES[sid]
         pk, sk = ctypes.create_string_buffer(pk_len), ctypes.create_string_buffer(sk_len)
-        assert self.lib.OQS_SIG_keypair(self.handles[sid], pk, sk) == 0
+        if self.lib.OQS_SIG_keypair(self.handles[sid], pk, sk) != 0:      # explicit check (audit L-01)
+            raise RuntimeError("liboqs keypair failed")
         return pk.raw, sk.raw
 
     def sign(self, sid, sk, msg):
         out, n = ctypes.create_string_buffer(SCHEMES[sid][3]), ctypes.c_size_t(0)
-        assert self.lib.OQS_SIG_sign(self.handles[sid], out, ctypes.byref(n), msg, len(msg), sk) == 0
+        if self.lib.OQS_SIG_sign(self.handles[sid], out, ctypes.byref(n), msg, len(msg), sk) != 0:
+            raise RuntimeError("liboqs sign failed")
+        if n.value != SCHEMES[sid][3]:
+            raise RuntimeError("unexpected signature length")
         return out.raw[:n.value]
 
     def verify(self, sid, pk, msg, sig):
@@ -305,6 +325,30 @@ class Header:
 class Block:
     header: Header
     txs: list
+
+
+def work(target):
+    """blocks.md §5: work of one block. Python ints are arbitrary precision (no wrap)."""
+    return (1 << 256) // (target + 1)
+
+
+def chainwork(headers):
+    """Sum of work over the given headers (genesis included by the caller). Never wraps."""
+    return sum(work(h.target) for h in headers)
+
+
+def sync_action(candidate_chainwork, active_chainwork, active_tip_target, gate_blocks=6):
+    """blocks.md §6 (node policy). Returns "validate" or "may_postpone".
+
+    A branch with more total work than the active tip is ALWAYS validated (overriding rule).
+    Only inferior branches may be postponed, and the threshold is measured against the
+    active tip's total chainwork, never against the fork point.
+    """
+    if candidate_chainwork > active_chainwork:
+        return "validate"
+    if active_chainwork - candidate_chainwork <= gate_blocks * work(active_tip_target):
+        return "validate"
+    return "may_postpone"
 
 
 # ---------------------------------------------------------------- chain state
