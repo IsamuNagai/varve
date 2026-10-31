@@ -28,11 +28,26 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Exact line endings on Windows
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0, pinned (Node 24)
         with:
           persist-credentials: false
       - name: Build pinned C dependencies (liboqs, patched RandomX)
-        run: sh tools/build-deps.sh "$RUNNER_TEMP/deps"
+        run: |
+          set -o pipefail
+          sh tools/build-deps.sh "$RUNNER_TEMP/deps" 2>&1 | tee "$RUNNER_TEMP/deps-run.txt"
+      - name: Dependency build diagnostics (on failure)
+        if: failure()
+        run: |
+          echo "::error title=build-deps output::$(tail -c 1500 "$RUNNER_TEMP/deps-run.txt" 2>/dev/null | tr '\n\r' '  ')"
+          for f in "$RUNNER_TEMP"/deps/src/*.log; do
+            [ -f "$f" ] || continue
+            msg=$(grep -iE "error|fatal|fail" "$f" | head -8 | tr '\n\r' '  ' | cut -c1-1500)
+            [ -n "$msg" ] || msg=$(tail -c 1200 "$f" | tr '\n\r' '  ')
+            echo "::error title=$(basename "$f")::$msg"
+          done
       - name: Unit tests and every test-vector file
         working-directory: node
         env:

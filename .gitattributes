@@ -1,0 +1,6 @@
+# Keep every text file byte-identical on all platforms. Checksums, patches,
+# the embedded BIP-39 word list and test vectors depend on exact bytes, so
+# Git must never convert line endings (it does by default on Windows).
+* text=auto eol=lf
+*.png binary
+*.a binary

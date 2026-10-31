@@ -48,6 +48,7 @@ sha256_check() {  # $1 = expected, $2 = file
 fetch() {  # $1 = repo, $2 = commit, $3 = dir
   rm -rf "$3"; mkdir -p "$3"
   git -C "$3" init -q
+  git -C "$3" config core.autocrlf false   # exact bytes: checksums and patches depend on them
   git -C "$3" remote add origin "$1"
   git -C "$3" fetch -q --depth 1 origin "$2"
   git -C "$3" checkout -q FETCH_HEAD
