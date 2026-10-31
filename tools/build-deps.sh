@@ -57,10 +57,14 @@ fetch() {  # $1 = repo, $2 = commit, $3 = dir
 
 # liboqs ---------------------------------------------------------------------
 fetch "$LIBOQS_REPO" "$LIBOQS_COMMIT" "$PREFIX/src/liboqs"
+# On Windows, liboqs is compiled with clang-cl (LLVM): built with MSVC's own compiler,
+# its SLH-DSA code fails the NIST ACVP key-generation vectors (caught by our tests).
+OQS_EXTRA=""
+[ "$WIN" = 1 ] && OQS_EXTRA="-T ClangCL"
 # shellcheck disable=SC2086
 cmake -S "$PREFIX/src/liboqs" -B "$PREFIX/src/liboqs/build" -DBUILD_SHARED_LIBS=OFF -DOQS_BUILD_ONLY_LIB=ON \
   -DOQS_MINIMAL_BUILD="SIG_ml_dsa_65;SIG_slh_dsa_pure_sha2_128s" -DOQS_USE_OPENSSL=OFF \
-  $CM_EXTRA > "$PREFIX/src/liboqs.cmake.log"
+  $CM_EXTRA $OQS_EXTRA > "$PREFIX/src/liboqs.cmake.log"
 # shellcheck disable=SC2086
 cmake --build "$PREFIX/src/liboqs/build" $BUILD_CFG -j "$JOBS" > "$PREFIX/src/liboqs.build.log"
 copy_lib "$PREFIX/src/liboqs/build" liboqs.a oqs.lib
