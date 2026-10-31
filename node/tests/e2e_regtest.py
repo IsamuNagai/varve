@@ -18,7 +18,9 @@ import tempfile
 import time
 
 BIN = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "node/target/release/varve")
-TMP = tempfile.mkdtemp(prefix="varve-e2e-")
+TMP = os.environ.get("VARVE_E2E_DIR") or tempfile.mkdtemp(prefix="varve-e2e-")
+os.makedirs(TMP, exist_ok=True)
+SLOW = float(os.environ.get("VARVE_E2E_SLOW", "1"))  # timeout multiplier for slow machines
 PROCS = {}
 
 
@@ -68,6 +70,7 @@ def rpcj(name, method, *params):
 
 
 def wait(cond, what, timeout=300):
+    timeout *= SLOW
     t = time.time()
     while time.time() - t < timeout:
         try:
@@ -79,6 +82,9 @@ def wait(cond, what, timeout=300):
     for n, (_, d, _) in PROCS.items():
         print(f"--- {n} log tail ---")
         print(open(os.path.join(d, "log.txt")).read()[-3000:])
+    for n, (_, d, _) in PROCS.items():
+        tail = open(os.path.join(d, "log.txt")).read().splitlines()[-6:]
+        print(f"::error title=e2e {n}::{what} | " + " | ".join(tail).replace("%", "%25"))
     raise SystemExit(f"timeout waiting for: {what}")
 
 

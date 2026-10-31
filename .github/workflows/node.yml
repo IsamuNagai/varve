@@ -19,7 +19,7 @@ jobs:
             artifact: varve-linux-x86_64
           - os: ubuntu-24.04-arm
             artifact: varve-linux-arm64
-          - os: macos-14
+          - os: macos-15
             artifact: varve-macos-arm64
     runs-on: ${{ matrix.os }}
     steps:
@@ -40,6 +40,8 @@ jobs:
         run: cargo build --release --locked
       - name: Multi-node end-to-end test (regtest)
         if: runner.os == 'Linux'
+        env:
+          VARVE_E2E_SLOW: "3"
         run: python3 -I node/tests/e2e_regtest.py node/target/release/varve
       - name: Package
         run: |
@@ -51,6 +53,26 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: dist/${{ matrix.artifact }}.tar.gz*
+
+  install-script:
+    # Runs node/deploy/install.sh exactly as a server operator would, on a fresh Ubuntu VM.
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0, pinned (Node 24)
+        with:
+          persist-credentials: false
+      - name: Install as a service (node only)
+        run: sudo REF="$GITHUB_SHA" sh node/deploy/install.sh
+      - name: Service is running and answers RPC
+        run: |
+          sleep 10
+          systemctl is-active varve
+          sudo -u varve /usr/local/bin/varve rpc --datadir /var/lib/varve/testnet getblockchaininfo
+          sudo journalctl -u varve --no-pager | tail -20
+          # the service account must not be able to modify the build or the binary
+          ! sudo -u varve test -w /opt/varve-build/src
+          ! sudo -u varve test -w /usr/local/bin/varve
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
