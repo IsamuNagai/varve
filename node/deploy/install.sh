@@ -59,9 +59,12 @@ runuser -u varve-build -- sh -c "
   # a full commit id is used as-is; anything else is taken from origin (never a stale local branch)
   if printf '%s' '$REF' | grep -Eq '^[0-9a-f]{40}$'; then git checkout -q --detach '$REF'; else git checkout -q --detach 'origin/$REF'; fi
   git log -1 --format='building commit %H'
-  cd node && /opt/varve-build/.cargo/bin/cargo build --release --locked -q
+  # build from a plain exported tree (no .git inside), independent of host git configuration
+  rm -rf /opt/varve-build/build && mkdir /opt/varve-build/build
+  git archive --format=tar HEAD | tar -x -C /opt/varve-build/build
+  cd /opt/varve-build/build/node && /opt/varve-build/.cargo/bin/cargo build --release --locked -q
 "
-install -o root -g root -m 0755 /opt/varve-build/src/node/target/release/varve /usr/local/bin/varve
+install -o root -g root -m 0755 /opt/varve-build/build/node/target/release/varve /usr/local/bin/varve
 # never execute the freshly built binary as root
 runuser -u varve -- /usr/local/bin/varve version
 
