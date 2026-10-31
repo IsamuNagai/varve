@@ -18,3 +18,4 @@ Never reverse a decision silently. Supersede it with a new ADR and update this t
 | ADR-0008 | Genesis | PROPOSED (revised after review) | Seed over all six Bitcoin headers H..H+5 with exact nBits; t0 = median; unspendable coinbase | ADR-0005 | Phase 3 |
 | ADR-0009 | Emergency migration | DEFERRED (not in v1) | Commit–delay–reveal, research only | ADR-0002 | post-v1 |
 | ADR-0010 | License / language | ACCEPTED / PROPOSED | MIT OR Apache-2.0; Rust leaning | — | Dependency review |
+| ADR-0011 | Reference node | ACCEPTED for testnet | Rust, no third-party crates; pinned static liboqs and RandomX | ADR-0010 | Before release candidate |

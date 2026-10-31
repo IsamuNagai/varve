@@ -18,3 +18,4 @@
 | Q-14 | Two-stage recovery (initiate, owner can cancel) instead of direct delayed spend? Stronger, but adds consensus state (audit M-02) | transactions.md §8.1 | Phase 2 |
 | Q-15 | Minimum lead time for an emergency tightening (scheme break) | upgrades.md §6 | Before release candidate |
 | Q-16 | Should a future extension point allow soft-fork additions (anyone-can-spend style)? Current answer: no (upgrades.md §1) | upgrades.md | Revisit post-v1 |
+| Q-17 | Launch catch-up burst: if mining starts long after genesis time t0, ASERT sees the chain far behind schedule and issues easy blocks (down to POW_LIMIT) until height catches up with (now − t0)/300, rewarding whoever mines first. Bound it (e.g. launch within a fixed window of t0, or anchor t0 to the first block) before mainnet | genesis.md, difficulty.md | Before release candidate |

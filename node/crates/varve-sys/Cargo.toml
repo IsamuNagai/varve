@@ -1,0 +1,8 @@
+[package]
+name = "varve-sys"
+description = "FFI bindings to pinned liboqs and Varve-patched RandomX"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+build = "build.rs"
+links = "varvedeps"

@@ -1,0 +1,32 @@
+name: anchor
+
+# Fetch and verify six Bitcoin headers for a genesis anchor (tools/fetch-btc-anchor.py).
+# Manual only. The result is printed as a notice so anyone can compare it with
+# their own run on their own machine.
+on:
+  workflow_dispatch:
+    inputs:
+      height:
+        description: "Bitcoin anchor height H (empty = latest suitable)"
+        required: false
+  push:
+    branches: ["anchor-run-*"]
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0, pinned (Node 24)
+        with:
+          persist-credentials: false
+      - name: Fetch and verify
+        env:
+          H: ${{ github.event.inputs.height }}
+        run: |
+          if [ -n "${H:-}" ]; then python3 -I tools/fetch-btc-anchor.py --height "$H" > anchor.json
+          else python3 -I tools/fetch-btc-anchor.py --auto > anchor.json; fi
+          cat anchor.json
+          python3 -I -c "import json;d=json.load(open('anchor.json'));print('::notice title=anchor::'+json.dumps(d,separators=(',',':')))"

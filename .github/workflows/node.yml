@@ -1,0 +1,76 @@
+name: node
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact: varve-linux-x86_64
+          - os: ubuntu-24.04-arm
+            artifact: varve-linux-arm64
+          - os: macos-14
+            artifact: varve-macos-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0, pinned (Node 24)
+        with:
+          persist-credentials: false
+      - name: Build pinned C dependencies (liboqs, patched RandomX)
+        run: sh tools/build-deps.sh "$RUNNER_TEMP/deps"
+      - name: Unit tests and every test-vector file
+        working-directory: node
+        env:
+          VARVE_DEPS: ${{ runner.temp }}/deps
+        run: cargo test --release --locked
+      - name: Build release binary
+        working-directory: node
+        env:
+          VARVE_DEPS: ${{ runner.temp }}/deps
+        run: cargo build --release --locked
+      - name: Multi-node end-to-end test (regtest)
+        if: runner.os == 'Linux'
+        run: python3 -I node/tests/e2e_regtest.py node/target/release/varve
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp node/target/release/varve dist/varve
+          cd dist && tar czf "${{ matrix.artifact }}.tar.gz" varve
+          (command -v sha256sum >/dev/null && sha256sum "${{ matrix.artifact }}.tar.gz" || shasum -a 256 "${{ matrix.artifact }}.tar.gz") > "${{ matrix.artifact }}.tar.gz.sha256"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, pinned
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}.tar.gz*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0, pinned
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cd dist
+          cat *.sha256 > SHA256SUMS
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --prerelease \
+            --title "Varve $TAG (testnet)" \
+            --notes "Testnet software. Testnet coins have no value. Built by GitHub Actions from tag $TAG. Verify downloads against SHA256SUMS. See node/README.md." \
+            *.tar.gz SHA256SUMS

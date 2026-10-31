@@ -76,7 +76,7 @@ Receivers MUST check the following, in this order:
 
 | Command | Max payload (bytes) | Section |
 | --- | --- | --- |
-| `version` | 327 | §3 |
+| `version` | 359 | §3 |
 | `verack`, `getaddr` | 0 | §3, §4 |
 | `ping`, `pong`, `feefilter` | 8 | §3, §8 |
 | `addr` | 65,536 | §4 |

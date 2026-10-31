@@ -1,0 +1,9 @@
+[package]
+name = "varve-consensus"
+description = "Varve consensus rules (no I/O)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+varve-sys = { path = "../varve-sys" }

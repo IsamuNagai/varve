@@ -83,7 +83,7 @@ flowchart LR
     P2 --> P3["3 · Threat model ◐"]
     P3 --> P4["4 · Simulation ◐"]
     P4 --> P5["5 · Prototype ◐"]
-    P5 --> P6["6 · Reference implementation"]
+    P5 --> P6["6 · Reference implementation ◐"]
     P6 --> P7["7 · Testnets"]
     P7 --> P8["8 · Independent review"]
     P8 --> P9["9 · Fair launch"]
@@ -105,6 +105,7 @@ independent of its author.
 | [`adr/`](adr/) | Architecture Decision Records: one protocol decision per file |
 | [`protocol/`](protocol/) | Normative specification drafts: consensus, upgrades, P2P, wallet |
 | [`test-vectors/`](test-vectors/) | Consensus, chain, signature, genesis and proof-of-work vectors |
+| [`node/`](node/) | Reference node, miner and wallet in Rust (testnet software) |
 | [`prototype/`](prototype/) | Disposable Python prototype of the consensus rules |
 | [`verifier/`](verifier/) | Independent implementation written only from the specification |
 | [`audits/`](audits/) | Review findings and how each was resolved |

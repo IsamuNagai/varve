@@ -31,4 +31,5 @@ Keywords MUST, MUST NOT, SHOULD, and MAY are used as in RFC 2119.
 
 `../test-vectors/` holds the vectors; `../test-vectors/README.md` lists each
 file, how it is produced, and which CI job checks it. An independent
-implementation written only from these documents lives in `../verifier/`.
+implementation written only from these documents lives in `../verifier/`, and the
+reference node in `../node/` also passes every vector file.
