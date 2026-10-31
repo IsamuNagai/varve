@@ -1,6 +1,6 @@
 Signature benchmark (liboqs tests/speed_sig, --duration 3)
 Library: liboqs commit 87576461b457a17f806aae463a7c223e45029813, OQS 0.16.0, minimal build
-Machine: 2 vCPU Intel Xeon @ 2.10GHz (cloud VM), single-threaded, gcc 13.3.0, Release build
+Machine: 2 vCPU Intel Xeon @ 2.10GHz, single-threaded, gcc 13.3.0, Release build
 
 Operation                            | Iterations | Total time (s) | Time (us): mean | pop. stdev | CPU cycles: mean          | pop. stdev
 ------------------------------------ | ----------:| --------------:| ---------------:| ----------:| -------------------------:| ----------:

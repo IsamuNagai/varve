@@ -8,7 +8,7 @@ and the vectors. Python 3 standard library plus ctypes (liboqs) only.
 **Isolation rule.** Nothing under `prototype/`, `tools/` or `simulations/` was
 read, imported or searched, and no vector-generation code was consulted.
 Where the spec was ambiguous the code implements the most natural reading and
-the issue is tagged `SPEC-AMBIGUITY (A-nn)` in the code and reported to the requester.
+the issue is tagged `SPEC-AMBIGUITY (A-nn)` in the code and listed in `FINDINGS.md`.
 
 Files:
 
