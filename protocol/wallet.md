@@ -1,4 +1,4 @@
-# Wallet keys, derivation and backup (standard, draft v0.2)
+# Wallet keys, derivation and backup (standard, draft v0.3)
 
 Not consensus. This is the interoperability standard wallets SHOULD follow so a
 backup made in one wallet restores in another (audit finding M-10). Nothing
@@ -69,13 +69,18 @@ For each key:
 - Integers little-endian, as everywhere in Varve.
 - The default receive address `n` is role 0, scheme `0x0001`, account 0,
   index `n`, as a policy-0 output (addresses.md).
+- Change address `n` is role 0, scheme `0x0001`, **account 1**, index `n`,
+  also as a policy-0 output. Restoring wallets scan both accounts.
 
 ## 5. Scanning and gap limit
 
 Because keys can only be derived from the secret, a restoring wallet derives
-indexes 0, 1, 2, … for each role and scheme it supports and looks for outputs
-whose commitment matches. It stops after **100** consecutive unused indexes
-(higher than Bitcoin's usual 20, since every receive needs a fresh address).
+indexes 0, 1, 2, … for each account, role and scheme it supports and looks for
+outputs whose commitment matches. It stops after **20** consecutive unused
+indexes. To make that safe, a wallet MUST NOT hand out a receive address more
+than 20 indexes past the last one that has been used; when that window is
+exhausted it offers the newest unused address again. A wallet that ignores
+this rule must document it and scan further when restoring.
 
 ## 6. Watch-only export
 

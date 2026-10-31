@@ -21,7 +21,12 @@ jobs:
             artifact: varve-linux-arm64
           - os: macos-15
             artifact: varve-macos-arm64
+          - os: windows-2025
+            artifact: varve-windows-x86_64
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0, pinned (Node 24)
         with:
@@ -43,16 +48,33 @@ jobs:
         env:
           VARVE_E2E_SLOW: "3"
         run: python3 -I node/tests/e2e_regtest.py node/target/release/varve
-      - name: Package
+      - name: Strata wallet end-to-end test (regtest)
+        if: runner.os == 'Linux'
+        env:
+          VARVE_E2E_SLOW: "3"
+        run: python3 -I node/tests/strata_e2e.py node/target/release/strata node/target/release/varve
+      - name: Package (node, miner and Strata wallet)
+        env:
+          ART: ${{ matrix.artifact }}
         run: |
-          mkdir -p dist
-          cp node/target/release/varve dist/varve
-          cd dist && tar czf "${{ matrix.artifact }}.tar.gz" varve
-          (command -v sha256sum >/dev/null && sha256sum "${{ matrix.artifact }}.tar.gz" || shasum -a 256 "${{ matrix.artifact }}.tar.gz") > "${{ matrix.artifact }}.tar.gz.sha256"
+          mkdir -p "dist/$ART"
+          ext=""; [ "$RUNNER_OS" = "Windows" ] && ext=".exe"
+          cp "node/target/release/varve$ext" "node/target/release/strata$ext" "dist/$ART/"
+          cp LICENSE-MIT LICENSE-APACHE "dist/$ART/" 2>/dev/null || true
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            7z a -tzip "$ART.zip" "$ART" > /dev/null
+            sha256sum "$ART.zip" > "$ART.zip.sha256"
+          else
+            tar czf "$ART.tar.gz" "$ART"
+            (command -v sha256sum >/dev/null && sha256sum "$ART.tar.gz" || shasum -a 256 "$ART.tar.gz") > "$ART.tar.gz.sha256"
+          fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, pinned
         with:
           name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.artifact }}.tar.gz*
+          path: |
+            dist/${{ matrix.artifact }}.tar.gz*
+            dist/${{ matrix.artifact }}.zip*
 
   install-script:
     # Runs node/deploy/install.sh exactly as a server operator would, on a fresh Ubuntu VM.
@@ -103,5 +125,5 @@ jobs:
           cat *.sha256 > SHA256SUMS
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --prerelease \
             --title "Varve $TAG (testnet)" \
-            --notes "Testnet software. Testnet coins have no value. Built by GitHub Actions from tag $TAG. Verify downloads against SHA256SUMS. See node/README.md." \
-            *.tar.gz SHA256SUMS
+            --notes "Testnet software: the Varve node and miner, and the Strata wallet. Testnet coins have no value. Built by GitHub Actions from tag $TAG. Verify downloads against SHA256SUMS. See node/README.md." \
+            *.tar.gz *.zip SHA256SUMS

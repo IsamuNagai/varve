@@ -25,7 +25,7 @@ Keywords MUST, MUST NOT, SHOULD, and MAY are used as in RFC 2119.
 | --- | --- |
 | `p2p.md` | Draft v0.2: transport, framing, handshake, headers-first sync, compact blocks, relay, RandomX cache policy, anti-eclipse |
 | `addresses.md` | Draft v0.2: Bech32m wallet encoding (recovery-address format under review, audit M-03) |
-| `wallet.md` | Draft v0.1: seeds, separate primary/recovery seeds, key derivation, scanning, watch-only |
+| `wallet.md` | Draft v0.3: seeds, separate primary/recovery seeds, key derivation, change, scanning, encrypted wallet file, watch-only |
 
 ## Test vectors
 

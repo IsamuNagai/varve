@@ -39,31 +39,41 @@ SCHEMES = {
 MAX_PK_LEN = 1952
 MAX_SIG_LEN = 7856
 
-# transactions.md §6 and upgrades.md §4: the lifecycle is a table of
-# (scheme_id, state, from_height) transitions.  The state of a scheme at height
-# h is that of the last transition for it with from_height <= h, else ACTIVE.
+# transactions.md §6 (draft v0.5): the lifecycle is a list of
+# (scheme_id, state, from_height) transitions.  The genesis list is empty (both
+# schemes ACTIVE).  The state of a scheme at height h is the state of its
+# transition with the greatest from_height <= h, else ACTIVE.
 ACTIVE, NO_NEW_OUTPUTS, DISABLED = "ACTIVE", "NO_NEW_OUTPUTS", "DISABLED"
 _STATE_RANK = {ACTIVE: 0, NO_NEW_OUTPUTS: 1, DISABLED: 2}
-GENESIS_LIFECYCLE = ((1, ACTIVE, 0), (2, ACTIVE, 0))
+# SPEC-AMBIGUITY (A-26): upgrades.md §4 still gives the genesis table as
+# [(1, ACTIVE, 0), (2, ACTIVE, 0)], which transactions.md §6 calls malformed
+# (ACTIVE is never listed).  transactions.md is followed: the list is empty.
+GENESIS_LIFECYCLE = ()
 
 
 def check_lifecycle(table):
-    """Validate a lifecycle table and return it as a tuple; raise ValueError.
+    """Return a well-formed lifecycle list as a tuple; raise ValueError if malformed.
 
-    SPEC-AMBIGUITY (A-20): "the last transition for that scheme" can mean last
-    in list order or greatest from_height.  The two agree only if each scheme's
-    entries are listed in height order, so such a table is required here, and
-    states may only move forward (one-directional, upgrades.md §5).
+    transactions.md §6: for each scheme, the scheme is defined, its transitions
+    appear in strictly increasing from_height in list order, and each state is
+    strictly later in ACTIVE -> NO_NEW_OUTPUTS -> DISABLED than the one before
+    it (the first is compared with ACTIVE, so ACTIVE is never listed).  A node
+    must refuse to run with a malformed list (A-20, resolved in v0.5).
     """
     last = {}
-    for scheme_id, state, from_height in table:
+    for entry in table:
+        scheme_id, state, from_height = entry
         if scheme_id not in SCHEMES:
             raise ValueError("lifecycle entry for an unknown scheme")
-        if state not in _STATE_RANK or from_height < 0:
-            raise ValueError("bad lifecycle entry")
-        prev = last.get(scheme_id)
-        if prev is not None and (from_height < prev[1] or _STATE_RANK[state] < _STATE_RANK[prev[0]]):
-            raise ValueError("lifecycle not in height order or not one-directional")
+        if state not in _STATE_RANK:
+            raise ValueError("unknown lifecycle state")
+        if not isinstance(from_height, int) or isinstance(from_height, bool) or from_height < 0:
+            raise ValueError("bad from_height")
+        prev_state, prev_height = last.get(scheme_id, (ACTIVE, None))
+        if prev_height is not None and from_height <= prev_height:
+            raise ValueError("lifecycle transitions not in strictly increasing from_height")
+        if _STATE_RANK[state] <= _STATE_RANK[prev_state]:
+            raise ValueError("lifecycle state does not move strictly forward")
         last[scheme_id] = (state, from_height)
     return tuple(table)
 
@@ -72,10 +82,10 @@ def scheme_state(table, scheme_id, height):
     """State of scheme_id at height; None for an unknown id (never valid)."""
     if scheme_id not in SCHEMES:
         return None
-    state = ACTIVE
+    state, best = ACTIVE, -1
     for entry_scheme, entry_state, from_height in table:
-        if entry_scheme == scheme_id and from_height <= height:
-            state = entry_state
+        if entry_scheme == scheme_id and best < from_height <= height:
+            state, best = entry_state, from_height
     return state
 
 
@@ -862,8 +872,6 @@ def check_spends(chain, tx, txid, coins, height):
             raise Invalid("11.7: coinbase maturity")
         if w.path == 2:
             # transactions.md §8.2: replaces steps 3-7; no signature is verified.
-            # SPEC-AMBIGUITY (A-22): the witness is not covered by any signature,
-            # so a third party may swap a redundant signed entry for this one.
             # SPEC-AMBIGUITY (A-23): the state check below can never fail alone;
             # the authorizer selected the same scheme at the same height.
             if w.public_key or w.signature:
@@ -873,6 +881,11 @@ def check_spends(chain, tx, txid, coins, height):
             if (o.scheme_id, o.commitment) not in authorized:
                 raise Invalid("11.7: no earlier input authorizes this key")
             continue
+        # transactions.md §8.2 (v0.5): path 2 is mandatory where it applies, so
+        # a path-0/1 witness on an output whose primary key is already
+        # authorized is invalid (unique witness layout, §3; A-22 resolved).
+        if (o.scheme_id, o.commitment) in authorized:
+            raise Invalid("11.7: path 2 required for an already authorized key")
         scheme, commitment = select_key(o, w.path, coin, height)
         if not can_spend(chain.lifecycle, scheme, height):
             raise Invalid("11.7: scheme not spendable")

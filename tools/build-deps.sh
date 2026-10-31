@@ -17,6 +17,26 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 PREFIX="${1:?usage: build-deps.sh <prefix>}"
 JOBS="${JOBS:-2}"
 mkdir -p "$PREFIX/src" "$PREFIX/lib" "$PREFIX/include"
+# Windows (Git Bash / MSYS with the MSVC toolchain): Visual Studio generator, .lib outputs,
+# and the dynamic C runtime (/MD) that Rust's MSVC target links against.
+WIN=0
+case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) WIN=1 ;; esac
+if [ "$WIN" = 1 ]; then
+  CM_EXTRA="-A x64 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL"
+  BUILD_CFG="--config Release"
+else
+  CM_EXTRA="-DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release"
+  BUILD_CFG=""
+fi
+copy_lib() {  # $1 = build dir, $2 = unix name (liboqs.a), $3 = windows name (oqs.lib)
+  if [ "$WIN" = 1 ]; then
+    f=$(find "$1" -name "$3" | head -1); [ -n "$f" ] || { echo "FAIL: $3 not built" >&2; exit 1; }
+    cp "$f" "$PREFIX/lib/$3"
+  else
+    f=$(find "$1" -name "$2" | head -1); [ -n "$f" ] || { echo "FAIL: $2 not built" >&2; exit 1; }
+    cp "$f" "$PREFIX/lib/$2"
+  fi
+}
 PREFIX="$(cd "$PREFIX" && pwd)"
 
 sha256_check() {  # $1 = expected, $2 = file
@@ -36,11 +56,13 @@ fetch() {  # $1 = repo, $2 = commit, $3 = dir
 
 # liboqs ---------------------------------------------------------------------
 fetch "$LIBOQS_REPO" "$LIBOQS_COMMIT" "$PREFIX/src/liboqs"
+# shellcheck disable=SC2086
 cmake -S "$PREFIX/src/liboqs" -B "$PREFIX/src/liboqs/build" -DBUILD_SHARED_LIBS=OFF -DOQS_BUILD_ONLY_LIB=ON \
   -DOQS_MINIMAL_BUILD="SIG_ml_dsa_65;SIG_slh_dsa_pure_sha2_128s" -DOQS_USE_OPENSSL=OFF \
-  -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release > "$PREFIX/src/liboqs.cmake.log"
-cmake --build "$PREFIX/src/liboqs/build" -j "$JOBS" > "$PREFIX/src/liboqs.build.log"
-cp "$PREFIX/src/liboqs/build/lib/liboqs.a" "$PREFIX/lib/"
+  $CM_EXTRA > "$PREFIX/src/liboqs.cmake.log"
+# shellcheck disable=SC2086
+cmake --build "$PREFIX/src/liboqs/build" $BUILD_CFG -j "$JOBS" > "$PREFIX/src/liboqs.build.log"
+copy_lib "$PREFIX/src/liboqs/build" liboqs.a oqs.lib
 rm -rf "$PREFIX/include/oqs"; cp -R "$PREFIX/src/liboqs/build/include/oqs" "$PREFIX/include/"
 
 # RandomX --------------------------------------------------------------------
@@ -48,10 +70,11 @@ fetch "$RANDOMX_REPO" "$RANDOMX_COMMIT" "$PREFIX/src/randomx"
 sha256_check "$RX_CONFIG_SHA256_BEFORE" "$PREFIX/src/randomx/src/configuration.h"
 git -C "$PREFIX/src/randomx" apply "$HERE/randomx/varve-salt.patch"
 sha256_check "$RX_CONFIG_SHA256_AFTER" "$PREFIX/src/randomx/src/configuration.h"
-cmake -S "$PREFIX/src/randomx" -B "$PREFIX/src/randomx/build" -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-  -DCMAKE_BUILD_TYPE=Release > "$PREFIX/src/randomx.cmake.log"
-cmake --build "$PREFIX/src/randomx/build" --target randomx -j "$JOBS" > "$PREFIX/src/randomx.build.log"
-cp "$PREFIX/src/randomx/build/librandomx.a" "$PREFIX/lib/"
+# shellcheck disable=SC2086
+cmake -S "$PREFIX/src/randomx" -B "$PREFIX/src/randomx/build" $CM_EXTRA > "$PREFIX/src/randomx.cmake.log"
+# shellcheck disable=SC2086
+cmake --build "$PREFIX/src/randomx/build" $BUILD_CFG --target randomx -j "$JOBS" > "$PREFIX/src/randomx.build.log"
+copy_lib "$PREFIX/src/randomx/build" librandomx.a randomx.lib
 cp "$PREFIX/src/randomx/src/randomx.h" "$PREFIX/include/"
 
 echo "$LIBOQS_COMMIT $RANDOMX_COMMIT" > "$PREFIX/PINS"

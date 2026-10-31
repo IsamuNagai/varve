@@ -53,15 +53,23 @@ around four ideas:
   After its delay, a recovery key is a second owner, not a revocation switch
   ([details](protocol/transactions.md#81-recovery-trust-model-informative)).
 - **Verifiable on a laptop.** Block capacity is set by what an ordinary computer
-  can check; a full block verifies in under 50 ms on one core.
+  can check: the signatures in a worst-case full block verify in under 50 ms on
+  one core.
 
 **Where it stands.** The specification covers every consensus rule. A
 prototype, a verifier written only from the specification, and the reference
 node agree on every consensus test vector, including real post-quantum
 signatures and RandomX hashes. The [reference node](node/) mines, syncs,
 sends payments and survives reorganizations in multi-node tests on every
-change. The testnet genesis is fixed, and the public testnet opens with its
-first seed node. Mainnet follows only after a public, named security audit.
+change. Real nodes are [battle-tested](battle/) against invalid blocks, double
+spends, chain rewrites, corrupted data and power cuts: the first run found two
+bugs, both fixed, and the second passed all 55 tests. The
+[Strata](node/crates/strata/) desktop wallet and the
+[Varvescan](https://isamunagai.github.io/varve/scan/) explorer are ready for
+testnet. The testnet genesis is fixed, and the public testnet opens with its
+first seed node. Mainnet follows only when the
+[readiness checklist](https://isamunagai.github.io/varve/mainnet.html) is
+complete, including a public, named security audit.
 
 ## Design at a glance
 
@@ -113,7 +121,9 @@ starts at the same moment.
 | [`adr/`](adr/) | Architecture Decision Records: one protocol decision per file |
 | [`protocol/`](protocol/) | Normative specification drafts: consensus, upgrades, P2P, wallet |
 | [`test-vectors/`](test-vectors/) | Consensus, chain, signature, genesis and proof-of-work vectors |
-| [`node/`](node/) | Reference node, miner and wallet in Rust (testnet software) |
+| [`node/`](node/) | Reference node, miner, public API ([`API.md`](node/API.md)) and the Strata wallet, in Rust (testnet software) |
+| [`battle/`](battle/) | Battle-test harness, raw results and charts |
+| [`docs/scan/`](docs/scan/) | Varvescan block explorer (static, served with the website) |
 | [`prototype/`](prototype/) | Disposable Python prototype of the consensus rules |
 | [`verifier/`](verifier/) | Independent implementation written only from the specification |
 | [`audits/`](audits/) | Review findings and how each was resolved |

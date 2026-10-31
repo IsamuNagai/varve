@@ -151,8 +151,11 @@ signatures cannot exceed the time budget of a block of cheap ones.
 [DESIGN] Blocks target 300 seconds. The maximum block weight is 720,000, about
 76 GB of chain growth per year at sustained full blocks. Measured verification
 times set the weights: about 29 µs per ML-DSA-65 signature and about 0.6 ms per
-SLH-DSA-SHA2-128s signature on one 2.1 GHz core. A full block verifies in under
-50 ms in the worst case, on a single ordinary core.
+SLH-DSA-SHA2-128s signature on one 2.1 GHz core, so the signatures of a
+worst-case full block verify in under 50 ms on a single ordinary core. In the
+first battle test (31 October 2026), a full block of 131 signed transactions was
+accepted end to end, including parsing, all checks and storage, in under 0.1 s
+on a two-core machine.
 
 ## 6. Cryptographic agility
 

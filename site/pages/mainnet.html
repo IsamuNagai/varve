@@ -1,0 +1,51 @@
+<section class="page-head">
+<div class="wrap narrow">
+<p class="eyebrow">Mainnet readiness</p>
+<h1>What has to be true before mainnet</h1>
+<p class="lead">Mainnet launches when every item below is done, not on a date. This page separates what is proven from what is only designed.</p>
+</div>
+</section>
+<div class="wrap narrow prose">
+<section class="block reveal">
+<h2>Designed versus proven</h2>
+<p>Some of Varve is designed and has passed serious testing: the consensus rules, three implementations that agree on them, and the battle tests. Some is designed but not yet proven in the wild: how the network behaves with thousands of strangers, real miners and real attackers. That proof can only come from a long public testnet and independent reviewers. Items move to "Done" only with evidence you can check.</p>
+<p class="readiness-legend"><span class="pill done">Done</span> evidence is public &nbsp; <span class="pill doing">In progress</span> &nbsp; <span class="pill todo">Not started</span></p>
+</section>
+<section class="block reveal">
+<h2>Protocol and code</h2>
+<ul class="readiness">
+<li><span class="pill done">Done</span><div><b>Every consensus rule specified in public documents</b><p>Draft v0.5 in <a href="https://github.com/IsamuNagai/varve/tree/main/protocol"><code>protocol/</code></a>. The rules are frozen before mainnet; changes until then are public, with decision records.</p></div></li>
+<li><span class="pill done">Done</span><div><b>Three implementations agree on every test vector</b><p>A reference prototype, an independent verifier written only from the specification, and the Rust node.</p></div></li>
+<li><span class="pill done">Done</span><div><b>Battle tests: consensus attacks, chain rewrites, corrupted data, power cuts</b><p>The first run found two bugs, both fixed; the second run passed all 55 tests. <a href="security.html#battle-tests">Results and charts</a>.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Network-flood and connection-exhaustion testing</b><p>How a node holds up when peers flood it with connections and messages, tested under controlled conditions.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Continuous fuzzing</b><p>Long-running fuzzers for every parser and message type, not only the one-off fuzzing in the battle tests.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Independent human security audit of the node</b><p>A public, named review. So far there has been an independent human review of the protocol and an AI-assisted review of the code.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Expert review of the proof of work</b><p>RandomX v2 with Varve's salt, reviewed by people who know RandomX.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>A second, independent full node</b><p>Written by different people, so that one implementation's bug cannot become the network's rule.</p></div></li>
+</ul>
+</section>
+<section class="block reveal">
+<h2>Network</h2>
+<ul class="readiness">
+<li><span class="pill doing">In progress</span><div><b>Public testnet with seed nodes</b><p>The node, miner, wallet and explorer are ready; the first public seed node is being prepared.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Months of public testnet with outside miners</b><p>Including deliberate stress, chain splits and a rehearsal of a signature-scheme upgrade.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Seed nodes run by several independent operators</b></div></li>
+</ul>
+</section>
+<section class="block reveal">
+<h2>Releases and wallets</h2>
+<ul class="readiness">
+<li><span class="pill doing">In progress</span><div><b>Release builds from tagged source, with checksums</b><p>Built by GitHub Actions for Linux and macOS (x86-64 and ARM). Windows builds are being added.</p></div></li>
+<li><span class="pill done">Done</span><div><b>Strata wallet with an encrypted wallet file and a 24-word recovery phrase</b><p>Runs on your own computer; keys never leave it.</p></div></li>
+<li><span class="pill done">Done</span><div><b>Varvescan block explorer</b><p><a href="scan/">Ready</a>, and live once the testnet is.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Reproducible builds</b><p>Anyone can rebuild a release and get identical files.</p></div></li>
+<li><span class="pill todo">Not started</span><div><b>Several independent release signers</b></div></li>
+</ul>
+</section>
+<section class="block reveal">
+<h2>Launch</h2>
+<ul class="readiness">
+<li><span class="pill todo">Not started</span><div><b>Bitcoin anchor heights announced well in advance</b><p>Mainnet's genesis is derived from six future Bitcoin blocks, so nobody can mine early. The heights are published before they exist.</p></div></li>
+</ul>
+</section>
+</div>

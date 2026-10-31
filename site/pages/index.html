@@ -23,8 +23,20 @@
 <ul class="grid cards stagger">
 <li class="card reveal"><span class="num">01</span><h3>Quantum-resistant from genesis</h3><p>Every coin is protected by the new NIST standards ML-DSA (FIPS 204) and SLH-DSA (FIPS 205). There are no elliptic-curve coins to rescue later, because there never were any.</p></li>
 <li class="card reveal"><span class="num">02</span><h3>Cryptography that can evolve</h3><p>Every output records which signature scheme protects it. New schemes can be added and weak ones retired by a planned upgrade, without a new coin or a restart.</p></li>
-<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths for inheritance, disaster recovery and cold storage, under an independent hash-based scheme. No smart-contract machinery required.</p></li>
-<li class="card reveal"><span class="num">04</span><h3>Verifiable on a laptop</h3><p>Block capacity is set by what an ordinary computer can check, and a full block verifies in under 50 ms on one core. Anyone can audit the whole chain.</p></li>
+<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths for inheritance, disaster recovery and cold storage, under an independent hash-based scheme. No smart-contract machinery required. After its delay a recovery key can move the coins on its own, so guard it as carefully as the main key.</p></li>
+<li class="card reveal"><span class="num">04</span><h3>Verifiable on a laptop</h3><p>Block capacity is set by what an ordinary computer can check: the signatures in a worst-case full block verify in under 50 ms on one core, and in our battle test a full block was accepted end to end in under 0.1 s. Anyone can audit the whole chain.</p></li>
+</ul>
+</div>
+</section>
+
+<section class="section" aria-labelledby="get-started">
+<div class="wrap">
+<p class="eyebrow reveal">Get started</p>
+<h2 class="reveal" id="get-started">Wallet, explorer and node</h2>
+<ul class="grid cards stagger">
+<li class="card reveal"><span class="num">WALLET</span><h3>Strata</h3><p>Hold, send and receive VARV with a desktop wallet that keeps your keys on your own computer, encrypted. For Windows, macOS and Linux.</p><p class="card-cta"><a href="download.html#strata">Download Strata</a></p></li>
+<li class="card reveal"><span class="num">EXPLORER</span><h3>Varvescan</h3><p>Look up any block, transaction or address on the Varve blockchain, right in your browser. Nothing to install.</p><p class="card-cta"><a href="scan/">Open Varvescan</a></p></li>
+<li class="card reveal"><span class="num">NODE</span><h3>Varve node</h3><p>Run the network and mine VARV on an ordinary processor. Checks every block itself, no special hardware needed.</p><p class="card-cta"><a href="download.html#node">Download and set up</a></p></li>
 </ul>
 </div>
 </section>
@@ -38,6 +50,7 @@
 <div class="row reveal"><dt>Implementations</dt><dd>A prototype, an independent verifier written only from the spec, and the reference node agree on every consensus test vector</dd></div>
 <div class="row reveal"><dt>Reference node</dt><dd>Rust node, miner and wallet with no third-party Rust dependencies, tested on Linux and macOS, x86_64 and ARM64</dd></div>
 <div class="row reveal"><dt>Testnet</dt><dd>Genesis anchored to Bitcoin blocks 973,970–973,975; opens to public mining with its first seed node</dd></div>
+<div class="row reveal"><dt>Battle tests</dt><dd>Real nodes attacked with invalid blocks, double spends, chain rewrites, corrupted data and power cuts; the first run found two bugs, both fixed, and the second passed all 55 tests (<a href="security.html#battle-tests">results</a>)</dd></div>
 <div class="row reveal"><dt>Reviews</dt><dd>An independent human review of the protocol and an AI-assisted review of the node code, every finding resolved or tracked in public audit records; a public, named security audit comes next</dd></div>
 </dl>
 </div>
@@ -51,7 +64,7 @@
 <div class="row reveal"><dt>Ledger</dt><dd>UTXO with typed outputs; single key, or key plus timelocked recovery</dd></div>
 <div class="row reveal"><dt>Signatures</dt><dd>ML-DSA-65 primary, SLH-DSA-SHA2-128s recovery, SHA3-256 key commitments</dd></div>
 <div class="row reveal"><dt>Proof of work</dt><dd>RandomX v2 with a Varve-specific salt, so ordinary CPUs can mine</dd></div>
-<div class="row reveal"><dt>Issuance</dt><dd>82 varve per block, smooth 8-year half-life, then a permanent 6 varve tail</dd></div>
+<div class="row reveal"><dt>Issuance</dt><dd>82 varve per block, smooth 8-year half-life, then from about year 30 a permanent tail of 6 varve per block (about 0.68% a year at first, shrinking every year after)</dd></div>
 <div class="row reveal"><dt>Difficulty</dt><dd>ASERT, adjusted every block; recovers from hashrate swings in hours</dd></div>
 <div class="row reveal"><dt>Fair launch</dt><dd>Genesis derived from six future Bitcoin blocks: no premine, no head start</dd></div>
 </dl>
@@ -64,7 +77,7 @@
 <h2 class="reveal" id="roadmap">Ten phases, each ending at a gate</h2>
 <!-- status:begin -->
 <!-- status:end -->
-<p class="muted reveal">Mainnet launches when the gates are met, not before: a public specification, adversarial testnets, and independent security review. Its genesis comes from six future Bitcoin blocks, so everyone starts at the same moment.</p>
+<p class="muted reveal">Mainnet launches when the gates are met, not before: a public specification, adversarial testnets, and independent security review. Its genesis comes from six future Bitcoin blocks, so everyone starts at the same moment. <a href="mainnet.html">See what is done and what is not.</a></p>
 </div>
 </section>
 

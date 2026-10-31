@@ -7,9 +7,24 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Varve is open-source proof-of-work money with post-quantum signatures from the first block, cryptography that can be upgraded without a restart, and a fair launch with no premine.">
 <title>Varve: proof-of-work money built to outlast its cryptography</title>
-<script src="theme-init.js?v=6"></script>
-<link rel="stylesheet" href="style.css?v=6">
-<script src="site.js?v=6" defer></script>
+<link rel="canonical" href="https://isamunagai.github.io/varve/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Varve">
+<meta property="og:title" content="Varve: proof-of-work money built to outlast its cryptography">
+<meta property="og:description" content="Varve is open-source proof-of-work money with post-quantum signatures from the first block, cryptography that can be upgraded without a restart, and a fair launch with no premine.">
+<meta property="og:url" content="https://isamunagai.github.io/varve/">
+<meta property="og:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Varve: proof-of-work money built to outlast its cryptography">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@isanagai">
+<meta name="twitter:title" content="Varve: proof-of-work money built to outlast its cryptography">
+<meta name="twitter:description" content="Varve is open-source proof-of-work money with post-quantum signatures from the first block, cryptography that can be upgraded without a restart, and a fair launch with no premine.">
+<meta name="twitter:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<script src="theme-init.js?v=9"></script>
+<link rel="stylesheet" href="style.css?v=9">
+<script src="site.js?v=9" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
@@ -23,6 +38,8 @@
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="journal.html">Journal</a>
+<a href="download.html">Download</a>
+<a href="scan/">Explorer</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
@@ -58,8 +75,20 @@
 <ul class="grid cards stagger">
 <li class="card reveal"><span class="num">01</span><h3>Quantum-resistant from genesis</h3><p>Every coin is protected by the new NIST standards ML-DSA (FIPS 204) and SLH-DSA (FIPS 205). There are no elliptic-curve coins to rescue later, because there never were any.</p></li>
 <li class="card reveal"><span class="num">02</span><h3>Cryptography that can evolve</h3><p>Every output records which signature scheme protects it. New schemes can be added and weak ones retired by a planned upgrade, without a new coin or a restart.</p></li>
-<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths for inheritance, disaster recovery and cold storage, under an independent hash-based scheme. No smart-contract machinery required.</p></li>
-<li class="card reveal"><span class="num">04</span><h3>Verifiable on a laptop</h3><p>Block capacity is set by what an ordinary computer can check, and a full block verifies in under 50 ms on one core. Anyone can audit the whole chain.</p></li>
+<li class="card reveal"><span class="num">03</span><h3>Custody that outlives keys</h3><p>Native timelocked recovery paths for inheritance, disaster recovery and cold storage, under an independent hash-based scheme. No smart-contract machinery required. After its delay a recovery key can move the coins on its own, so guard it as carefully as the main key.</p></li>
+<li class="card reveal"><span class="num">04</span><h3>Verifiable on a laptop</h3><p>Block capacity is set by what an ordinary computer can check: the signatures in a worst-case full block verify in under 50 ms on one core, and in our battle test a full block was accepted end to end in under 0.1 s. Anyone can audit the whole chain.</p></li>
+</ul>
+</div>
+</section>
+
+<section class="section" aria-labelledby="get-started">
+<div class="wrap">
+<p class="eyebrow reveal">Get started</p>
+<h2 class="reveal" id="get-started">Wallet, explorer and node</h2>
+<ul class="grid cards stagger">
+<li class="card reveal"><span class="num">WALLET</span><h3>Strata</h3><p>Hold, send and receive VARV with a desktop wallet that keeps your keys on your own computer, encrypted. For Windows, macOS and Linux.</p><p class="card-cta"><a href="download.html#strata">Download Strata</a></p></li>
+<li class="card reveal"><span class="num">EXPLORER</span><h3>Varvescan</h3><p>Look up any block, transaction or address on the Varve blockchain, right in your browser. Nothing to install.</p><p class="card-cta"><a href="scan/">Open Varvescan</a></p></li>
+<li class="card reveal"><span class="num">NODE</span><h3>Varve node</h3><p>Run the network and mine VARV on an ordinary processor. Checks every block itself, no special hardware needed.</p><p class="card-cta"><a href="download.html#node">Download and set up</a></p></li>
 </ul>
 </div>
 </section>
@@ -73,6 +102,7 @@
 <div class="row reveal"><dt>Implementations</dt><dd>A prototype, an independent verifier written only from the spec, and the reference node agree on every consensus test vector</dd></div>
 <div class="row reveal"><dt>Reference node</dt><dd>Rust node, miner and wallet with no third-party Rust dependencies, tested on Linux and macOS, x86_64 and ARM64</dd></div>
 <div class="row reveal"><dt>Testnet</dt><dd>Genesis anchored to Bitcoin blocks 973,970–973,975; opens to public mining with its first seed node</dd></div>
+<div class="row reveal"><dt>Battle tests</dt><dd>Real nodes attacked with invalid blocks, double spends, chain rewrites, corrupted data and power cuts; the first run found two bugs, both fixed, and the second passed all 55 tests (<a href="security.html#battle-tests">results</a>)</dd></div>
 <div class="row reveal"><dt>Reviews</dt><dd>An independent human review of the protocol and an AI-assisted review of the node code, every finding resolved or tracked in public audit records; a public, named security audit comes next</dd></div>
 </dl>
 </div>
@@ -86,7 +116,7 @@
 <div class="row reveal"><dt>Ledger</dt><dd>UTXO with typed outputs; single key, or key plus timelocked recovery</dd></div>
 <div class="row reveal"><dt>Signatures</dt><dd>ML-DSA-65 primary, SLH-DSA-SHA2-128s recovery, SHA3-256 key commitments</dd></div>
 <div class="row reveal"><dt>Proof of work</dt><dd>RandomX v2 with a Varve-specific salt, so ordinary CPUs can mine</dd></div>
-<div class="row reveal"><dt>Issuance</dt><dd>82 varve per block, smooth 8-year half-life, then a permanent 6 varve tail</dd></div>
+<div class="row reveal"><dt>Issuance</dt><dd>82 varve per block, smooth 8-year half-life, then from about year 30 a permanent tail of 6 varve per block (about 0.68% a year at first, shrinking every year after)</dd></div>
 <div class="row reveal"><dt>Difficulty</dt><dd>ASERT, adjusted every block; recovers from hashrate swings in hours</dd></div>
 <div class="row reveal"><dt>Fair launch</dt><dd>Genesis derived from six future Bitcoin blocks: no premine, no head start</dd></div>
 </dl>
@@ -111,7 +141,7 @@
 <li class="step next"><span class="step-n">09</span><span class="step-name">Fair launch</span><span class="step-state">Upcoming</span></li>
 </ol>
 <!-- status:end -->
-<p class="muted reveal">Mainnet launches when the gates are met, not before: a public specification, adversarial testnets, and independent security review. Its genesis comes from six future Bitcoin blocks, so everyone starts at the same moment.</p>
+<p class="muted reveal">Mainnet launches when the gates are met, not before: a public specification, adversarial testnets, and independent security review. Its genesis comes from six future Bitcoin blocks, so everyone starts at the same moment. <a href="mainnet.html">See what is done and what is not.</a></p>
 </div>
 </section>
 
@@ -121,8 +151,8 @@
 <h2 class="reveal" id="journal-latest">Latest update</h2>
 <div class="card reveal latest">
 <p class="entry-meta"><time datetime="2026-10-31">31 October 2026</time> · Isamu Nagai</p>
-<h3><a href="journal.html#2026-10-31-node-and-testnet">A working node, and a testnet born from today's Bitcoin blocks</a></h3>
-<p>Varve now runs. The reference node, miner and wallet are written in Rust, with no third-party Rust packages at all. The only external code is the two pinned cryptographic libraries the protocol depends on: liboqs for the post-quantum signatures, and RandomX for mining. It passes every consensus test vector, which makes it the third implementation that agrees on the rules.</p>
+<h3><a href="journal.html#2026-10-31-strata-and-varvescan">Strata wallet and Varvescan explorer</a></h3>
+<p>Two new pieces go live with the testnet: a wallet and a block explorer. Together with the node they make up what you need to use Varve, and all three now have a home on the new <a href="download.html">Download page</a>.</p>
 <p><a href="journal.html">All journal entries</a></p>
 </div>
 </div>
@@ -160,9 +190,12 @@
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="journal.html">Journal</a>
+<a href="download.html">Download</a>
+<a href="scan/">Explorer</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
+<a href="mainnet.html">Mainnet readiness</a>
 <a href="https://github.com/IsamuNagai/varve">Source code</a>
 <a href="https://x.com/isanagai">X</a>
 </nav>

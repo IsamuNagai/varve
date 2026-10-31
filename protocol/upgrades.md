@@ -57,7 +57,8 @@ Each change is a numbered document `protocol/upgrades/NNNN-name.md` containing:
   that list so peers can detect incompatible rule sets early (p2p.md).
 - The scheme lifecycle table is a list of `(scheme_id, state, from_height)`
   entries, compiled into the node from the upgrade documents. At genesis it is
-  `[(0x0001, ACTIVE, 0), (0x0002, ACTIVE, 0)]`.
+  empty, which means every scheme is ACTIVE (transactions.md §6). Entries only
+  ever record a move to NO_NEW_OUTPUTS or DISABLED.
 
 ## 5. Lifecycle transitions
 

@@ -195,7 +195,7 @@ def test_spends(verifier):
     state = fresh(verifier)
     pk1, sk1 = signer.keypair(1)
     pk2, sk2 = signer.keypair(2)
-    pk3, _sk3 = signer.keypair(1)
+    pk3, sk3 = signer.keypair(1)
     # recovery output: primary ML-DSA, recovery SLH-DSA after 3 blocks
     recov = v.Output(1_000_000, 1, v.commitment_for(1, pk1), 1, 1, 2, v.commitment_for(2, pk2), 3)
     first = [recov, simple_output(2_000_000, 1, pk1),
@@ -245,10 +245,10 @@ def test_spends(verifier):
     # weight of a signed tx: size + 100 verify units per ML-DSA input
     expect("weight formula (1-in 1-out, ML-DSA)",
            pay.weight() == len(pay.full_bytes()) + 100)
-    test_shared(state, spend, cb, txid1, pk1, sk1, pk2, sk2, pk3)
+    test_shared(state, spend, cb, txid1, pk1, sk1, pk2, sk2, pk3, sk3)
 
 
-def test_shared(state, spend, cb, txid1, pk1, sk1, pk2, sk2, pk3):
+def test_shared(state, spend, cb, txid1, pk1, sk1, pk2, sk2, pk3, sk3):
     """transactions.md §8.2 (path 2) at height 290, genesis lifecycle."""
     recov, plain, plain2, slh, other, rec_pk1, plain3 = [(txid1, i) for i in range(7)]
     k1 = (1, pk1, sk1, 0)
@@ -284,35 +284,88 @@ def test_shared(state, spend, cb, txid1, pk1, sk1, pk2, sk2, pk3):
     expect("path 2: witness entry is 3 bytes and adds no verify units",
            good.weight() == len(good.full_bytes()) + 100
            and len(good.witnesses[1].serialize()) == 3)
-    # Witness malleability: a third party can replace a signed, redundant input
-    # by a path-2 entry.  The txid stays the same; the wtxid changes.
+    # transactions.md §8.2 (v0.5): path 2 is mandatory where it applies, so the
+    # witness layout is unique (§3).  This resolves A-22.
+    rec1 = (1, pk1, sk1, 1)  # path 1 selecting pk1 (output rec_pk1: primary pk3, recovery pk1)
     both = spend([plain, plain2], out, [k1, k1])
-    ok("path 2: both inputs signed (0 and 0) valid", both)
+    bad("mandatory path 2: non-canonical second signature (0 then 0, same key)", both)
     stripped = v.Tx(both.version, both.inputs, both.outputs, both.locktime,
                     [both.witnesses[0], v.Witness(2, b"", b"")])
-    expect("path 2: stripping a redundant signature keeps the txid (A-22)",
+    expect("mandatory path 2: the canonical (0 then 2) layout keeps the txid",
            stripped.txid() == both.txid() and stripped.wtxid() != both.wtxid())
-    ok("path 2: stripped variant is also valid (A-22)", stripped)
+    ok("mandatory path 2: canonical layout (0 then 2) valid", stripped)
+    bad("mandatory path 2: second same-key input signed again after a chain (0, 2, 0)",
+        spend([plain, plain2, plain3], out, [k1, shared, k1]))
+    bad("mandatory path 2: path 1 on an output whose primary key is already authorized (0 then 1)",
+        spend([plain, recov], out, [k1, (2, pk2, sk2, 1)]))
+    ok("mandatory path 2: same pair with path 2 (0 then 2) valid", spend([plain, recov], out, [k1, shared]))
+    ok("mandatory path 2: path 1 then path 0 on the same primary key (path 1 selects the"
+       " recovery key, so path 2 does not apply) valid",
+       spend([recov, plain], out, [(2, pk2, sk2, 1), k1]))
+    bad("mandatory path 2: path 1 then path 0 whose primary key equals the first input's"
+        " recovery key", spend([rec_pk1, plain], out, [rec1, k1]))
+    ok("mandatory path 2: same pair with path 2 (1 then 2) valid", spend([rec_pk1, plain], out, [rec1, shared]))
+    bad("mandatory path 2: path 1 then path 1 whose primary key equals the first input's recovery key",
+        spend([rec_pk1, recov], out, [rec1, (2, pk2, sk2, 1)]))
+    ok("mandatory path 2: does not cover recovery keys (0 then 1 under the same key) valid",
+       spend([plain, rec_pk1], out, [k1, rec1]))
+    # A-25: the layout is unique against third parties, not against key holders.
+    lay_a = spend([rec_pk1, plain], out, [(1, pk3, sk3, 0), k1])
+    lay_b = spend([rec_pk1, plain], out, [rec1, shared])
+    expect("A-25: two witness layouts (0,0) and (1,2) share one txid",
+           lay_a.txid() == lay_b.txid() and lay_a.wtxid() != lay_b.wtxid())
+    ok("A-25: layout (0 by pk3, 0 by pk1) valid", lay_a)
+    ok("A-25: layout (1 by pk1, 2) valid", lay_b)
 
 
 def test_lifecycle(verifier):
     """transactions.md §6: ML-DSA NO_NEW_OUTPUTS from 293, DISABLED from 295."""
-    try:
-        v.check_lifecycle([(1, v.ACTIVE, 0), (1, v.DISABLED, 10), (1, v.NO_NEW_OUTPUTS, 20)])
-        ok = False
-    except ValueError:
-        ok = True
-    expect("lifecycle: table moving back from DISABLED rejected", ok)
-    try:
-        v.check_lifecycle([(1, v.NO_NEW_OUTPUTS, 20), (1, v.DISABLED, 10)])
-        ok = False
-    except ValueError:
-        ok = True
-    expect("lifecycle: table out of height order rejected (A-20)", ok)
-    table = [(1, v.ACTIVE, 0), (2, v.ACTIVE, 0), (1, v.NO_NEW_OUTPUTS, 293), (1, v.DISABLED, 295)]
+    def refused(table):
+        try:
+            v.check_lifecycle(table)
+        except ValueError:
+            return True
+        return False
+
+    N, D = v.NO_NEW_OUTPUTS, v.DISABLED
+    malformed = [
+        ("unknown scheme", [(3, N, 10)]),
+        ("ACTIVE listed", [(1, v.ACTIVE, 0)]),
+        ("upgrades.md §4 genesis table (A-26)", [(1, v.ACTIVE, 0), (2, v.ACTIVE, 0)]),
+        ("ACTIVE after NO_NEW_OUTPUTS", [(1, N, 10), (1, v.ACTIVE, 20)]),
+        ("moving back from DISABLED", [(1, D, 10), (1, N, 20)]),
+        ("state repeated", [(1, N, 10), (1, N, 20)]),
+        ("out of height order", [(1, N, 20), (1, D, 10)]),
+        ("equal from_height", [(1, N, 10), (1, D, 10)]),
+        ("out of order across interleaved schemes", [(1, D, 20), (2, N, 5), (1, N, 10)]),
+        ("unknown state", [(1, "RETIRED", 10)]),
+        ("negative from_height", [(1, N, -1)]),
+    ]
+    for label, table in malformed:
+        expect("lifecycle: malformed list refused (%s)" % label, refused(table))
+    for label, table in malformed:
+        try:
+            fresh(verifier, table)
+            ok = False
+        except ValueError:
+            ok = True
+        expect("lifecycle: chain state refuses to start with a malformed list (%s)" % label, ok)
+    well = [
+        ("empty (genesis)", []),
+        ("interleaved schemes", [(1, N, 10), (2, D, 5), (1, D, 20)]),
+        ("skip straight to DISABLED", [(2, D, 0)]),
+    ]
+    for label, table in well:
+        expect("lifecycle: well-formed list accepted (%s)" % label, not refused(table))
+    expect("lifecycle: genesis list is empty", v.GENESIS_LIFECYCLE == ())
+    inter = [(1, N, 10), (2, D, 5), (1, D, 20)]
+    expect("lifecycle: greatest from_height <= h wins (interleaved list)",
+           [v.scheme_state(inter, 1, h) for h in (9, 10, 19, 20)] == [v.ACTIVE, N, N, D]
+           and [v.scheme_state(inter, 2, h) for h in (4, 5)] == [v.ACTIVE, D])
+    table = [(1, N, 293), (1, D, 295)]
     expect("lifecycle: state lookup 292/293/294/295",
            [v.scheme_state(table, 1, h) for h in (292, 293, 294, 295)]
-           == [v.ACTIVE, v.NO_NEW_OUTPUTS, v.NO_NEW_OUTPUTS, v.DISABLED]
+           == [v.ACTIVE, N, N, D]
            and v.scheme_state(table, 2, 10 ** 9) == v.ACTIVE and v.scheme_state(table, 3, 0) is None)
     signer = make_signer(verifier)
     state = fresh(verifier, table)

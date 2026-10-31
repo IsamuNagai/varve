@@ -1,0 +1,48 @@
+<section class="page-head">
+<div class="wrap narrow">
+<p class="eyebrow">Download</p>
+<h1>Get started with Varve</h1>
+<p class="lead">Three tools: a wallet to hold and send coins, an explorer to look things up, and the node to run and mine the network. Everything is free and open source, and it is all testnet software for now: testnet coins have no value.</p>
+</div>
+</section>
+<div class="wrap narrow prose">
+<ul class="grid get stagger">
+<li class="card reveal" id="strata">
+<p class="eyebrow">Wallet</p>
+<h2>Strata</h2>
+<p><strong>For holding and sending VARV.</strong> Strata is the Varve desktop wallet. It runs on your own computer and opens in your browser. Create a wallet or restore one from your 24-word recovery phrase, see your balance and history, and send or receive coins. Your keys are generated and stored on your computer only, in a wallet file encrypted with your passphrase.</p>
+<p class="actions"><a class="btn primary" href="https://github.com/IsamuNagai/varve/releases">Download for Windows, macOS or Linux</a></p>
+<details><summary>How to install</summary>
+<ol>
+<li>Open the releases page and download the file for your system: <code>…-windows-x86_64.zip</code>, <code>…-macos-arm64.tar.gz</code> (Apple Silicon) or <code>…-linux-x86_64.tar.gz</code>.</li>
+<li>Check the download against <code>SHA256SUMS</code> on the same page.</li>
+<li>Unpack it and start <code>strata</code> (<code>strata.exe</code> on Windows). It opens in your browser.</li>
+<li>Create a wallet, write the 24 words down on paper, and keep them somewhere safe. Anyone with those words can take your coins, and without them a lost computer means lost coins.</li>
+</ol>
+<p class="muted">Builds are not yet code-signed, so Windows and macOS may warn that the app is from an unknown developer. Only download from the official releases page.</p>
+</details>
+</li>
+<li class="card reveal" id="explorer">
+<p class="eyebrow">Block explorer</p>
+<h2>Varvescan</h2>
+<p><strong>For looking things up.</strong> Varvescan shows everything on the Varve blockchain: the latest blocks, any transaction, and any address with its balance, history and where its coins came from. Use it to check that a payment arrived. Nothing to install, it runs in your browser and uses no cookies or trackers.</p>
+<p class="actions"><a class="btn primary" href="scan/">Open Varvescan</a></p>
+<p class="muted">Testnet data appears as soon as the first public node is online. Mainnet has not launched.</p>
+</li>
+<li class="card reveal" id="node">
+<p class="eyebrow">Node and miner</p>
+<h2>Varve node</h2>
+<p><strong>For running and mining the network.</strong> The Varve node checks every block and transaction itself and helps keep the network alive. It also mines VARV on an ordinary computer's processor; no special hardware is needed. Run it on your own computer or on a server.</p>
+<p class="actions"><a class="btn primary" href="https://github.com/IsamuNagai/varve/releases">Download the node</a><a class="btn" href="https://github.com/IsamuNagai/varve/tree/main/node#readme">Setup guide</a></p>
+<details><summary>Quick start</summary>
+<ol>
+<li>Download and unpack the file for your system from the releases page (the same download as Strata; both programs are included).</li>
+<li>Start mining on the testnet: <code>varve node --mine</code></li>
+<li>Check progress: <code>varve rpc getmininginfo</code> and <code>varve wallet balance</code>. Mined coins can be spent after 288 blocks, about a day.</li>
+</ol>
+<p class="muted">Mining in the fastest mode needs about 2.1 GB of free memory; add <code>--light</code> on small machines. To run a public server node, see the setup guide.</p>
+</details>
+</li>
+</ul>
+<p class="muted reveal">The first testnet release appears on the releases page when the first public seed node goes online. Until then you can build everything from source; see the setup guide.</p>
+</div>

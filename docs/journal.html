@@ -7,9 +7,24 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Development notes and progress updates from Isamu Nagai.">
 <title>Varve journal</title>
-<script src="theme-init.js?v=6"></script>
-<link rel="stylesheet" href="style.css?v=6">
-<script src="site.js?v=6" defer></script>
+<link rel="canonical" href="https://isamunagai.github.io/varve/journal.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Varve">
+<meta property="og:title" content="Varve journal">
+<meta property="og:description" content="Development notes and progress updates from Isamu Nagai.">
+<meta property="og:url" content="https://isamunagai.github.io/varve/journal.html">
+<meta property="og:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Varve: proof-of-work money built to outlast its cryptography">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@isanagai">
+<meta name="twitter:title" content="Varve journal">
+<meta name="twitter:description" content="Development notes and progress updates from Isamu Nagai.">
+<meta name="twitter:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<script src="theme-init.js?v=9"></script>
+<link rel="stylesheet" href="style.css?v=9">
+<script src="site.js?v=9" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
@@ -23,6 +38,8 @@
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="journal.html" aria-current="page">Journal</a>
+<a href="download.html">Download</a>
+<a href="scan/">Explorer</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
@@ -41,6 +58,16 @@
 </div>
 </section>
 <div class="wrap narrow prose">
+<article class="entry block reveal" id="2026-10-31-strata-and-varvescan">
+<p class="entry-meta"><time datetime="2026-10-31">31 October 2026</time> · Isamu Nagai</p>
+<h2><a href="#2026-10-31-strata-and-varvescan">Strata wallet and Varvescan explorer</a></h2>
+<p>Two new pieces go live with the testnet: a wallet and a block explorer. Together with the node they make up what you need to use Varve, and all three now have a home on the new <a href="download.html">Download page</a>.</p>
+<p><strong>Strata</strong> is the Varve desktop wallet, for Windows, macOS and Linux. It runs on your own computer and opens in your browser. Create a wallet and you get a 24-word recovery phrase; your keys are derived from it inside Strata and never leave your machine. The wallet file is encrypted with your passphrase, Strata locks itself when you step away, and every payment is shown in full before it is signed. It takes advantage of a Varve feature from earlier this week: coins that belong to the same address are spent with a single signature, so even a payment that gathers dozens of small coins stays small and cheap. In our end-to-end test, one payment spent thirteen coins with one signature, and it confirmed on the next block.</p>
+<p><strong>Varvescan</strong> is the block explorer, built into this website. Look up any block, transaction or address: balances, full history, which keys a payment used, and where an address's coins came from. It runs in your browser with no cookies, trackers or third-party code, and it treats everything it receives as untrusted.</p>
+<p>Both read from a new public interface in the node, which keeps its indexes exact through chain reorganisations and restarts; the multi-node tests now check that on every change.</p>
+<p>There is also a <a href="mainnet.html">mainnet readiness</a> page. It lists what is proven, what is designed, and what still has to happen before mainnet, and items only move to done with evidence you can check.</p>
+<p>Next: the first public seed node goes online and the first testnet release is published, and you will be able to download all of this and start mining.</p>
+</article>
 <article class="entry block reveal" id="2026-10-31-node-and-testnet">
 <p class="entry-meta"><time datetime="2026-10-31">31 October 2026</time> · Isamu Nagai</p>
 <h2><a href="#2026-10-31-node-and-testnet">A working node, and a testnet born from today's Bitcoin blocks</a></h2>
@@ -89,9 +116,12 @@
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="journal.html">Journal</a>
+<a href="download.html">Download</a>
+<a href="scan/">Explorer</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
+<a href="mainnet.html">Mainnet readiness</a>
 <a href="https://github.com/IsamuNagai/varve">Source code</a>
 <a href="https://x.com/isanagai">X</a>
 </nav>

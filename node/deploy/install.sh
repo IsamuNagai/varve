@@ -10,6 +10,8 @@
 #   REF=<git commit or branch>  source to build (default: main)
 #   MINE=1                      also mine; MINE_THREADS=N to limit cores
 #   PORT=39900                  public P2P port
+#   API=1                       serve the public read-only API (node/API.md) on
+#                               127.0.0.1:39911, for a TLS proxy such as Caddy
 #
 # What it does: installs build tools, creates two unprivileged accounts
 # ("varve-build" compiles, "varve" runs the node), builds the node from source
@@ -22,6 +24,7 @@ REF="${REF:-main}"
 PORT="${PORT:-39900}"
 MINE="${MINE:-0}"
 MINE_THREADS="${MINE_THREADS:-}"
+API="${API:-0}"
 REPO="https://github.com/IsamuNagai/varve.git"
 
 [ "$(id -u)" -eq 0 ] || { echo "run as root (sudo)"; exit 1; }
@@ -69,6 +72,10 @@ install -o root -g root -m 0755 /opt/varve-build/build/node/target/release/varve
 runuser -u varve -- /usr/local/bin/varve version
 
 ARGS="node --network testnet --datadir /var/lib/varve/testnet --port $PORT"
+if [ "$API" = "1" ]; then
+  # loopback only; publish through a TLS reverse proxy (see node/README.md)
+  ARGS="$ARGS --api-port 39911 --api-trust-proxy"
+fi
 if [ "$MINE" = "1" ]; then
   ARGS="$ARGS --mine"
   [ -n "$MINE_THREADS" ] && ARGS="$ARGS --threads $MINE_THREADS"

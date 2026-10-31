@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Varvescan, the block explorer for Varve: blocks, transactions, addresses and the mempool, read from a node's public API.">
+<title>Varvescan · Varve block explorer</title>
+<link rel="canonical" href="https://isamunagai.github.io/varve/scan/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Varve">
+<meta property="og:title" content="Varvescan: the Varve block explorer">
+<meta property="og:description" content="Blocks, transactions and addresses on the Varve network.">
+<meta property="og:url" content="https://isamunagai.github.io/varve/scan/">
+<meta property="og:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@isanagai">
+<meta name="twitter:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<script src="../theme-init.js?v=9"></script>
+<link rel="stylesheet" href="../style.css?v=9">
+<link rel="stylesheet" href="scan.css?v=9">
+<script src="../site.js?v=9" defer></script>
+<script src="scan.js?v=9" defer></script>
+<link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-layer bg-layer-1"></div><div class="bg-layer bg-layer-2"></div></div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="bar">
+<a class="brand" href="../index.html"><img class="only-light" src="../assets/varve-mark-dark.png" alt="" width="28" height="28"><img class="only-dark" src="../assets/varve-mark-light.png" alt="" width="28" height="28" aria-hidden="true"><span>Varve</span></a>
+<nav class="nav" aria-label="Main">
+<a href="../index.html">Home</a>
+<a href="../about.html">About</a>
+<a href="../whitepaper.html">Whitepaper</a>
+<a href="../journal.html">Journal</a>
+<a href="../download.html">Download</a>
+<a href="./" aria-current="page">Explorer</a>
+<a href="../forum.html">Forum</a>
+<a href="../security.html">Security</a>
+<a href="../faq.html">FAQ</a>
+<a class="nav-ext" href="https://github.com/IsamuNagai/varve">GitHub</a>
+<a class="nav-ext nav-icon" href="https://x.com/isanagai" aria-label="Isamu Nagai on X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.3 4.7H5.5l11.2 14.5z"/></svg></a>
+</nav>
+<button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode"><svg class="only-dark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="only-light" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+</div>
+</header>
+<main id="main" class="scan">
+<section class="scan-head">
+<div class="wrap">
+<div class="scan-title">
+<a class="scan-mark" href="#/" aria-label="Varvescan home"><img class="only-light" src="../assets/varve-mark-dark.png" alt="" width="56" height="56"><img class="only-dark" src="../assets/varve-mark-light.png" alt="" width="56" height="56"></a>
+<div class="scan-name">
+<p class="eyebrow">Varvescan</p>
+<h1>Block explorer</h1>
+</div>
+<div class="net-switch" role="group" aria-label="Network">
+<button type="button" data-net="testnet" aria-pressed="true">Testnet</button>
+<button type="button" data-net="mainnet" aria-pressed="false">Mainnet</button>
+</div>
+</div>
+<form class="scan-search" id="scan-search" role="search" autocomplete="off">
+<label class="visually-hidden" for="scan-q">Search by block height, block hash, transaction id or address</label>
+<input id="scan-q" name="q" type="search" maxlength="200" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search" placeholder="Height, block hash, transaction id or address">
+<button class="btn primary" type="submit">Search</button>
+</form>
+<p class="api-note" id="scan-api-note" hidden></p>
+</div>
+</section>
+<div class="wrap scan-body" id="scan-view">
+<noscript><section class="scan-panel is-feature"><h2>JavaScript is needed</h2><p>Varvescan reads the chain from a node in your browser, so it needs JavaScript. It loads no third-party code.</p></section></noscript>
+</div>
+</main>
+<footer class="site-footer">
+<div class="wrap">
+<div class="foot-top">
+<a class="brand" href="../index.html"><img class="only-light" src="../assets/varve-mark-dark.png" alt="" width="24" height="24"><img class="only-dark" src="../assets/varve-mark-light.png" alt="" width="24" height="24" aria-hidden="true"><span>Varve</span></a>
+<nav class="foot-nav" aria-label="Footer">
+<a href="../about.html">About</a>
+<a href="../whitepaper.html">Whitepaper</a>
+<a href="../journal.html">Journal</a>
+<a href="../download.html">Download</a>
+<a href="./">Explorer</a>
+<a href="../forum.html">Forum</a>
+<a href="../security.html">Security</a>
+<a href="../faq.html">FAQ</a>
+<a href="../mainnet.html">Mainnet readiness</a>
+<a href="https://github.com/IsamuNagai/varve">Source code</a>
+<a href="https://x.com/isanagai">X</a>
+</nav>
+</div>
+<p>Mainnet has not launched and no coin can be bought. There will never be a presale, ICO, premine or airdrop: anyone selling "Varve" or "VARV" is running a scam.</p>
+<p>Varvescan shows public data from a Varve node. It uses no cookies, trackers or third-party code.</p>
+<p>Open source under MIT or Apache-2.0.</p>
+</div>
+</footer>
+</body>
+</html>

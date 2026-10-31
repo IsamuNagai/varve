@@ -13,26 +13,35 @@ fn main() {
         Ok(p) => PathBuf::from(p),
         Err(_) => {
             let p = PathBuf::from(env::var("OUT_DIR").unwrap()).join("deps");
-            if !p.join("lib/librandomx.a").exists() || !p.join("lib/liboqs.a").exists() {
+            if !libs_present(&p) {
                 let ok = Command::new("sh").arg(&script).arg(&p).status().expect("run tools/build-deps.sh");
                 assert!(ok.success(), "tools/build-deps.sh failed");
             }
             p
         }
     };
-    for lib in ["liboqs.a", "librandomx.a"] {
-        assert!(prefix.join("lib").join(lib).exists(), "missing {} in {}", lib, prefix.display());
-    }
+    assert!(libs_present(&prefix), "missing liboqs/RandomX static libraries in {}", prefix.display());
     println!("cargo:rustc-link-search=native={}", prefix.join("lib").display());
     println!("cargo:rustc-link-lib=static=oqs");
     println!("cargo:rustc-link-lib=static=randomx");
     let target = env::var("CARGO_CFG_TARGET_OS").unwrap();
     match target.as_str() {
         "macos" | "ios" | "freebsd" | "openbsd" => println!("cargo:rustc-link-lib=dylib=c++"),
-        "windows" => {}
+        "windows" => {
+            // liboqs uses the Windows CNG random number generator
+            println!("cargo:rustc-link-lib=dylib=bcrypt");
+            println!("cargo:rustc-link-lib=dylib=advapi32");
+        }
         _ => {
             println!("cargo:rustc-link-lib=dylib=stdc++");
             println!("cargo:rustc-link-lib=dylib=pthread");
         }
     }
+}
+
+fn libs_present(prefix: &std::path::Path) -> bool {
+    let lib = prefix.join("lib");
+    let windows = env::var("CARGO_CFG_TARGET_OS").map(|t| t == "windows").unwrap_or(false);
+    let names: [&str; 2] = if windows { ["oqs.lib", "randomx.lib"] } else { ["liboqs.a", "librandomx.a"] };
+    names.iter().all(|n| lib.join(n).exists())
 }

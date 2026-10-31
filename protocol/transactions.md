@@ -73,9 +73,10 @@ the non-zero counts are validity rules (encoding.md §1.5).
 
 - `txid = H256("VARVE/txid/v1", base)`. Outpoints reference txids, so a change
   to witness data cannot change a txid (no third-party malleability). Because
-  path 2 is mandatory where it applies (§8.2), each valid transaction also has
-  exactly one valid witness layout: nobody but the signers can change its
-  wtxid, size or weight by swapping witness paths.
+  path 2 is mandatory where it applies (§8.2), nobody but the signers can
+  change a valid transaction's wtxid, size or weight by swapping witness
+  paths. (Signers themselves may sometimes choose between valid layouts, for
+  example signing with a recovery key instead of a primary key.)
 - `wtxid = H256("VARVE/wtxid/v1", full)`.
 
 **Parsing limits.** Before allocating storage for `input_count` or
@@ -115,8 +116,8 @@ never consulted.
 | `0x0002` | SLH-DSA-SHA2-128s (FIPS 205, pure, empty context) | 32 B | 7,856 B | 1,700 |
 
 All other ids are invalid to create or spend. Each scheme has a lifecycle
-state per height range, fixed by consensus. At genesis both schemes are
-ACTIVE, and no other state is used.
+state per height, fixed by consensus (the table below and the lifecycle list
+that follows it).
 
 | State | Create outputs (as `scheme_id` or `recovery_scheme_id`) | Spend via a path whose scheme is in this state |
 | --- | --- | --- |

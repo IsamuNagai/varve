@@ -59,6 +59,10 @@ impl UtxoView for View<'_> {
 }
 
 impl Mempool {
+    /// The mempool transaction spending `op`, if any.
+    pub fn spender(&self, op: &OutPoint) -> Option<Id> {
+        self.spends.get(op).copied()
+    }
     pub fn contains_wtxid(&self, w: &Id) -> bool {
         self.by_wtxid.contains_key(w)
     }

@@ -43,6 +43,23 @@ See [`deploy/`](deploy/): one command installs the node as a system service
 that restarts automatically. Open TCP port 39900. Never expose the RPC port
 (it listens on 127.0.0.1 only and needs the cookie file in the data directory).
 
+## Public API (for the explorer and wallets)
+
+`--api-port 39911` serves the read-only API in [`API.md`](API.md) on
+127.0.0.1. It exposes only public chain data and is rate-limited per client.
+To publish it, keep it on 127.0.0.1 and put a TLS reverse proxy in front of it.
+With [Caddy](https://caddyserver.com) and a domain pointing at the server,
+`/etc/caddy/Caddyfile` is just:
+
+```
+api.example.org {
+    reverse_proxy 127.0.0.1:39911
+}
+```
+
+Then start the node with `--api-port 39911 --api-trust-proxy`, so that rate
+limits apply per visitor instead of to the proxy.
+
 ## What is implemented
 
 - Consensus: everything in `protocol/` (transactions, blocks, ASERT, subsidy,
@@ -57,6 +74,10 @@ that restarts automatically. Open TCP port 39900. Never expose the RPC port
 - Miner: RandomX fast or light mode, multi-threaded.
 - Wallet: ML-DSA-65 keys, addresses, balance, payments.
 - Local JSON-RPC (`varve rpc <method>`), cookie-authenticated, loopback only.
+- Public read-only API with transaction, spend and address indexes that stay
+  exact across reorganizations ([`API.md`](API.md)).
+- [Strata](crates/strata/), the desktop wallet: encrypted wallet file,
+  24-word recovery phrase, local web interface.
 
 ## Known limitations (to fix before any mainnet candidate)
 
@@ -69,14 +90,19 @@ that restarts automatically. Open TCP port 39900. Never expose the RPC port
   Simple and inspectable; slower to start as the chain grows.
 - Chain selection scans the block index for each new block; fine for testnet,
   to be replaced by a candidate set before mainnet.
-- Windows builds are not produced yet (use WSL, or Linux/macOS).
+- Windows builds are being added to CI; until a release includes them, use
+  WSL, or Linux/macOS.
+- The node's built-in wallet (`varve wallet …`, used for mining) stores keys
+  **unencrypted** in `wallet.json`. Back it up and never share it. For holding
+  coins, use Strata, which encrypts its wallet file and uses the seeded
+  derivation of `protocol/wallet.md`.
+- API indexes live in memory and are rebuilt at start-up.
+- One implementation is not enough for mainnet (ADR-0010): an independent
+  second node implementation is required.
 
 An independent review of this code and how each finding was resolved:
 [`audits/2026-10-31-node-review.md`](../audits/2026-10-31-node-review.md).
-- The wallet stores keys **unencrypted** and does not yet use the seeded
-  derivation of `protocol/wallet.md`. Back up `wallet.json`; never share it.
-- One implementation is not enough for mainnet (ADR-0010): an independent
-  second node implementation is required.
+Battle-test results: [`battle/`](../battle/).
 
 ## Tests
 

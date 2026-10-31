@@ -19,12 +19,13 @@ import sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 SITE = os.path.join(ROOT, "site")
 OUT = os.path.join(ROOT, "docs")
-ASSET_VERSION = "6"  # bump when style.css, site.js or theme-init.js change
+ASSET_VERSION = "9"  # bump when style.css, site.js or theme-init.js change
 REPO = "https://github.com/IsamuNagai/varve"
 X_URL = "https://x.com/isanagai"
+SITE_URL = "https://isamunagai.github.io/varve/"
 
 NAV = [("index.html", "Home"), ("about.html", "About"), ("whitepaper.html", "Whitepaper"),
-       ("journal.html", "Journal"), ("forum.html", "Forum"), ("security.html", "Security"), ("faq.html", "FAQ")]
+       ("journal.html", "Journal"), ("download.html", "Download"), ("scan/", "Explorer"), ("forum.html", "Forum"), ("security.html", "Security"), ("faq.html", "FAQ")]
 
 PAGES = {  # file: (title, description)
     "index.html": ("Varve: proof-of-work money built to outlast its cryptography",
@@ -35,6 +36,9 @@ PAGES = {  # file: (title, description)
     "journal.html": ("Varve journal", "Development notes and progress updates from Isamu Nagai."),
     "forum.html": ("Varve forum", "Where Varve discussion takes place, and the community guidelines."),
     "security.html": ("Varve security", "How to report a vulnerability, how releases are verified, and a note on seed phrases."),
+    "download.html": ("Download Varve: Strata wallet, Varvescan explorer and the Varve node",
+                      "Download the Strata wallet for Windows, macOS and Linux, open the Varvescan block explorer, or set up the Varve node and miner."),
+    "mainnet.html": ("Varve mainnet readiness", "What has to be true before Varve's mainnet launches: what is proven, what is designed, and what is still missing."),
     "faq.html": ("Varve FAQ", "Frequently asked questions about Varve: status, post-quantum design, fair launch, testnet and how to help."),
     "404.html": ("Page not found · Varve", "The page you requested does not exist on the Varve site."),
 }
@@ -44,6 +48,38 @@ X_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d
 SUN_MOON = ('<svg class="only-dark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/>'
             '<path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
             '<svg class="only-light" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>')
+
+
+def social(name, title, desc):
+    """Canonical URL and share-card tags (Open Graph and X)."""
+    if name == "404.html":
+        return '<meta name="robots" content="noindex">'
+    url = SITE_URL + ("" if name == "index.html" else name)
+    img = SITE_URL + "assets/og-card.png"
+    t, d = html.escape(title), html.escape(desc)
+    return "\n".join([
+        f'<link rel="canonical" href="{url}">',
+        '<meta property="og:type" content="website">',
+        '<meta property="og:site_name" content="Varve">',
+        f'<meta property="og:title" content="{t}">',
+        f'<meta property="og:description" content="{d}">',
+        f'<meta property="og:url" content="{url}">',
+        f'<meta property="og:image" content="{img}">',
+        '<meta property="og:image:width" content="1200">',
+        '<meta property="og:image:height" content="630">',
+        '<meta property="og:image:alt" content="Varve: proof-of-work money built to outlast its cryptography">',
+        '<meta name="twitter:card" content="summary_large_image">',
+        '<meta name="twitter:site" content="@isanagai">',
+        f'<meta name="twitter:title" content="{t}">',
+        f'<meta name="twitter:description" content="{d}">',
+        f'<meta name="twitter:image" content="{img}">',
+    ])
+
+
+def sitemap():
+    urls = [SITE_URL] + [SITE_URL + n for n in PAGES if n not in ("index.html", "404.html")] + [SITE_URL + "scan/"]
+    body = "".join(f"<url><loc>{u}</loc></url>\n" for u in urls)
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "</urlset>\n"
 
 
 def page(name, main):
@@ -60,6 +96,7 @@ def page(name, main):
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="{html.escape(desc)}">
 <title>{html.escape(title)}</title>
+{social(name, title, desc)}
 <script src="theme-init.js?v={v}"></script>
 <link rel="stylesheet" href="style.css?v={v}">
 <script src="site.js?v={v}" defer></script>
@@ -88,6 +125,7 @@ def page(name, main):
 <a class="brand" href="index.html"><img class="only-light" src="assets/varve-mark-dark.png" alt="" width="24" height="24"><img class="only-dark" src="assets/varve-mark-light.png" alt="" width="24" height="24" aria-hidden="true"><span>Varve</span></a>
 <nav class="foot-nav" aria-label="Footer">
 {foot}
+<a href="mainnet.html">Mainnet readiness</a>
 <a href="{REPO}">Source code</a>
 <a href="{X_URL}">X</a>
 </nav>
@@ -269,12 +307,33 @@ def build():
             main = open(os.path.join(SITE, "pages", name), encoding="utf-8").read()
             main = main.replace("{{LATEST_JOURNAL}}", latest_teaser(posts))
         out[name] = page(name, main)
+    out["sitemap.xml"] = sitemap()
     return out
+
+
+def sync_scan(text):
+    """Keep the hand-written explorer page's header, footer and asset version in step."""
+    def rel(f):
+        return "./" if f == "scan/" else "../" + f
+    nav = "\n".join(f'<a href="{rel(f)}"' + (' aria-current="page"' if f == "scan/" else "") + f">{label}</a>" for f, label in NAV)
+    foot = "\n".join(f'<a href="{rel(f)}">{label}</a>' for f, label in NAV[1:])
+    text = re.sub(r'(<nav class="nav" aria-label="Main">\n).*?(\n<a class="nav-ext" href=)', lambda m: m.group(1) + nav + m.group(2), text, flags=re.S)
+    text = re.sub(r'(<nav class="foot-nav" aria-label="Footer">\n).*?(\n<a href="\.\./mainnet\.html">)', lambda m: m.group(1) + foot + m.group(2), text, flags=re.S)
+    return re.sub(r'\?v=\d+"', f'?v={ASSET_VERSION}"', text)
 
 
 def main():
     check = "--check" in sys.argv
     stale = []
+    scan = os.path.join(OUT, "scan", "index.html")
+    if os.path.exists(scan):
+        old = open(scan, encoding="utf-8").read()
+        new = sync_scan(old)
+        if new != old:
+            stale.append("scan/index.html")
+            if not check:
+                with open(scan, "w", encoding="utf-8") as fh:
+                    fh.write(new)
     for name, text in build().items():
         path = os.path.join(OUT, name)
         old = open(path, encoding="utf-8").read() if os.path.exists(path) else None

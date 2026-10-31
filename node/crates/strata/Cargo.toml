@@ -1,0 +1,15 @@
+[package]
+name = "strata"
+description = "Strata, the Varve desktop wallet: a local web UI served on 127.0.0.1"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "strata"
+path = "src/main.rs"
+
+[dependencies]
+varve-sys = { path = "../varve-sys" }
+varve-consensus = { path = "../varve-consensus" }
+varve-wallet = { path = "../varve-wallet" }

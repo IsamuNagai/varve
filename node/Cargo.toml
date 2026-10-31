@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/varve-sys", "crates/varve-consensus", "crates/varve-wallet", "crates/varve", "crates/varve-testkit"]
+members = ["crates/varve-sys", "crates/varve-consensus", "crates/varve-wallet", "crates/varve", "crates/varve-testkit", "crates/strata"]
 
 [workspace.package]
 version = "0.1.0"

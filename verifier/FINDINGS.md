@@ -2,11 +2,13 @@
 
 `verifier/` was written from `protocol/*.md` and `test-vectors/*.json` only,
 without reading the prototype or the vector generators. It now follows
-consensus draft v0.4 (anchored ASERT, witness path 2, lifecycle table).
-Against every vector file it reports **0 mismatches** (346 checks with
-liboqs; `pow.json` and `wallet.json` are out of scope). Writing it surfaced
-the specification gaps below. Severity: H = two
-readings could disagree on validity; M = encoding or tooling; L = wording.
+consensus draft v0.5 (anchored ASERT, witness path 2 and when it is
+mandatory, well-formed lifecycle lists). Against every vector file it reports
+**0 mismatches** (348 checks with liboqs, including all 70 `chain.json`
+cases; `pow.json` and `wallet.json` are out of scope). Writing it surfaced the
+specification gaps below: 26 in all, of which 4 are open (all L wording).
+Severity: H = two readings could disagree on validity; M = encoding or
+tooling; L = wording.
 
 ## Specification ambiguities
 
@@ -31,17 +33,18 @@ readings could disagree on validity; M = encoding or tooling; L = wording.
 | A-17 | L | params.md, transactions.md | Constants duplicated | Open; params.md is authoritative |
 | A-18 | L | protocol/README.md | Stale versions and generator names | README rewritten |
 | A-19 | L | blocks.md §4 | "Reject at first failing step" implied order is consensus | Reworded: validity is order-independent; order is a SHOULD |
-| A-20 | H | transactions.md §6 (para. after the state table), upgrades.md §4 | "The state of the last transition for that scheme with `from_height ≤ h`": last in list order, or greatest `from_height`? These differ for a table not sorted by height. Also unstated: whether a table that goes backwards (e.g. DISABLED then NO_NEW_OUTPUTS), lists equal heights, or names an unknown scheme is malformed | Open; the genesis table cannot trigger it. Verifier requires each scheme's entries in height order with states only moving forward, so both readings agree; anything else is rejected as a bad table |
-| A-21 | L | transactions.md §6, para. after the scheme table | "At genesis both schemes are ACTIVE, and no other state is used" can be read as ruling out NO_NEW_OUTPUTS and DISABLED, which the later paragraph allows by transition. The genesis sentence is also repeated | Open (wording); read as "at genesis" |
-| A-22 | M | transactions.md §3 (txid bullet), §8.2 | Third-party witness malleability: a signed path-0 input whose output key is already authorized by an earlier input can be replaced by anyone with a 3-byte path-2 entry. The txid is unchanged; wtxid, size and weight change, and the result is still valid (selftest shows it). §3's "no third-party malleability" holds for txids only, and neither section says so. This matters for relay and compact blocks, which use wtxids | Open. No validity impact; should be stated (informative) |
+| A-20 | H | transactions.md §6 (para. after the state table), upgrades.md §4 | "The state of the last transition for that scheme with `from_height ≤ h`": last in list order, or greatest `from_height`? These differ for a table not sorted by height. Also unstated: whether a table that goes backwards (e.g. DISABLED then NO_NEW_OUTPUTS), lists equal heights, or names an unknown scheme is malformed | Resolved in transactions.md §6 (v0.5): the state is that of the transition with the greatest `from_height ≤ h`, and a list is well formed only if, per scheme, the scheme is known, `from_height` strictly increases in list order and states strictly move forward (ACTIVE never listed); nodes must refuse a malformed list. Verifier follows this and selftest refuses 11 malformed lists. One leftover: upgrades.md §4 still gives a genesis table that the new rule calls malformed (A-26) |
+| A-21 | L | transactions.md §6, para. after the scheme table | "At genesis both schemes are ACTIVE, and no other state is used" can be read as ruling out NO_NEW_OUTPUTS and DISABLED, which the later paragraph allows by transition. The genesis sentence is also repeated | Resolved: the sentence now refers to the state table and lifecycle list |
+| A-22 | M | transactions.md §3 (txid bullet), §8.2 | Third-party witness malleability: a signed path-0 input whose output key is already authorized by an earlier input can be replaced by anyone with a 3-byte path-2 entry. The txid is unchanged; wtxid, size and weight change, and the result is still valid (selftest shows it). §3's "no third-party malleability" holds for txids only, and neither section says so. This matters for relay and compact blocks, which use wtxids | Resolved in transactions.md §8.2 (v0.5): path 2 is mandatory where it applies, so a path-0 or path-1 witness on an input whose primary key was selected by an earlier path-0/1 input is invalid, and stripping a signature no longer yields a second valid form. The vectors now reject 0-then-0 and 1-then-0; selftest also rejects 0-2-0, 0-then-1 and 1-then-1. Mandatory path 2 never blocks a spend that was otherwise valid: path 2 then always passes (same scheme and state as the authorizer; maturity applies to both). §3's new wording claims slightly more than the rule gives (A-25) |
 | A-23 | L | transactions.md §8.2 steps 3-4 | Step 3 (state of `o_i.scheme_id`) can never fail on its own: the authorizer selected the same scheme at the same height and passed §8 step 4. Matching on the scheme in step 4 is also implied by the commitment, which hashes `u16(scheme)` | Informative; kept as written. Mutation testing finds both equivalent |
-| A-24 | L | protocol/README.md; difficulty.md §2 heading | The README lists transactions.md as v0.3 (file says v0.4) and difficulty.md as v0.2 (file says v0.3). The §2 heading still says "anchored at genesis", but the anchor time is now `t0 + ASERT_ANCHOR_DELAY` (the anchor height is still 0) | Open (wording) |
-
+| A-24 | L | protocol/README.md; difficulty.md §2 heading | The README lists transactions.md as v0.3 (file says v0.4) and difficulty.md as v0.2 (file says v0.3). The §2 heading still says "anchored at genesis", but the anchor time is now `t0 + ASERT_ANCHOR_DELAY` (the anchor height is still 0) | Resolved: the README lists transactions.md v0.5 and difficulty.md v0.3, matching the files, and the §2 heading now says "anchored at genesis + ASERT_ANCHOR_DELAY" |
+| A-25 | L | transactions.md §3 (txid bullet) | "Each valid transaction also has exactly one valid witness layout" is too strong. It holds against third parties only. Key holders can still choose: for inputs spending (primary K3, recovery K1, delay met) and then (primary K1), both (path 0 by K3, path 0 by K1) and (path 1 by K1, path 2) are valid with the same txid (selftest shows it). Signatures are also randomized, so the signers can always produce a new wtxid. The rest of the sentence ("nobody but the signers can change its wtxid") is correct | Resolved: §3 now limits the claim to third parties and notes signers may choose |
+| A-26 | M | upgrades.md §4 vs transactions.md §6 | upgrades.md §4 still says the lifecycle table at genesis is `[(0x0001, ACTIVE, 0), (0x0002, ACTIVE, 0)]`. transactions.md §6 (v0.5) says the genesis list is empty, that ACTIVE is never listed, and that a node MUST refuse to run with such a list. A node built from upgrades.md would refuse to start under transactions.md. Both tables give the same states, so block validity is the same | Resolved: upgrades.md §4 now says the genesis list is empty |
 ## Coverage gaps (mutation testing)
 
 `mutation_check.py` breaks one rule at a time and reruns the vectors. Each
-mutation the vectors miss is then run against `selftest.py`. Of 79 mutations
-(53 earlier plus 26 for v0.4), **25 survive the vectors**.
+mutation the vectors miss is then run against `selftest.py`. Of 95 mutations
+(53 earlier, 26 for v0.4, 16 for v0.5), **35 survive the vectors**.
 
 The 13 earlier survivors are unchanged. None is an untested reachable rule:
 
@@ -56,28 +59,46 @@ The 13 earlier survivors are unchanged. None is an untested reachable rule:
   coinbase height encoding or by double-spend rules). They stay as
   defence in depth.
 
-Of the 26 v0.4 mutations, the vectors catch 14: the anchor delay (ignored or
-with the wrong sign), the params entry (missing or the wrong type), path 2 at
-parse time and path 3, a non-empty path-2 key or signature, path 2 with no
-authorizer or a later one, path-1 authorizers (rejected, or contributing the
-primary key), verify units for path 2, and recovery creatability. These 12
-survive:
+Of the 26 v0.4 mutations, the vectors now catch 15. The new vector "path 2
+spending an immature coinbase" closes the maturity gap reported earlier.
+These 11 survive:
 
 - **Equivalent (A-23):** path 2 matched on commitment only; path 2 without
   its own lifecycle check.
-- **Vector gaps (selftest catches them):**
-  - path 2 matched on **scheme only**. The vector "path 2 for an output under
-    a different key" also uses a different scheme (SLH-DSA against an ML-DSA
-    authorizer). It needs a same-scheme, different-key case.
-  - path 2 **without coinbase maturity**. No vector spends an immature
-    coinbase output by path 2.
+- **Vector gap (selftest catches it):** path 2 matched on **scheme only**.
+  The vector "path 2 for an output under a different key" also uses a
+  different scheme. It needs a same-scheme, different-key case.
 - **Not expressible in the vectors (selftest catches all 8):** every lifecycle
   rule. The table is ignored (always ACTIVE); creation allowed while
   NO_NEW_OUTPUTS; spending allowed while DISABLED; spending refused while
-  NO_NEW_OUTPUTS; first matching transition used instead of the last;
-  `from_height` exclusive; path 1 checked against the primary scheme's
-  state; creation checked at height 0. `chain.json` runs only under the
-  genesis table (everything ACTIVE) and has no field for any other table.
+  NO_NEW_OUTPUTS; the first matching transition used instead of the greatest
+  `from_height`; `from_height` exclusive; path 1 checked against the primary
+  scheme's state; creation checked at height 0. `chain.json` runs only under
+  the genesis list (everything ACTIVE) and has no field for any other list.
+
+Of the 16 v0.5 mutations, the vectors catch 5. Four are for mandatory path 2:
+not enforced; enforced on path-1 witnesses only; triggered only by keys that
+path-0 inputs select; compared with earlier outputs' primary keys instead of
+their selected keys. The fifth uses the upgrades.md §4 genesis table, which
+the verifier refuses at start-up (A-26). These 11 survive:
+
+- **Equivalent:** mandatory path 2 matched on commitment only (the commitment
+  hashes `u16(scheme)`); lifecycle lookup by last in list order instead of
+  greatest `from_height` (the two agree on every well-formed list, which is
+  now required).
+- **Vector gaps (selftest catches them):**
+  - mandatory path 2 enforced on **path-0 witnesses only**. No vector puts a
+    path-1 witness on an input whose primary key is already authorized
+    (selftest: 0 then 1, and 1 then 1).
+  - mandatory path 2 matched on **scheme only**. No valid vector transaction
+    signs two different keys of the same scheme.
+  - mandatory path 2 also applied to a path-1 input's **recovery** key (too
+    strict). No vector has a valid path-1 input whose recovery key an earlier
+    input already selected (selftest: 0 then 1 under the same key).
+- **Not expressible in the vectors (selftest catches all 6):** the
+  well-formedness rules for lifecycle lists. Malformed list not refused;
+  unknown scheme allowed; equal `from_height` allowed; height order not
+  checked; a repeated state (or ACTIVE) allowed; states moving backwards.
 
 ## Not reproduced
 

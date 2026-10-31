@@ -73,6 +73,8 @@ pub struct Chain {
     /// active chain: height → id
     pub active: Vec<Id>,
     pub utxo: HashMap<OutPoint, Coin>,
+    /// public API indexes (index.rs)
+    pub idx: crate::index::Index,
     undo: HashMap<Id, BlockUndo>,
     /// header-valid blocks received but not yet connected (never on disk), with their sender
     pending: HashMap<Id, (Block, Option<u64>)>,
@@ -166,6 +168,7 @@ impl Chain {
             index: HashMap::new(),
             active: vec![gid],
             utxo: HashMap::new(),
+            idx: Default::default(),
             undo: HashMap::new(),
             pending: HashMap::new(),
             leaves: HashSet::new(),
@@ -563,6 +566,7 @@ impl Chain {
         for (op, coin) in &undo.created {
             self.utxo.insert(op.clone(), coin.clone());
         }
+        self.idx.connect(id, height, b, &undo);
         self.undo.insert(*id, undo);
         self.active.push(*id);
         self.index.get_mut(id).unwrap().status = Status::Valid;
@@ -576,7 +580,10 @@ impl Chain {
         if id == self.genesis_id {
             return false;
         }
+        let Some(b) = self.load_block(&id) else { return false };
         let Some(undo) = self.undo.remove(&id) else { return false };
+        let height = self.index[&id].height;
+        self.idx.disconnect(height, &b, &undo);
         for (op, _) in &undo.created {
             self.utxo.remove(op);
         }

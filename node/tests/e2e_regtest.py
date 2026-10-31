@@ -88,6 +88,16 @@ def wait(cond, what, timeout=300):
     raise SystemExit(f"timeout waiting for: {what}")
 
 
+API = {"A": 51005, "B": 51015, "C": 51025}
+
+
+def api(name, path):
+    import urllib.request
+    with urllib.request.urlopen(f"http://127.0.0.1:{API[name]}/api/v1/{path}", timeout=30) as r:
+        assert r.headers["Access-Control-Allow-Origin"] == "*"
+        return json.loads(r.read())
+
+
 def ok(msg):
     print(f"ok   {msg}", flush=True)
 
@@ -95,8 +105,8 @@ def ok(msg):
 try:
     start("A", 51000, "--nolisten")
     stop("A")  # restart listening (A must accept B); first run just creates its wallet
-    start("A", 51000, "--mine", "--threads", "1")
-    start("B", 51010, "--connect", "127.0.0.1:51000")
+    start("A", 51000, "--mine", "--threads", "1", "--api-port", str(API["A"]))
+    start("B", 51010, "--connect", "127.0.0.1:51000", "--api-port", str(API["B"]))
     wait(lambda: int(rpc("A", "getblockcount")) >= 300, "A mines 300 blocks")
     ok(f"A mined {rpc('A', 'getblockcount')} blocks")
     wait(lambda: rpc("B", "getbestblockhash") == rpc("A", "getbestblockhash"), "B syncs to A")
@@ -120,28 +130,57 @@ try:
     wait(lambda: float(rpcj("B", "getbalance")["spendable"]) == 20.0, "second payment confirmed at B", 120)
     a_addr = rpc("A", "getnewaddress")
     txid3 = rpc("B", "sendtoaddress", a_addr, "15")
-    wait(lambda: txid3 in rpc("A", "getrawmempool"), "B's two-coin spend relayed to A", 60)
+    wait(lambda: api("A", f"tx/{txid3}")["txid"] == txid3, "B's two-coin spend relayed to A (mempool or mined)", 60)
     wait(lambda: txid3 not in rpc("A", "getrawmempool") and float(rpcj("B", "getbalance")["spendable"]) < 5.0, "two-coin spend confirmed", 120)
     ok(f"B spent two same-key coins with one signature: {txid3}")
     b_left = float(rpcj("B", "getbalance")["spendable"])
 
+    # public API (node/API.md) agrees with what just happened
+    info = api("A", "info")
+    assert abs(info["height"] - int(rpc("A", "getblockcount"))) <= 3 and info["hrp"] == "rvarve", info
+    ai = api("A", f"address/{b_addr}")
+    assert ai["received"] == "2000000000" and ai["sent"] == "2000000000" and ai["balance"] == "0", ai
+    assert ai["tx_count"] == 3 and ai["funded_by"][0]["txid"] == txid, ai
+    t3 = api("A", f"tx/{txid3}")
+    assert [i["path"] for i in t3["inputs"]] == [0, 2], t3["inputs"]
+    assert t3["status"] == "confirmed" and int(t3["fee"]) > 0
+    hist = api("A", f"address/{b_addr}/txs?limit=2")
+    assert len(hist["txs"]) == 2 and hist["txs"][0]["txid"] == txid3 and hist["next"] is not None, hist
+    hist2 = api("A", f"address/{b_addr}/txs?limit=2&before={hist['next']}")
+    assert [t["txid"] for t in hist2["txs"]] == [txid], hist2
+    assert api("A", f"search?q={txid3}")["type"] == "tx"
+    assert api("B", f"address/{b_addr}") == ai, "B's index must match A's"
+    ok("public API: info, address, history paging, tx paths and search are consistent across nodes")
+
     # partition and reorg
-    start("C", 51020, "--mine", "--threads", "1", "--nolisten", "--connect", "127.0.0.1:1")
+    start("C", 51020, "--mine", "--threads", "1", "--nolisten", "--connect", "127.0.0.1:1", "--api-port", str(API["C"]))
     wait(lambda: int(rpc("C", "getblockcount")) >= 20, "C mines its own chain")
+    c_miner = api("C", "block/1")["miner"]
+    assert int(api("C", f"address/{c_miner}")["tx_count"]) >= 20
     stop("C")
     hA = int(rpc("A", "getblockcount"))
     ok(f"C mined an isolated chain; A is at {hA}")
-    start("C", 51020, "--connect", "127.0.0.1:51000", "--nolisten")
+    start("C", 51020, "--connect", "127.0.0.1:51000", "--nolisten", "--api-port", str(API["C"]))
     wait(lambda: rpc("C", "getbestblockhash") == rpc("A", "getbestblockhash"), "C reorganizes onto A's heavier chain")
     ok(f"C reorganized to A's chain at height {rpc('C', 'getblockcount')}")
+    cm = api("C", f"address/{c_miner}")
+    assert cm["tx_count"] == 0 and cm["balance"] == "0" and cm["utxo_count"] == 0, cm
+    assert api("C", f"address/{b_addr}") == api("A", f"address/{b_addr}")
+    def same_tip_supply():
+        a, c = api("A", "info"), api("C", "info")
+        return a["best"] == c["best"] and a["supply"] == c["supply"]
+    wait(same_tip_supply, "C and A agree on supply at the same tip", 60)
+    ok("API indexes on C exactly undo its reorganized-away blocks")
     wait(lambda: float(rpcj("B", "getbalance")["spendable"]) == b_left, "B keeps its balance across the reorg")
 
     # restart from disk
     tip = rpc("B", "getbestblockhash")
     stop("B")
-    start("B", 51010, "--nolisten", "--connect", "127.0.0.1:1")
+    start("B", 51010, "--nolisten", "--connect", "127.0.0.1:1", "--api-port", str(API["B"]))
     assert rpc("B", "getbestblockhash") == tip or int(rpc("B", "getblockcount")) >= 300
     ok(f"B restarted from disk at height {rpc('B', 'getblockcount')}")
+    assert api("B", f"address/{b_addr}") == api("A", f"address/{b_addr}"), "index rebuilt from disk"
+    ok("API indexes rebuilt from disk match")
     print("ALL E2E CHECKS PASSED")
 finally:
     for n in list(PROCS):

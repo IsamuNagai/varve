@@ -558,3 +558,30 @@ main > .section:last-of-type { padding-bottom: 7rem; }
 .shot { margin: 1.6rem 0; }
 .shot img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); box-shadow: var(--shadow); }
 .shot figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 0.6rem; }
+
+.readiness { list-style: none; padding: 0; margin: 0; }
+.readiness li { display: flex; gap: 1rem; align-items: flex-start; padding: 0.95rem 0; border-top: 1px solid var(--line-soft); }
+.readiness li:first-child { border-top: 0; }
+.readiness li p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
+.pill { flex: 0 0 auto; display: inline-block; min-width: 6.6rem; text-align: center; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em; border-radius: 999px; padding: 0.22rem 0.6rem; border: 1px solid var(--line); margin-top: 0.15rem; }
+.pill.done { color: #1f7a4a; border-color: rgba(31, 122, 74, 0.35); background: rgba(108, 192, 143, 0.14); }
+.pill.doing { color: var(--accent-text); border-color: rgba(176, 141, 87, 0.45); background: var(--glow); }
+.pill.todo { color: var(--muted); }
+:root[data-theme="dark"] .pill.done { color: #8fd6ad; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pill.done { color: #8fd6ad; } }
+.readiness-legend .pill { min-width: 0; margin-right: 0.3rem; }
+
+.card .card-cta { margin-top: 1.1rem; }
+.card .card-cta a { color: var(--accent-text); font-weight: 600; text-decoration: none; }
+.card .card-cta a::after { content: " →"; }
+.card .card-cta a:hover { text-decoration: underline; }
+.get { grid-template-columns: 1fr; margin-top: 0; }
+.get .card h2 { margin: 0.2rem 0 0.8rem; }
+.get .card p { color: var(--fg); font-size: 1rem; margin: 0 0 0.9rem; }
+.get .card p.muted, .get .card .muted { color: var(--muted); font-size: 0.92rem; }
+.get .card .eyebrow { margin: 0; }
+.get details { margin-top: 0.4rem; border-top: 1px solid var(--line-soft); padding-top: 0.8rem; }
+.get summary { cursor: pointer; font-weight: 600; color: var(--accent-text); }
+.get ol { margin: 0.8rem 0; padding-left: 1.3rem; }
+.get ol li { margin: 0.35rem 0; color: var(--fg); }
+.get .card p.eyebrow { color: var(--accent-text); font-size: 0.75rem; margin: 0; }

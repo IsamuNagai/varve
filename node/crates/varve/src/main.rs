@@ -1,7 +1,9 @@
 //! `varve` — reference node, miner and wallet (testnet software; see node/README.md).
 
 mod address;
+mod api;
 mod chain;
+mod index;
 mod mempool;
 mod miner;
 mod node;
@@ -43,6 +45,9 @@ OPTIONS:
   --mine-to ADDRESS  pay mined coins to this address instead
   --threads N        mining threads (default: all CPU cores)
   --light            mine in light mode (256 MiB instead of ~2.1 GiB, slower)
+  --api-port N       serve the public read-only API (node/API.md) on port N
+  --api-bind ADDR    address for the API (default 127.0.0.1; use a TLS proxy to publish)
+  --api-trust-proxy  rate-limit by the last X-Forwarded-For address (behind a proxy only)
 
 RPC METHODS:
   getblockchaininfo getblockcount getbestblockhash getblockhash getblock
@@ -63,6 +68,9 @@ struct Args {
     mine_to: Option<String>,
     threads: Option<usize>,
     light: bool,
+    api_port: Option<u16>,
+    api_bind: Option<String>,
+    api_trust_proxy: bool,
     rest: Vec<String>,
 }
 
@@ -82,6 +90,9 @@ fn parse_args() -> Result<Args, String> {
         mine_to: None,
         threads: None,
         light: false,
+        api_port: None,
+        api_bind: None,
+        api_trust_proxy: false,
         rest: vec![],
     };
     while let Some(x) = it.next() {
@@ -98,6 +109,9 @@ fn parse_args() -> Result<Args, String> {
             "--mine-to" => a.mine_to = Some(val("--mine-to")?),
             "--threads" => a.threads = Some(val("--threads")?.parse().map_err(|_| "bad --threads")?),
             "--light" => a.light = true,
+            "--api-port" => a.api_port = Some(val("--api-port")?.parse().map_err(|_| "bad --api-port")?),
+            "--api-bind" => a.api_bind = Some(val("--api-bind")?),
+            "--api-trust-proxy" => a.api_trust_proxy = true,
             "-h" | "--help" => a.cmd = "help".into(),
             s if s.starts_with("--") => return Err(format!("unknown option {}", s)),
             _ => a.rest.push(x),
@@ -221,6 +235,19 @@ fn run_node(a: Args) -> i32 {
     if let Err(e) = rpc::start(node.clone(), stats) {
         eprintln!("error: {}", e);
         return 1;
+    }
+    if let Some(port) = a.api_port {
+        let bind = match a.api_bind.as_deref().unwrap_or("127.0.0.1").parse() {
+            Ok(b) => b,
+            Err(_) => {
+                eprintln!("error: bad --api-bind");
+                return 1;
+            }
+        };
+        if let Err(e) = api::start(node.clone(), api::ApiConfig { bind, port, trust_proxy: a.api_trust_proxy }) {
+            eprintln!("error: {}", e);
+            return 1;
+        }
     }
     while node.running() {
         std::thread::sleep(Duration::from_millis(500));

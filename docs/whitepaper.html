@@ -7,9 +7,24 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Varve: Long-Horizon Proof-of-Work Money with Post-Quantum Ownership, by Isamu Nagai.">
 <title>Varve whitepaper</title>
-<script src="theme-init.js?v=6"></script>
-<link rel="stylesheet" href="style.css?v=6">
-<script src="site.js?v=6" defer></script>
+<link rel="canonical" href="https://isamunagai.github.io/varve/whitepaper.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Varve">
+<meta property="og:title" content="Varve whitepaper">
+<meta property="og:description" content="Varve: Long-Horizon Proof-of-Work Money with Post-Quantum Ownership, by Isamu Nagai.">
+<meta property="og:url" content="https://isamunagai.github.io/varve/whitepaper.html">
+<meta property="og:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Varve: proof-of-work money built to outlast its cryptography">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@isanagai">
+<meta name="twitter:title" content="Varve whitepaper">
+<meta name="twitter:description" content="Varve: Long-Horizon Proof-of-Work Money with Post-Quantum Ownership, by Isamu Nagai.">
+<meta name="twitter:image" content="https://isamunagai.github.io/varve/assets/og-card.png">
+<script src="theme-init.js?v=9"></script>
+<link rel="stylesheet" href="style.css?v=9">
+<script src="site.js?v=9" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
@@ -23,6 +38,8 @@
 <a href="about.html">About</a>
 <a href="whitepaper.html" aria-current="page">Whitepaper</a>
 <a href="journal.html">Journal</a>
+<a href="download.html">Download</a>
+<a href="scan/">Explorer</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
@@ -76,7 +93,7 @@ scheme_id (u16) | commitment (32 bytes) | [recovery fields]</code></pre>
 <p>[ASSUMPTION] The two families fail independently: a break of lattice problems does not imply a break of SHA-2, and vice versa. SLH-DSA in particular relies only on the security of hash functions, the most conservative assumption in modern cryptography.</p>
 <p>The price is size. A typical one-input, two-output ML-DSA-65 transaction is about 5.4 KB, against roughly 0.2 KB for a Bitcoin Taproot transaction. [DESIGN] Varve deliberately accepts lower throughput rather than weaker assumptions or unstandardized cryptography.</p>
 <p>[DESIGN] Transaction weight counts serialized bytes, a verification cost per signature, and net growth of the UTXO set, so a block of expensive-to-verify signatures cannot exceed the time budget of a block of cheap ones.</p>
-<p>[DESIGN] Blocks target 300 seconds. The maximum block weight is 720,000, about 76 GB of chain growth per year at sustained full blocks. Measured verification times set the weights: about 29 µs per ML-DSA-65 signature and about 0.6 ms per SLH-DSA-SHA2-128s signature on one 2.1 GHz core. A full block verifies in under 50 ms in the worst case, on a single ordinary core.</p>
+<p>[DESIGN] Blocks target 300 seconds. The maximum block weight is 720,000, about 76 GB of chain growth per year at sustained full blocks. Measured verification times set the weights: about 29 µs per ML-DSA-65 signature and about 0.6 ms per SLH-DSA-SHA2-128s signature on one 2.1 GHz core, so the signatures of a worst-case full block verify in under 50 ms on a single ordinary core. In the first battle test (31 October 2026), a full block of 131 signed transactions was accepted end to end, including parsing, all checks and storage, in under 0.1 s on a two-core machine.</p>
 <h2 id="6-cryptographic-agility">6. Cryptographic agility</h2>
 <p>Each scheme id has a consensus state:</p>
 <div class="table-wrap"><table><thead><tr><th>State</th><th>New outputs</th><th>Spending</th></tr></thead><tbody><tr><td>ACTIVE</td><td>allowed</td><td>allowed</td></tr><tr><td>NO_NEW_OUTPUTS</td><td>rejected</td><td>allowed</td></tr><tr><td>DISABLED</td><td>rejected</td><td>only through an output's recovery path</td></tr></tbody></table></div>
@@ -124,9 +141,12 @@ scheme_id (u16) | commitment (32 bytes) | [recovery fields]</code></pre>
 <a href="about.html">About</a>
 <a href="whitepaper.html">Whitepaper</a>
 <a href="journal.html">Journal</a>
+<a href="download.html">Download</a>
+<a href="scan/">Explorer</a>
 <a href="forum.html">Forum</a>
 <a href="security.html">Security</a>
 <a href="faq.html">FAQ</a>
+<a href="mainnet.html">Mainnet readiness</a>
 <a href="https://github.com/IsamuNagai/varve">Source code</a>
 <a href="https://x.com/isanagai">X</a>
 </nav>
