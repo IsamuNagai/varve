@@ -139,7 +139,8 @@ pub fn subsidy(height: u64) -> u64 {
 /// `parent_height` = h, `parent_time` = t_h, `genesis_time` = t0.
 pub fn next_target(initial_target: &BigUint, genesis_time: u64, parent_height: u64, parent_time: u64) -> BigUint {
     let pow_limit = initial_target.mul_u64(256);
-    let num: i128 = ((parent_time as i128 - genesis_time as i128) - TARGET_SPACING * parent_height as i128) * 65536;
+    let anchor = genesis_time as i128 + ASERT_ANCHOR_DELAY;
+    let num: i128 = ((parent_time as i128 - anchor) - TARGET_SPACING * parent_height as i128) * 65536;
     let exponent = num.div_euclid(ASERT_TAU); // floor toward −∞ (TAU > 0)
     if exponent >= 256 * 65536 {
         return pow_limit;

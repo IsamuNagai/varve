@@ -87,6 +87,9 @@ def consensus_vectors():
         tx_case("signature longer than 7856 bytes",
                 v.Tx(t1.inputs, t1.outputs, [v.Witness(0, pat("pk", 32), pat("sig", 7857))]).full(), False),
         tx_case("missing witness", t1.base(), False),
+        tx_case("shared witness (path 2, empty) on the second input",
+                v.Tx(t2.inputs, t2.outputs, [t2.witnesses[0], v.Witness(2, b"", b"")], locktime=500_000).full(), True),
+        tx_case("witness path 3", v.Tx(t1.inputs, t1.outputs, [v.Witness(3, b"", b"")]).full(), False),
     ]
     merkle = []
     for n in (1, 2, 3, 4, 5, 6, 7, 16, 17):
@@ -157,6 +160,9 @@ class Builder:
         gid = chain.blocks[0].header.block_id()
         wits = []
         for i, (path, sid) in enumerate(zip(paths, sids)):
+            if path == 2:  # shared authorization (transactions.md §8.2): empty witness
+                wits.append(v.Witness(2, b"", b""))
+                continue
             pk, sk = self.keys[sid]
             sig = self.pq.sign(sid, sk, v.sighash(net, gid, tx, i, spent, path))
             wits.append(v.Witness(path, pk, sig))
@@ -275,7 +281,38 @@ def signed_vectors(pq):
     case("recovery path at height 294 (too early)", 293, spend(t1, 1, rec, 1, SLH), "invalid")
     case("recovery path at height 295", 294, spend(t1, 1, rec, 1, SLH), "valid")
     case("recovery path on a single-policy output", N, spend(t2, 0, t2.outputs[0], 1, SLH), "invalid")
-    case("path 2", N, spend(t2, 0, t2.outputs[0], 2, SLH), "invalid")
+    case("path 2 without an earlier authorizing input", N, spend(t2, 0, t2.outputs[0], 2, SLH), "invalid")
+    case("unknown path 3 (parse error)", N,
+         spend(t2, 0, t2.outputs[0], 0, SLH, mutate=lambda tx: setattr(tx.witnesses[0], "path", 3)), "invalid")
+
+    # --- shared authorization (transactions.md §8.2) ---
+    cb3, cb4 = B.base[2].txs[0], B.base[3].txs[0]   # two mature coinbases paid to the same ML-DSA key
+
+    def shared(paths, inputs=None, mutate=None, parent_h=None):
+        def make(ch):
+            h = len(ch.blocks)
+            ins = inputs or [(cb3, 0), (cb4, 0)]
+            spent = [t.outputs[i] for t, i in ins]
+            total = sum(o.amount for o in spent)
+            tx = v.Tx([(t.txid(), i) for t, i in ins], [v.Output(total - 10_000, SLH, B.com(SLH))], [])
+            sids = [(o.recovery_scheme_id if p == 1 else o.scheme_id) for o, p in zip(spent, paths)]
+            B.sign(ch, tx, spent, paths, sids, mutate=mutate)
+            return B.block(ch, [B.coinbase(h, v.subsidy(h) + 10_000)] + [tx])
+        return make
+    case("shared: second input reuses the first input's key (path 0 then 2)", N, shared([0, 2]), "valid")
+    case("shared: path 2 before the authorizing input", N, shared([2, 0]), "invalid")
+    case("shared: path 2 with a public key", N,
+         shared([0, 2], mutate=lambda tx: setattr(tx.witnesses[1], "public_key", tx.witnesses[0].public_key)), "invalid")
+    case("shared: path 2 with a signature", N,
+         shared([0, 2], mutate=lambda tx: setattr(tx.witnesses[1], "signature", tx.witnesses[0].signature)), "invalid")
+    case("shared: path 2 for an output under a different key", N,
+         shared([0, 2], inputs=[(cb3, 0), (t2, 0)]), "invalid")
+    case("shared: both inputs signed (path 0 and 0)", N, shared([0, 0]), "valid")
+    # recovery signature (SLH key) authorizes a later output whose primary key is that SLH key
+    case("shared: recovery-path signature authorizes a later primary output of the same key", 294,
+         shared([1, 2], inputs=[(t1, 1), (t2, 0)]), "valid")
+    case("shared: recovery-path signature too early (delay not met)", 293,
+         shared([1, 2], inputs=[(t1, 1), (t2, 0)]), "invalid")
     # value rules
     case("fee collected by coinbase", N, spend(t2, 0, t2.outputs[0], 0, SLH, fee=5000), "valid")
     case("coinbase claims fee + 1", N, spend(t2, 0, t2.outputs[0], 0, SLH, fee=5000, extra_cb=1), "invalid")

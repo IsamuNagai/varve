@@ -1,4 +1,4 @@
-# Difficulty and timestamps (normative, draft v0.2)
+# Difficulty and timestamps (normative, draft v0.3)
 
 ## 1. Constants
 
@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | `TARGET_SPACING` (T) | 300 s | ADR-0006 |
 | `TAU` | 21,600 s (6 hours, 72 blocks) | from `simulations/difficulty.py` |
+| `ASERT_ANCHOR_DELAY` (D) | 7,200 s (2 hours) | the schedule starts D after genesis time (§2.1) |
 | `INITIAL_TARGET` | set at release-candidate freeze from testnet hashrate; < 2^244 (draft placeholder 2^240) | ADR-0008 |
 | `POW_LIMIT` | `INITIAL_TARGET × 256` | easiest permitted target |
 | `MTP_WINDOW` | 11 | |
@@ -13,10 +14,11 @@
 
 ## 2. Next target (ASERT, aserti3-2d arithmetic, anchored at genesis)
 
-Genesis has height 0, timestamp `t0` and target `INITIAL_TARGET`. For a block
-whose parent has height `h` and timestamp `t_h`:
+Genesis has height 0, timestamp `t0` and target `INITIAL_TARGET`. The schedule
+is anchored at `t_a = t0 + ASERT_ANCHOR_DELAY`. For a block whose parent has
+height `h` and timestamp `t_h`:
 
-    exponent = floor(((t_h − t0) − T × h) × 65536 / TAU)     # signed; floor toward −∞
+    exponent = floor(((t_h − t_a) − T × h) × 65536 / TAU)    # signed; floor toward −∞
     if exponent ≥ 256 × 65536:   return POW_LIMIT
     if exponent ≤ −270 × 65536:  return 1
     shifts   = floor(exponent / 65536)                        # equivalently exponent >> 16, arithmetic
@@ -30,13 +32,13 @@ whose parent has height `h` and timestamp `t_h`:
     t        = t >> 16
     next_target = clamp(t, 1, POW_LIMIT)
 
-A parent at `t0 + T × h` is exactly on schedule and yields `INITIAL_TARGET`.
+A parent at `t_a + T × h` is exactly on schedule and yields `INITIAL_TARGET`.
 Each `TAU` seconds behind schedule doubles the target (easier); each `TAU`
 ahead halves it.
 
 **Integer bounds.**
 
-- `t_h − t0` is a signed difference of u64 values. The early returns bound
+- `t_h − t_a` is a signed difference of u64 values. The early returns bound
   `|exponent|` before any shift. Implementations MUST compute with at least
   128-bit signed intermediates, or with unbounded integers.
 - After the early returns, `frac < 2^16`, `factor < 2^17`,
@@ -45,6 +47,17 @@ ahead halves it.
 - Implementations using fixed widths MUST use at least 520-bit unsigned
   arithmetic for `t`, or MUST clamp to `POW_LIMIT` as soon as the shifted
   value exceeds it.
+
+### 2.1 Why the schedule starts after genesis
+
+`t0` is the median time of six Bitcoin blocks (genesis.md), so it lies in the
+past by the time miners can start: the last anchor block must still be found
+and buried. Anchored at `t0`, ASERT would see the new chain as behind schedule
+and hand the first miners a burst of easy blocks until the height caught up.
+Starting the schedule `D` = 2 hours later means a launch within that window
+begins slightly *ahead* of schedule (marginally harder blocks, no burst). Only a
+launch delayed beyond `t_a` produces easier blocks, and only for the delay in
+excess of `D`; the fair-launch procedure (ADR-0008) starts mining well inside it.
 
 ## 3. Timestamp rules
 

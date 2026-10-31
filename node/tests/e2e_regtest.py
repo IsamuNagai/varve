@@ -114,6 +114,17 @@ try:
     wait(lambda: float(rpcj("B", "getbalance")["spendable"]) == 12.5, "payment confirmed at B", 120)
     ok("payment confirmed; B spendable = 12.5")
 
+    # a second payment to the SAME address, then B spends both coins at once:
+    # one signature plus a shared witness (transactions.md §8.2)
+    txid2 = rpc("A", "sendtoaddress", b_addr, "7.5")
+    wait(lambda: float(rpcj("B", "getbalance")["spendable"]) == 20.0, "second payment confirmed at B", 120)
+    a_addr = rpc("A", "getnewaddress")
+    txid3 = rpc("B", "sendtoaddress", a_addr, "15")
+    wait(lambda: txid3 in rpc("A", "getrawmempool"), "B's two-coin spend relayed to A", 60)
+    wait(lambda: txid3 not in rpc("A", "getrawmempool") and float(rpcj("B", "getbalance")["spendable"]) < 5.0, "two-coin spend confirmed", 120)
+    ok(f"B spent two same-key coins with one signature: {txid3}")
+    b_left = float(rpcj("B", "getbalance")["spendable"])
+
     # partition and reorg
     start("C", 51020, "--mine", "--threads", "1", "--nolisten", "--connect", "127.0.0.1:1")
     wait(lambda: int(rpc("C", "getblockcount")) >= 20, "C mines its own chain")
@@ -123,7 +134,7 @@ try:
     start("C", 51020, "--connect", "127.0.0.1:51000", "--nolisten")
     wait(lambda: rpc("C", "getbestblockhash") == rpc("A", "getbestblockhash"), "C reorganizes onto A's heavier chain")
     ok(f"C reorganized to A's chain at height {rpc('C', 'getblockcount')}")
-    wait(lambda: float(rpcj("B", "getbalance")["spendable"]) == 12.5, "B keeps its payment")
+    wait(lambda: float(rpcj("B", "getbalance")["spendable"]) == b_left, "B keeps its balance across the reorg")
 
     # restart from disk
     tip = rpc("B", "getbestblockhash")

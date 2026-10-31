@@ -14,6 +14,8 @@ pub const UTXO_GROWTH_UNITS: u64 = 100;
 pub const RECOVERY_DELAY_MAX: u32 = (1 << 31) - 1;
 pub const TARGET_SPACING: i128 = 300;
 pub const ASERT_TAU: i128 = 21_600;
+/// difficulty.md §2: the ASERT schedule is anchored at genesis time + this delay.
+pub const ASERT_ANCHOR_DELAY: i128 = 7_200;
 pub const MTP_WINDOW: usize = 11;
 pub const MAX_FUTURE_DRIFT: u64 = 600;
 pub const INITIAL_SUBSIDY: u64 = 8_200_000_000;
@@ -50,10 +52,40 @@ pub const SCHEMES: [SchemeInfo; 2] = [
     SchemeInfo { id: 2, name: "SLH-DSA-SHA2-128s", sys: varve_sys::Scheme::SlhDsaSha2_128s, pk_len: 32, sig_len: 7856, verify_units: 1700 },
 ];
 
-/// v1 lifecycle (transactions.md §6, upgrades.md §4): both schemes ACTIVE from height 0.
-/// Returns the scheme if it is creatable / spendable at `height`.
+/// A known signature scheme (transactions.md §6), regardless of lifecycle state.
 pub fn scheme(id: u16, _height: u64) -> Option<&'static SchemeInfo> {
     SCHEMES.iter().find(|s| s.id == id)
+}
+
+/// transactions.md §6 lifecycle states.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SchemeState {
+    Active,
+    NoNewOutputs,
+    Disabled,
+}
+
+/// One lifecycle transition (upgrades.md §4): from `from_height` on, `scheme_id` is in `state`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Transition {
+    pub scheme_id: u16,
+    pub state: SchemeState,
+    pub from_height: u64,
+}
+
+/// State of a known scheme at `height`: the last transition with from_height ≤ height, else ACTIVE.
+/// None for unknown scheme ids (invalid to create or spend).
+pub fn scheme_state(lifecycle: &[Transition], id: u16, height: u64) -> Option<SchemeState> {
+    scheme(id, height)?;
+    let mut st = SchemeState::Active;
+    let mut best: Option<u64> = None;
+    for t in lifecycle {
+        if t.scheme_id == id && t.from_height <= height && best.map(|b| t.from_height >= b).unwrap_or(true) {
+            st = t.state;
+            best = Some(t.from_height);
+        }
+    }
+    Some(st)
 }
 
 pub fn verify_units_for_sig_len(len: usize) -> u64 {
@@ -108,6 +140,8 @@ pub struct ChainParams {
     pub btc_headers: Vec<[u8; 80]>,
     /// false for the draft mainnet set: the node refuses to run it
     pub launchable: bool,
+    /// signature-scheme lifecycle transitions (empty: every scheme ACTIVE)
+    pub lifecycle: Vec<Transition>,
 }
 
 impl ChainParams {
@@ -151,6 +185,7 @@ impl ChainParams {
             ("SCHEME_0002_VERIFY_UNITS", V::U32(1700)),
             ("TARGET_SPACING", V::U32(TARGET_SPACING as u32)),
             ("ASERT_TAU", V::U32(ASERT_TAU as u32)),
+            ("ASERT_ANCHOR_DELAY", V::U32(ASERT_ANCHOR_DELAY as u32)),
             ("MTP_WINDOW", V::U32(MTP_WINDOW as u32)),
             ("MAX_FUTURE_DRIFT", V::U32(MAX_FUTURE_DRIFT as u32)),
             ("INITIAL_SUBSIDY", V::U64(INITIAL_SUBSIDY)),

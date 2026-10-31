@@ -109,10 +109,10 @@ if __name__ == "__main__":
     assert lengths == [69, 70, 130], lengths
 
     init, tau, T = 1 << 240, 21600, 300
-    diff = {"description": "ASERT next-target vectors anchored at genesis (INITIAL_TARGET placeholder 2^240, "
+    diff = {"description": "ASERT next-target vectors (INITIAL_TARGET placeholder 2^240, schedule anchored at genesis time + ASERT_ANCHOR_DELAY 7200 s, "
                            "POW_LIMIT = INITIAL_TARGET x 256, TAU 21600, T 300). parent_time_minus_genesis is t_h - t0.",
             "cases": []}
-    for label, dt, h in ([("parent is genesis", 0, 0), ("on schedule, h=1000", 300 * 1000, 1000),
+    for label, dt, h in ([("parent is genesis (2 h before the anchor)", -7200, 0), ("on schedule, h=1000", 300 * 1000, 1000),
                          ("one tau ahead (fast)", 300 * 100 - 21600, 100), ("one tau behind (slow)", 300 * 100 + 21600, 100),
                          ("half tau behind", 300 * 100 + 10800, 100), ("1 second behind", 300 * 100 + 1, 100),
                          ("far behind (clamped to POW_LIMIT)", 10 ** 9, 10), ("far ahead (clamped to 1)", 0, 10 ** 7),
@@ -126,8 +126,8 @@ if __name__ == "__main__":
                         + [(f"fraction sweep {k}", 300 * 1000 + d, 1000)
                            for k, d in enumerate((7, 333, 1234, 5399, 10799, 16201, 21599, -7, -333, -1234,
                                                   -5399, -10799, -16201, -21599, 3 * 21600 + 77, -3 * 21600 - 77))]):
-        t = asert_target(init, dt, h, tau)
-        diff["cases"].append({"label": label, "parent_time_minus_genesis": dt, "parent_height": h, "next_target_hex": f"{t:064x}"})
+        t = asert_target(init, dt, h, tau)  # dt is measured from the anchor t_a = t0 + 7200
+        diff["cases"].append({"label": label, "parent_time_minus_genesis": dt + 7200, "parent_height": h, "next_target_hex": f"{t:064x}"})
 
     out = os.path.join(ROOT, "test-vectors")
     os.makedirs(out, exist_ok=True)

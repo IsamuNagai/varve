@@ -1,0 +1,130 @@
+{
+ "cases": [
+  {
+   "keys": [
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqqsqtxe72dczpwazv6gyrzrxxufwpyhdxrsclm49fs9yaqv09j9n5jx47y80v",
+     "address_testnet": "tvarve1pqqqsqtxe72dczpwazv6gyrzrxxufwpyhdxrsclm49fs9yaqv09j9n5jx450jq4",
+     "commitment": "2cd9f29b8105dd1334820c4331b897049769870c7f752a6052740c796459d246",
+     "index": 0,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "850061a81390f90d1c9ca8640b37ed1f887a19e5eec064fa35e0487c551cb647",
+     "role": 0,
+     "scheme_id": 1,
+     "template_hex": "010001002cd9f29b8105dd1334820c4331b897049769870c7f752a6052740c796459d246"
+    },
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqqsp4rj4rzy72pnre0fuumz9tlw5jj37vkw63c5a8azdmahgd36qchfzvg0r0",
+     "address_testnet": "tvarve1pqqqsp4rj4rzy72pnre0fuumz9tlw5jj37vkw63c5a8azdmahgd36qchfzxr6vk",
+     "commitment": "d472a8c44f28331e5e9e73622afeea4a51f32ced4714e9fa26efb74363a062e9",
+     "index": 1,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "95c1d0e1ed16b229299d11dac097d3425b21516daeb3696cb2f011b2c3d456ce",
+     "role": 0,
+     "scheme_id": 1,
+     "template_hex": "01000100d472a8c44f28331e5e9e73622afeea4a51f32ced4714e9fa26efb74363a062e9"
+    },
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqqsqm8jet62t74rt6z6t0jnygp2v0ydch5vgfamcjufu0cu9dwekyc965weth",
+     "address_testnet": "tvarve1pqqqsqm8jet62t74rt6z6t0jnygp2v0ydch5vgfamcjufu0cu9dwekyc9679vyw",
+     "commitment": "6cf2caf4a5faa35e85a5be532202a63c8dc5e8c427bbc4b89e3f1c2b5d9b1305",
+     "index": 2,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "90f12f1283703b880b3aee4cd5e75a224f901e8418ab2c100791504677165a8f",
+     "role": 0,
+     "scheme_id": 1,
+     "template_hex": "010001006cf2caf4a5faa35e85a5be532202a63c8dc5e8c427bbc4b89e3f1c2b5d9b1305"
+    },
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqqsqxs5j8u47fakk0lwcsdye6h0rcpvg80zc5h70xuxtt4pg9ffmq5330zndg",
+     "address_testnet": "tvarve1pqqqsqxs5j8u47fakk0lwcsdye6h0rcpvg80zc5h70xuxtt4pg9ffmq5339fxz3",
+     "commitment": "1a1491f95f27b6b3feec41a4ceaef1e02c41de2c52fe79b865aea141529d8291",
+     "index": 0,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "fecdf2b30fc97b3048365ad317c6d5339c9657ff79e378b840ea39dac05e1393",
+     "role": 1,
+     "scheme_id": 1,
+     "template_hex": "010001001a1491f95f27b6b3feec41a4ceaef1e02c41de2c52fe79b865aea141529d8291"
+    },
+    {
+     "account": 1,
+     "address_mainnet": "varve1pqqqsqfuvzhm88g05wfdud7zdnpgemvvlg4hkjk6ghzzgnaelryqqt52t0zgkk9",
+     "address_testnet": "tvarve1pqqqsqfuvzhm88g05wfdud7zdnpgemvvlg4hkjk6ghzzgnaelryqqt52t0grreu",
+     "commitment": "278c15f673a1f4725bc6f84d98519db19f456f695b48b88489f73f190005d14b",
+     "index": 0,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "584af44d316be6ad78de38bccd573c4f83c17918ee3bd0629e7562b3c4dc3fb8",
+     "role": 0,
+     "scheme_id": 1,
+     "template_hex": "01000100278c15f673a1f4725bc6f84d98519db19f456f695b48b88489f73f190005d14b"
+    },
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqpqqvvgjl0q8ggfl0hnsvuz9vne66ltt5ux3vsujzmk77zv05ldjxn930rxmu",
+     "address_testnet": "tvarve1pqqpqqvvgjl0q8ggfl0hnsvuz9vne66ltt5ux3vsujzmk77zv05ldjxn939gn59",
+     "commitment": "318897de03a109fbef3833822b279d6beb5d3868b21c90b76f784c7d3ed91a65",
+     "index": 0,
+     "public_key_hex": "00d1942586a8dc7f3ed99d3c2f67f12f3565bd848d0968368587adc1fc216aa5",
+     "public_key_len": 32,
+     "public_key_sha3_256": "423ca408d930a028180fc0298e15c7598ff387af21d242db837194cdcdbdb9fc",
+     "role": 0,
+     "scheme_id": 2,
+     "template_hex": "01000200318897de03a109fbef3833822b279d6beb5d3868b21c90b76f784c7d3ed91a65"
+    }
+   ],
+   "master_hex": "4478f61dd598647a85ab209690947c988349da58010347bef130069e237fd2fa218af17536330232db9a1fda4871d070cf2b34d02b0e296d005e352100a8aed0",
+   "mnemonic": "abandon amount liar amount expire adjust cage candy arch gather drum bullet absurd math era live bid rhythm alien crouch range attend journey unaware",
+   "passphrase": "",
+   "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+  },
+  {
+   "keys": [
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqqsqc6qn9dgv8jxxvsqvrv9r09ahsl3p5nz9qvgrhada3lng8ahva4037ggd5",
+     "address_testnet": "tvarve1pqqqsqc6qn9dgv8jxxvsqvrv9r09ahsl3p5nz9qvgrhada3lng8ahva4035razd",
+     "commitment": "6340995a861e463320060d851bcbdbc3f10d262281881dfadec7f341fb7676af",
+     "index": 0,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "0f4e98b0f5120c2b91dcf92029f11b409b05aa18da4f72d0bb291b1adb22b13f",
+     "role": 0,
+     "scheme_id": 1,
+     "template_hex": "010001006340995a861e463320060d851bcbdbc3f10d262281881dfadec7f341fb7676af"
+    },
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqqspy5psxly0lh24ruungq0xjrs4j0nx2hrenq8jel56qj2p760slwqkus56y",
+     "address_testnet": "tvarve1pqqqspy5psxly0lh24ruungq0xjrs4j0nx2hrenq8jel56qj2p760slwqkkmp4a",
+     "commitment": "928181be47feeaa8f9c9a00f34870ac9f332ae3ccc07967f4d024a0fb4f87dc0",
+     "index": 1,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "d036b7e2adf34b6849b771aac28704166b9124fba66eeabb9b528c36ed2cdcce",
+     "role": 0,
+     "scheme_id": 1,
+     "template_hex": "01000100928181be47feeaa8f9c9a00f34870ac9f332ae3ccc07967f4d024a0fb4f87dc0"
+    },
+    {
+     "account": 0,
+     "address_mainnet": "varve1pqqqspt7h82tc7g3c7x6t8y0g3wtj9ktxmkxd9qt0c9qya53xn3kmml6ptsrxv3",
+     "address_testnet": "tvarve1pqqqspt7h82tc7g3c7x6t8y0g3wtj9ktxmkxd9qt0c9qya53xn3kmml6pt6gnrg",
+     "commitment": "afd73a978f2238f1b4b391e88b9722d966dd8cd2816fc1404ed2269c6dbdff41",
+     "index": 2,
+     "public_key_len": 1952,
+     "public_key_sha3_256": "be4819342f9f7a589d985de45901647cf8a3e5078bbecd00e8f21646b48547c0",
+     "role": 0,
+     "scheme_id": 1,
+     "template_hex": "01000100afd73a978f2238f1b4b391e88b9722d966dd8cd2816fc1404ed2269c6dbdff41"
+    }
+   ],
+   "master_hex": "d6d8aab907290436c8cf6f0b5f89eb8843138d965a429ee43c83cd6377b0c350d39ad21c9c3f08ddc5c6aaa55d5f29317dbb4527ab1014a98402a65caa9e67e1",
+   "mnemonic": "abandon amount liar amount expire adjust cage candy arch gather drum bullet absurd math era live bid rhythm alien crouch range attend journey unaware",
+   "passphrase": "varve test passphrase",
+   "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+  }
+ ],
+ "description": "protocol/wallet.md v0.2 derivation vectors. TEST SEEDS ONLY: the seeds are public and must never hold funds. Keys: role 0 primary / 1 recovery; scheme_id 1 ML-DSA-65, 2 SLH-DSA-SHA2-128s. public_key_sha3_256 = SHA3-256(public key). commitment = H256(\"VARVE/pk/v1\", u16(scheme_id) || public key). Addresses are policy-0 outputs; mainnet hrp varve, testnet hrp tvarve. No okm or secret keys are included."
+}

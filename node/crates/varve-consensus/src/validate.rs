@@ -68,6 +68,8 @@ pub fn pow_hash_meets_target(pow_hash: &[u8; 32], h: &Header) -> bool {
 pub struct ChainIds {
     pub network_id: [u8; 4],
     pub genesis_id: [u8; 32],
+    /// scheme lifecycle transitions of this network (transactions.md §6)
+    pub lifecycle: Vec<Transition>,
 }
 
 /// The UTXO changes a valid block makes, in a form that can be undone.
@@ -88,18 +90,26 @@ struct SigJob {
     signature: Vec<u8>,
 }
 
-fn check_output(o: &Output, height: u64) -> Result<(), Error> {
+fn creatable(ids: &ChainIds, id: u16, height: u64) -> bool {
+    scheme_state(&ids.lifecycle, id, height) == Some(SchemeState::Active)
+}
+
+fn spendable(ids: &ChainIds, id: u16, height: u64) -> bool {
+    matches!(scheme_state(&ids.lifecycle, id, height), Some(SchemeState::Active) | Some(SchemeState::NoNewOutputs))
+}
+
+fn check_output(o: &Output, height: u64, ids: &ChainIds) -> Result<(), Error> {
     if o.output_version != OUTPUT_VERSION {
         return Err(Error::Invalid("output version"));
     }
     if o.amount == 0 || o.amount > MAX_MONEY {
         return Err(Error::Invalid("amount out of range"));
     }
-    if scheme(o.scheme_id, height).is_none() {
+    if !creatable(ids, o.scheme_id, height) {
         return Err(Error::Invalid("scheme not creatable"));
     }
     if let Some(r) = &o.recovery {
-        if scheme(r.scheme_id, height).is_none() {
+        if !creatable(ids, r.scheme_id, height) {
             return Err(Error::Invalid("recovery scheme not creatable"));
         }
         if r.delay == 0 || r.delay > RECOVERY_DELAY_MAX {
@@ -198,7 +208,7 @@ pub fn check_block(block: &Block, height: u64, ids: &ChainIds, utxo: &dyn UtxoVi
         // 11.4 outputs
         let mut out_sum = 0u64;
         for o in &tx.outputs {
-            check_output(o, height)?;
+            check_output(o, height, ids)?;
             out_sum = out_sum.checked_add(o.amount).filter(|s| *s <= MAX_MONEY).ok_or(Error::Invalid("output sum overflow"))?;
         }
         // 11.5 sums and fee
@@ -215,9 +225,7 @@ pub fn check_block(block: &Block, height: u64, ids: &ChainIds, utxo: &dyn UtxoVi
             fees = fees.checked_add(in_sum - out_sum).filter(|s| *s <= MAX_MONEY).ok_or(Error::Invalid("fee sum overflow"))?;
             // 11.7 spend conditions
             let spent_outputs: Vec<Output> = coins.iter().map(|c| c.output.clone()).collect();
-            for (i, c) in coins.iter().enumerate() {
-                jobs.push(spend_job(tx, i, c, &spent_outputs, height, ids)?);
-            }
+            jobs.extend(spend_jobs(tx, &coins, &spent_outputs, height, ids)?);
         }
         for (idx, o) in tx.outputs.iter().enumerate() {
             created.insert(OutPoint { txid: txids[n], index: idx as u32 }, Coin { output: o.clone(), height, coinbase: n == 0 });
@@ -240,33 +248,56 @@ pub fn check_block(block: &Block, height: u64, ids: &ChainIds, utxo: &dyn UtxoVi
     Ok(undo)
 }
 
-/// transactions.md §8 steps 2–6; returns the signature check (step 7) as a job.
-fn spend_job(tx: &Tx, i: usize, coin: &Coin, spent: &[Output], height: u64, ids: &ChainIds) -> Result<SigJob, Error> {
-    let w = &tx.witnesses[i];
-    let o = &coin.output;
-    if coin.coinbase && height < coin.height.checked_add(COINBASE_MATURITY).ok_or(Error::Invalid("height overflow"))? {
-        return Err(Error::Invalid("immature coinbase"));
-    }
-    let (sid, com) = match w.path {
-        0 => (o.scheme_id, o.commitment),
-        1 => {
-            let r = o.recovery.as_ref().ok_or(Error::Invalid("no recovery path"))?;
-            if height < coin.height.checked_add(r.delay as u64).ok_or(Error::Invalid("height overflow"))? {
-                return Err(Error::Invalid("recovery path not yet available"));
-            }
-            (r.scheme_id, r.commitment)
+/// transactions.md §8 for every input of a transaction. Returns the signature checks
+/// (step 7) as jobs; path-2 inputs (§8.2) need none.
+fn spend_jobs(tx: &Tx, coins: &[Coin], spent: &[Output], height: u64, ids: &ChainIds) -> Result<Vec<SigJob>, Error> {
+    let mut jobs = Vec::with_capacity(coins.len());
+    // (scheme, commitment) selected by earlier inputs with path 0 or 1
+    let mut authorized: Vec<(u16, [u8; 32])> = Vec::new();
+    for (i, coin) in coins.iter().enumerate() {
+        let w = &tx.witnesses[i];
+        let o = &coin.output;
+        if coin.coinbase && height < coin.height.checked_add(COINBASE_MATURITY).ok_or(Error::Invalid("height overflow"))? {
+            return Err(Error::Invalid("immature coinbase"));
         }
-        _ => return Err(Error::Invalid("unknown path")),
-    };
-    let s = scheme(sid, height).ok_or(Error::Invalid("scheme not spendable"))?;
-    if w.public_key.len() != s.pk_len || w.signature.len() != s.sig_len {
-        return Err(Error::Invalid("wrong key or signature length"));
+        if w.path == 2 {
+            if !w.public_key.is_empty() || !w.signature.is_empty() {
+                return Err(Error::Invalid("shared witness must be empty"));
+            }
+            if !spendable(ids, o.scheme_id, height) {
+                return Err(Error::Invalid("scheme not spendable"));
+            }
+            if !authorized.contains(&(o.scheme_id, o.commitment)) {
+                return Err(Error::Invalid("no earlier input authorizes this key"));
+            }
+            continue;
+        }
+        let (sid, com) = match w.path {
+            0 => (o.scheme_id, o.commitment),
+            1 => {
+                let r = o.recovery.as_ref().ok_or(Error::Invalid("no recovery path"))?;
+                if height < coin.height.checked_add(r.delay as u64).ok_or(Error::Invalid("height overflow"))? {
+                    return Err(Error::Invalid("recovery path not yet available"));
+                }
+                (r.scheme_id, r.commitment)
+            }
+            _ => return Err(Error::Invalid("unknown path")),
+        };
+        if !spendable(ids, sid, height) {
+            return Err(Error::Invalid("scheme not spendable"));
+        }
+        let s = scheme(sid, height).ok_or(Error::Invalid("unknown scheme"))?;
+        if w.public_key.len() != s.pk_len || w.signature.len() != s.sig_len {
+            return Err(Error::Invalid("wrong key or signature length"));
+        }
+        if commitment(sid, &w.public_key) != com {
+            return Err(Error::Invalid("commitment mismatch"));
+        }
+        let msg = sighash(&ids.network_id, &ids.genesis_id, tx, i as u32, spent, w.path);
+        jobs.push(SigJob { scheme: s.sys, public_key: w.public_key.clone(), msg, signature: w.signature.clone() });
+        authorized.push((sid, com));
     }
-    if commitment(sid, &w.public_key) != com {
-        return Err(Error::Invalid("commitment mismatch"));
-    }
-    let msg = sighash(&ids.network_id, &ids.genesis_id, tx, i as u32, spent, w.path);
-    Ok(SigJob { scheme: s.sys, public_key: w.public_key.clone(), msg, signature: w.signature.clone() })
+    Ok(jobs)
 }
 
 fn verify_all(jobs: &[SigJob]) -> bool {
@@ -316,7 +347,7 @@ pub fn check_transaction(tx: &Tx, height: u64, ids: &ChainIds, utxo: &dyn UtxoVi
     }
     let mut out_sum = 0u64;
     for o in &tx.outputs {
-        check_output(o, height)?;
+        check_output(o, height, ids)?;
         out_sum = out_sum.checked_add(o.amount).filter(|s| *s <= MAX_MONEY).ok_or(Error::Invalid("output sum overflow"))?;
     }
     let mut in_sum = 0u64;
@@ -327,10 +358,7 @@ pub fn check_transaction(tx: &Tx, height: u64, ids: &ChainIds, utxo: &dyn UtxoVi
         return Err(Error::Invalid("negative fee"));
     }
     let spent: Vec<Output> = coins.iter().map(|c| c.output.clone()).collect();
-    let mut jobs = Vec::with_capacity(coins.len());
-    for (i, c) in coins.iter().enumerate() {
-        jobs.push(spend_job(tx, i, c, &spent, height, ids)?);
-    }
+    let jobs = spend_jobs(tx, &coins, &spent, height, ids)?;
     if verify_signatures && !verify_all(&jobs) {
         return Err(Error::Invalid("bad signature"));
     }

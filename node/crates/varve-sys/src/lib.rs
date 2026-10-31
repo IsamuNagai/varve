@@ -373,3 +373,132 @@ mod tests {
         }
     }
 }
+
+
+// ------------------------------------------------------------------ ---- wallet support
+// Added for varve-wallet. AES-256-CTR (liboqs common AES) and seeded key
+// generation from the FIPS 204 / FIPS 205 internal key-generation functions.
+// Prototypes checked against the pinned liboqs sources:
+//   src/common/aes/aes.h                          (OQS_AES256_*)
+//   src/sig/ml_dsa/mldsa-native_ml-dsa-65_ref/mldsa/mldsa_native.h
+//     int keypair_internal(uint8_t pk[1952], uint8_t sk[4032], const uint8_t seed[32])
+//     (MLD_CONFIG_CONTEXT_PARAMETER is not set in integration/liboqs/config_c.h)
+//   src/sig/slh_dsa/slh_dsa_c/slh_dsa.h
+//     int slh_keygen_internal(uint8_t *sk, uint8_t *pk, const uint8_t *sk_seed,
+//                             const uint8_t *sk_prf, const uint8_t *pk_seed,
+//                             const slh_param_t *prm)
+
+/// Opaque `slh_param_t`; only ever used through a pointer to liboqs's own static.
+#[repr(C)]
+struct SlhParam {
+    _private: [u8; 0],
+}
+
+extern "C" {
+    fn OQS_AES256_CTR_inc_init(key: *const u8, ctx: *mut *mut c_void);
+    fn OQS_AES256_CTR_inc_stream_iv(iv: *const u8, iv_len: usize, ctx: *const c_void, out: *mut u8, out_len: usize);
+    fn OQS_AES256_free_schedule(ctx: *mut c_void);
+    fn PQCP_MLDSA_NATIVE_MLDSA65_C_keypair_internal(pk: *mut u8, sk: *mut u8, seed: *const u8) -> c_int;
+    #[allow(non_upper_case_globals)]
+    static slh_dsa_sha2_128s: SlhParam;
+    fn slh_keygen_internal(
+        sk: *mut u8,
+        pk: *mut u8,
+        sk_seed: *const u8,
+        sk_prf: *const u8,
+        pk_seed: *const u8,
+        prm: *const SlhParam,
+    ) -> c_int;
+    fn slh_alg_id(prm: *const SlhParam) -> *const c_char;
+    fn slh_pk_sz(prm: *const SlhParam) -> usize;
+    fn slh_sk_sz(prm: *const SlhParam) -> usize;
+}
+
+/// An expanded AES-256 key schedule (liboqs). The schedule is wiped by liboqs
+/// (`OQS_MEM_secure_free`) on drop.
+pub struct Aes256 {
+    ctx: *mut c_void,
+}
+// The schedule is only read after construction (stream_iv takes a const pointer).
+unsafe impl Send for Aes256 {}
+unsafe impl Sync for Aes256 {}
+
+impl Aes256 {
+    pub fn new(key: &[u8; 32]) -> Aes256 {
+        init();
+        let mut ctx: *mut c_void = std::ptr::null_mut();
+        // SAFETY: key is 32 bytes; liboqs allocates the schedule (exits the process on OOM).
+        unsafe { OQS_AES256_CTR_inc_init(key.as_ptr(), &mut ctx) };
+        assert!(!ctx.is_null(), "OQS_AES256_CTR_inc_init returned null");
+        Aes256 { ctx }
+    }
+
+    /// XOR `data` in place with the AES-256-CTR keystream starting at the 16-byte
+    /// counter block `iv`. liboqs increments only the last 32 bits of the counter
+    /// block (big-endian, mod 2^32); callers that need 128-bit-counter
+    /// compatibility must keep `u32_be(iv[12..16]) + blocks <= 2^32`.
+    pub fn ctr_xor(&self, iv: &[u8; 16], data: &mut [u8]) {
+        let mut ks = vec![0u8; data.len()];
+        // SAFETY: schedule valid; iv is 16 bytes (liboqs aborts on other lengths); ks sized to data.
+        unsafe { OQS_AES256_CTR_inc_stream_iv(iv.as_ptr(), 16, self.ctx, ks.as_mut_ptr(), ks.len()) };
+        for (d, k) in data.iter_mut().zip(ks.iter_mut()) {
+            *d ^= *k;
+            *k = 0;
+        }
+        std::sync::atomic::compiler_fence(std::sync::atomic::Ordering::SeqCst);
+        drop(ks);
+    }
+}
+
+impl Drop for Aes256 {
+    fn drop(&mut self) {
+        // SAFETY: ctx came from OQS_AES256_CTR_inc_init and is freed exactly once.
+        unsafe { OQS_AES256_free_schedule(self.ctx) };
+    }
+}
+
+/// ML-DSA-65 `KeyGen_internal(ξ)` (FIPS 204 Algorithm 6), portable C variant.
+/// Returns (public key 1952 bytes, secret key 4032 bytes).
+pub fn mldsa65_keypair_from_seed(xi: &[u8; 32]) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    init();
+    let mut pk = vec![0u8; Scheme::MlDsa65.public_key_len()];
+    let mut sk = vec![0u8; Scheme::MlDsa65.secret_key_len()];
+    // SAFETY: buffers sized to the ML-DSA-65 constants; seed is 32 bytes.
+    let rc = unsafe { PQCP_MLDSA_NATIVE_MLDSA65_C_keypair_internal(pk.as_mut_ptr(), sk.as_mut_ptr(), xi.as_ptr()) };
+    if rc != 0 {
+        return Err("ML-DSA-65 keypair_internal failed");
+    }
+    Ok((pk, sk))
+}
+
+/// SLH-DSA-SHA2-128s `slh_keygen_internal(SK.seed, SK.prf, PK.seed)` (FIPS 205
+/// Algorithm 18). Returns (public key 32 bytes, secret key 64 bytes).
+pub fn slhdsa_sha2_128s_keypair_from_seed(
+    sk_seed: &[u8; 16],
+    sk_prf: &[u8; 16],
+    pk_seed: &[u8; 16],
+) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    init();
+    // SAFETY: address of liboqs's static parameter set, as its own wrapper uses it.
+    // (`unsafe` is required on Rust < 1.82, the workspace MSRV is 1.80.)
+    #[allow(unused_unsafe)]
+    let prm = unsafe { std::ptr::addr_of!(slh_dsa_sha2_128s) };
+    // Check the parameter set really is the one we expect before writing buffers.
+    // SAFETY: prm valid; slh_alg_id returns a static NUL-terminated string.
+    let id = unsafe { std::ffi::CStr::from_ptr(slh_alg_id(prm)) };
+    let (pkl, skl) = unsafe { (slh_pk_sz(prm), slh_sk_sz(prm)) };
+    let s = Scheme::SlhDsaSha2_128s;
+    if id.to_bytes() != b"SLH-DSA-SHA2-128s" || pkl != s.public_key_len() || skl != s.secret_key_len() {
+        return Err("unexpected SLH-DSA parameter set");
+    }
+    let mut pk = vec![0u8; pkl];
+    let mut sk = vec![0u8; skl];
+    // SAFETY: buffers sized from the parameter set (n = 16); seeds are n bytes each.
+    let rc = unsafe {
+        slh_keygen_internal(sk.as_mut_ptr(), pk.as_mut_ptr(), sk_seed.as_ptr(), sk_prf.as_ptr(), pk_seed.as_ptr(), prm)
+    };
+    if rc != 0 {
+        return Err("slh_keygen_internal failed");
+    }
+    Ok((pk, sk))
+}

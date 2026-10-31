@@ -15,7 +15,7 @@
    rejects exactly: non-canonical or out-of-range varints (§2); truncated input;
    trailing bytes; a count whose minimum size exceeds the remaining input
    (transactions.md §3); a byte string longer than its field's maximum; an
-   output `policy` other than 0 or 1; a witness `path` other than 0 or 1.
+   output `policy` other than 0 or 1; a witness `path` other than 0, 1 or 2.
    Every other rule (versions, non-zero counts, `output_version`, amounts,
    scheme ids, exact key and signature lengths, recovery delay) is a
    **validity** rule applied in blocks.md §4. This is why the genesis block,

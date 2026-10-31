@@ -202,7 +202,7 @@ impl Chain {
     }
 
     pub fn ids(&self) -> ChainIds {
-        ChainIds { network_id: self.params.network_id, genesis_id: self.genesis_id }
+        ChainIds { network_id: self.params.network_id, genesis_id: self.genesis_id, lifecycle: self.params.lifecycle.clone() }
     }
     pub fn height(&self) -> u64 {
         (self.active.len() - 1) as u64

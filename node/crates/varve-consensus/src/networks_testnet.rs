@@ -25,5 +25,6 @@ pub fn testnet() -> ChainParams {
         "00803626e3331903759ad8ed33b97b3e69e8ea204eabeed7a89701000000000000000000b0b3403c3909455a227c99d5111b09abbf2300121ce8fb76539759cdbdac3931ffdae56aace501178e7e8975",
         ]),
         launchable: true,
+        lifecycle: Vec::new(),
     }
 }

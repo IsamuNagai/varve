@@ -175,7 +175,11 @@ impl Wallet {
             locktime: 0,
             witnesses: chosen
                 .iter()
-                .map(|c| {
+                .zip(shared_plan(chosen))
+                .map(|(c, shared)| {
+                    if shared {
+                        return Witness { path: 2, public_key: vec![], signature: vec![] };
+                    }
                     let s = scheme(c.1.output.scheme_id, 0).unwrap();
                     Witness { path: 0, public_key: vec![0u8; s.pk_len], signature: vec![0u8; s.sig_len] }
                 })
@@ -187,7 +191,13 @@ impl Wallet {
     fn sign(&self, chosen: Vec<(OutPoint, Coin)>, outputs: Vec<Output>, ids: &ChainIds) -> Result<Tx, String> {
         let mut tx = Tx { version: 1, inputs: chosen.iter().map(|c| c.0.clone()).collect(), outputs, locktime: 0, witnesses: Vec::new() };
         let spent: Vec<Output> = chosen.iter().map(|c| c.1.output.clone()).collect();
+        let plan = shared_plan(&chosen);
         for (i, (_, c)) in chosen.iter().enumerate() {
+            if plan[i] {
+                // transactions.md §8.2: an earlier input already signed for this key
+                tx.witnesses.push(Witness { path: 2, public_key: vec![], signature: vec![] });
+                continue;
+            }
             let k = &self.keys[*self.by_commitment.get(&c.output.commitment).ok_or("not our coin")?];
             let s = scheme(k.scheme_id, 0).ok_or("unknown scheme")?;
             let msg = sighash(&ids.network_id, &ids.genesis_id, &tx, i as u32, &spent, 0);
@@ -196,6 +206,24 @@ impl Wallet {
         }
         Ok(tx)
     }
+}
+
+/// For each chosen coin: true if an earlier coin has the same (scheme, commitment), so
+/// this input can use the shared witness (path 2) instead of a second signature.
+fn shared_plan(chosen: &[(OutPoint, Coin)]) -> Vec<bool> {
+    let mut seen: Vec<(u16, [u8; 32])> = Vec::new();
+    chosen
+        .iter()
+        .map(|(_, c)| {
+            let k = (c.output.scheme_id, c.output.commitment);
+            if seen.contains(&k) {
+                true
+            } else {
+                seen.push(k);
+                false
+            }
+        })
+        .collect()
 }
 
 /// Write a file readable only by its owner (on Unix).

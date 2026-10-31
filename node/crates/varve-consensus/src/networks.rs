@@ -47,6 +47,7 @@ pub fn mainnet_draft() -> ChainParams {
         btc_anchor_bits: 0,
         btc_headers: Vec::new(),
         launchable: false,
+        lifecycle: Vec::new(),
     }
 }
 
@@ -65,6 +66,7 @@ pub fn regtest() -> ChainParams {
         btc_anchor_bits: 0x1d00ffff,
         btc_headers: headers(&BTC_0_TO_5),
         launchable: true,
+        lifecycle: Vec::new(),
     }
 }
 

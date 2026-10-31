@@ -231,7 +231,7 @@ fn chain_vectors() {
     let fresh = || MemChain {
         blocks: vec![genesis.clone()],
         utxo: HashMap::new(),
-        ids: ChainIds { network_id: ub(j.at("network_id").as_str().unwrap()).try_into().unwrap(), genesis_id: genesis.header.block_id() },
+        ids: ChainIds { network_id: ub(j.at("network_id").as_str().unwrap()).try_into().unwrap(), genesis_id: genesis.header.block_id(), lifecycle: Vec::new() },
         init: BigUint::from_hex(j.at("initial_target").as_str().unwrap()).unwrap(),
     };
     // one pass over the base chain, snapshotting the states the cases need

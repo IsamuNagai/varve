@@ -1,4 +1,4 @@
-# Transactions and outputs (normative, draft v0.3)
+# Transactions and outputs (normative, draft v0.4)
 
 Conventions (integer widths, little-endian, canonical `varint`, `bytes`, `H256`)
 are defined in `encoding.md`. "Invalid" means the containing block is invalid.
@@ -62,7 +62,7 @@ Witness serialization (one entry per input, in input order):
 
 | Field | Type | Parse-time rule |
 | --- | --- | --- |
-| `path` | u8 | `0x00` primary or `0x01` recovery |
+| `path` | u8 | `0x00` primary, `0x01` recovery, or `0x02` shared (§8.2) |
 | `public_key` | bytes | length ≤ 1,952 |
 | `signature` | bytes | length ≤ 7,856 |
 
@@ -121,13 +121,17 @@ ACTIVE, and no other state is used.
 | NO_NEW_OUTPUTS | no | yes |
 | DISABLED | no | no |
 
-For path 0 the state of `scheme_id` applies; for path 1 the state of
+For path 0 and path 2 the state of `scheme_id` applies; for path 1 the state of
 `recovery_scheme_id` applies. So an output whose primary scheme is DISABLED
 can still be spent through its recovery path if the recovery scheme is not
 DISABLED.
 
 These three states are the complete v1 lifecycle. At genesis both schemes are
-ACTIVE. A change of state is a consensus upgrade made under
+ACTIVE. A network's lifecycle is a list of `(scheme_id, state, from_height)`
+transitions (upgrades.md §4); the state at height `h` is the state of the last
+transition for that scheme with `from_height ≤ h`, or ACTIVE if there is none.
+Implementations MUST evaluate creation and spending rules against this table,
+so a transition needs no code change, only a new table entry. A change of state is a consensus upgrade made under
 `protocol/upgrades.md`; it is one-directional (never back to ACTIVE).
 
 **Not in v1: spending via commitment.** An emergency "commit–delay–reveal"
@@ -173,6 +177,8 @@ An input spending output `o`, created at height `h_o`, in a block at height `h`,
 6. `H256("VARVE/pk/v1", u16(scheme) ‖ public_key)` equals the selected commitment.
 7. `Verify(public_key, msg, signature)` returns true.
 
+For **path 2** (shared), steps 3–7 are replaced by §8.2.
+
 ### 8.1 Recovery trust model (informative)
 
 The recovery path is **delayed alternate authorization, not revocation**
@@ -194,6 +200,29 @@ The recovery path is **delayed alternate authorization, not revocation**
 - A two-stage design (recovery initiation that the owner can cancel) would be
   stronger but adds consensus state. It is out of scope for v1 and recorded as
   an open question.
+
+### 8.2 Shared authorization (path 2)
+
+A transaction often spends several outputs locked to the same key (for
+example, mining rewards paid to one address). Path 2 lets such inputs reuse the
+authorization of an earlier input instead of repeating a 1,952-byte public key
+and a 3,309-byte signature each time.
+
+An input `i` with witness `path = 0x02` is valid iff:
+
+1. its `public_key` and `signature` are both empty;
+2. steps 1–2 of §8 hold for its spent output `o_i` (existence, maturity);
+3. the state of `o_i.scheme_id` permits spending at height `h` (§6);
+4. there is an earlier input `j < i` of the same transaction whose witness path
+   is 0 or 1 and whose *selected* scheme and commitment (§8 step 3) equal
+   `o_i.scheme_id` and `o_i.commitment`.
+
+No signature is verified for input `i`. Input `j`'s signature already commits to
+the whole transaction, including input `i` and every spent output (§7), and was
+made by the holder of the very key that `o_i` commits to. Path 2 can only stand
+in for a primary authorization (`o_i`'s own `scheme_id` and `commitment`); a
+recovery spend always needs its own signature. A path-2 witness entry is 3
+bytes and has no verification cost (§9).
 
 ## 9. Fees and weight
 

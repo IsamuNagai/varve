@@ -1,0 +1,10 @@
+[package]
+name = "varve-wallet"
+description = "Varve wallet cryptography: seeds, key derivation, encrypted wallet files"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+varve-sys = { path = "../varve-sys" }
+varve-consensus = { path = "../varve-consensus" }

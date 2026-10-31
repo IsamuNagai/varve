@@ -10,7 +10,7 @@ For each entry, in the order of the Entries table below, top to bottom. A row
 that lists several names (`SCHEME_0001_ALG / PK_LEN / …`) expands left to right
 into separate entries named `SCHEME_0001_ALG`, `SCHEME_0001_PK_LEN`,
 `SCHEME_0001_SIG_LEN`, `SCHEME_0001_VERIFY_UNITS` (likewise for 0002 and
-`RANDOMX_KEY_EPOCH`, `RANDOMX_KEY_LAG`), 35 entries in all. Every `bytes` value,
+`RANDOMX_KEY_EPOCH`, `RANDOMX_KEY_LAG`), 36 entries in all. Every `bytes` value,
 fixed-length or not, carries its varint length:
 
     u8(len(name)) ‖ name (ASCII) ‖ value
@@ -41,6 +41,7 @@ fixed-length or not, carries its varint length:
 | SCHEME_0002_ALG / PK_LEN / SIG_LEN / VERIFY_UNITS | bytes / u32 / u32 / u32 | `SLH-DSA-SHA2-128s` / 32 / 7,856 / 1,700 |
 | TARGET_SPACING | u32 | 300 |
 | ASERT_TAU | u32 | 21,600 |
+| ASERT_ANCHOR_DELAY | u32 | 7,200 |
 | MTP_WINDOW | u32 | 11 |
 | MAX_FUTURE_DRIFT | u32 | 600 |
 | INITIAL_SUBSIDY | u64 | 8,200,000,000 |

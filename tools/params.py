@@ -62,6 +62,7 @@ PARAMS = [  # (name, type, value)
     ("SCHEME_0002_VERIFY_UNITS", "u32", 1700),
     ("TARGET_SPACING", "u32", 300),
     ("ASERT_TAU", "u32", 21_600),
+    ("ASERT_ANCHOR_DELAY", "u32", 7_200),
     ("MTP_WINDOW", "u32", 11),
     ("MAX_FUTURE_DRIFT", "u32", 600),
     ("INITIAL_SUBSIDY", "u64", INITIAL_SUBSIDY),

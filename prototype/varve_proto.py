@@ -26,6 +26,7 @@ MAX_BLOCK_WEIGHT = 720_000
 UTXO_GROWTH_UNITS = 100
 RECOVERY_DELAY_MAX = 2 ** 31 - 1
 T, TAU, MTP_WINDOW = 300, 21_600, 11
+ASERT_ANCHOR_DELAY = 7_200      # difficulty.md §2: schedule anchored at t0 + D
 VERIFY_UNITS_BY_SIG_LEN = {3309: 100, 7856: 1700}
 MIN_SIZE = {"input": 36, "output": 44, "witness": 3}
 SCHEMES = {  # scheme_id: (liboqs name, pk_len, sk_len, sig_len, verify_units)
@@ -200,7 +201,7 @@ class Tx:
         witnesses = []
         for _ in range(n_in):
             path = r.uint(1)
-            if path not in (0, 1):
+            if path not in (0, 1, 2):
                 raise Invalid("unknown witness path")          # parse-time rule (encoding.md §1.5)
             witnesses.append(Witness(path, r.bytes_(max_pk), r.bytes_(max_sig)))
         return Tx(inputs, outputs, witnesses, locktime, version)
@@ -284,7 +285,7 @@ def subsidy(height):
 
 def next_target(initial_target, genesis_time, parent_height, parent_time):
     pow_limit = initial_target * 256
-    exponent = ((parent_time - genesis_time) - T * parent_height) * 65536 // TAU
+    exponent = ((parent_time - (genesis_time + ASERT_ANCHOR_DELAY)) - T * parent_height) * 65536 // TAU
     if exponent >= 256 << 16:
         return pow_limit
     if exponent <= -(270 << 16):
@@ -420,11 +421,19 @@ class Chain:
             if not 1 <= o.recovery_delay <= RECOVERY_DELAY_MAX:
                 raise Invalid("recovery delay out of range")
 
-    def check_spend(self, tx, i, coin, spent_outputs, height):
+    def check_spend(self, tx, i, coin, spent_outputs, height, authorized=()):
+        """transactions.md §8. Returns the selected (scheme, commitment). `authorized` holds the
+        selected pairs of earlier inputs with path 0/1 (for path 2, §8.2)."""
         w = tx.witnesses[i]
         o = coin.output
         if coin.coinbase and height < coin.height + COINBASE_MATURITY:
             raise Invalid("immature coinbase")
+        if w.path == 2:
+            if w.public_key or w.signature:
+                raise Invalid("shared witness must be empty")
+            if (o.scheme_id, o.commitment) not in authorized:
+                raise Invalid("no earlier input authorizes this key")
+            return None
         if w.path == 0:
             sid, com = o.scheme_id, o.commitment
         elif w.path == 1:
@@ -443,7 +452,7 @@ class Chain:
         msg = sighash(self.network_id, self.blocks[0].header.block_id(), tx, i, spent_outputs, w.path)
         if not self.pq.verify(sid, w.public_key, msg, w.signature):
             raise Invalid("bad signature")
-        return sid
+        return (sid, com)
 
     def connect(self, block):
         """Validate and apply a block, following blocks.md §4. Raises Invalid; state unchanged on failure."""
@@ -503,8 +512,11 @@ class Chain:
                 if in_sum > MAX_MONEY or in_sum < out_sum:
                     raise Invalid("input sum overflow or negative fee")
                 spent_outputs = [c.output for c in coins]
+                authorized = set()
                 for i, c in enumerate(coins):
-                    self.check_spend(tx, i, c, spent_outputs, height)
+                    sel = self.check_spend(tx, i, c, spent_outputs, height, authorized)
+                    if sel:
+                        authorized.add(sel)
                 fees += in_sum - out_sum
                 for op in tx.inputs:
                     del view[op]

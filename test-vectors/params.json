@@ -1,9 +1,9 @@
 {
  "description": "Draft consensus parameter set. Placeholders for launch fields; NOT a mainnet set.",
  "set": "draft",
- "serialization_hex_sha256": "887eb81675fd9bb44cec2df1b8df419f4b6deb66cea9e512bb129e869c08d83e",
- "serialization_length": 1356,
- "params_hash": "9b2175c0878961feac922b2df436d77625a16d14cd030ef5f37c81568b974a7b",
+ "serialization_hex_sha256": "4151fd281a7171cf354a8f8a6fed49717433e3a5a86d9a3381f4a55560deeda5",
+ "serialization_length": 1379,
+ "params_hash": "68732cc032e980c3752b9b073fe79777c207dcf964f823b888feb58b14b5bbff",
  "entries": [
   {
    "name": "NETWORK_ID",
@@ -104,6 +104,11 @@
    "name": "ASERT_TAU",
    "type": "u32",
    "value": "21600"
+  },
+  {
+   "name": "ASERT_ANCHOR_DELAY",
+   "type": "u32",
+   "value": "7200"
   },
   {
    "name": "MTP_WINDOW",

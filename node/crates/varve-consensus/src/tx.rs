@@ -151,7 +151,7 @@ impl Tx {
         let mut witnesses = Vec::with_capacity(n_in as usize);
         for _ in 0..n_in {
             let path = r.u8()?;
-            if path > 1 {
+            if path > 2 {
                 return Err(Error::Parse("unknown witness path"));
             }
             let public_key = r.bytes(MAX_PUBLIC_KEY_LEN)?.to_vec();
