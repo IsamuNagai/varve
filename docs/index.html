@@ -102,7 +102,7 @@
 <div class="row reveal"><dt>Implementations</dt><dd>A prototype, an independent verifier written only from the spec, and the reference node agree on every consensus test vector</dd></div>
 <div class="row reveal"><dt>Reference node</dt><dd>Rust node, miner and wallet with no third-party Rust dependencies, tested on Linux and macOS, x86_64 and ARM64</dd></div>
 <div class="row reveal"><dt>Testnet</dt><dd>Genesis anchored to Bitcoin blocks 973,970–973,975; opens to public mining with its first seed node</dd></div>
-<div class="row reveal"><dt>Battle tests</dt><dd>Real nodes attacked with invalid blocks, double spends, chain rewrites, corrupted data and power cuts; the first run found two bugs, both fixed, and the second passed all 55 tests (<a href="security.html#battle-tests">results</a>)</dd></div>
+<div class="row reveal"><dt>Battle tests</dt><dd>Real nodes attacked with invalid blocks, double spends, chain rewrites, corrupted data and power cuts; the first run found two bugs, both fixed; the runs since passed every test (56 of 56 in the latest) (<a href="security.html#battle-tests">results</a>)</dd></div>
 <div class="row reveal"><dt>Reviews</dt><dd>An independent human review of the protocol and an AI-assisted review of the node code, every finding resolved or tracked in public audit records; a public, named security audit comes next</dd></div>
 </dl>
 </div>
@@ -131,13 +131,13 @@
 <ol class="timeline reveal">
 <li class="step done"><span class="step-n">00</span><span class="step-name">Existence test</span><span class="step-state">Done</span></li>
 <li class="step done"><span class="step-n">01</span><span class="step-name">Architecture decisions</span><span class="step-state">Done</span></li>
-<li class="step current" aria-current="step" title="consensus drafts v0.2-v0.3, p2p and wallet drafts"><span class="step-n">02</span><span class="step-name">Specification</span><span class="step-state">In progress</span></li>
-<li class="step current" title="threat register in registers/threats.md"><span class="step-n">03</span><span class="step-name">Threat model</span><span class="step-state">In progress</span></li>
-<li class="step current" title="issuance, difficulty, capacity models"><span class="step-n">04</span><span class="step-name">Simulation</span><span class="step-state">In progress</span></li>
-<li class="step current" title="disposable Python prototype and an independent spec-only verifier"><span class="step-n">05</span><span class="step-name">Prototype</span><span class="step-state">In progress</span></li>
-<li class="step current" title="Rust node, miner and wallet (node/); passes every test vector; testnet software"><span class="step-n">06</span><span class="step-name">Reference imple&shy;mentation</span><span class="step-state">In progress</span></li>
-<li class="step next" title="testnet genesis fixed (Bitcoin blocks 973,970-973,975); opens with its first seed node"><span class="step-n">07</span><span class="step-name">Testnets</span><span class="step-state">Upcoming</span></li>
-<li class="step next" title="one independent human protocol review and AI-assisted code reviews done (audits/); public, named security audit pending"><span class="step-n">08</span><span class="step-name">Independent review</span><span class="step-state">Upcoming</span></li>
+<li class="step current" aria-current="step" title="consensus drafts v0.3-v0.5 (transactions v0.5), P2P and wallet (v0.3) drafts; frozen before mainnet"><span class="step-n">02</span><span class="step-name">Specification</span><span class="step-state">In progress</span></li>
+<li class="step current" title="living threat register mapped to tests (registers/threats.md)"><span class="step-n">03</span><span class="step-name">Threat model</span><span class="step-state">In progress</span></li>
+<li class="step current" title="issuance, difficulty and capacity models; economic attack simulations still to do"><span class="step-n">04</span><span class="step-name">Simulation</span><span class="step-state">In progress</span></li>
+<li class="step done" title="Python prototype and an independent spec-only verifier agree on every test vector"><span class="step-n">05</span><span class="step-name">Prototype</span><span class="step-state">Done</span></li>
+<li class="step current" title="Rust node and miner with encrypted wallet and public API, Strata wallet, Varvescan explorer; battle-tested, continuously fuzzed, built for Windows, macOS and Linux"><span class="step-n">06</span><span class="step-name">Reference imple&shy;mentation</span><span class="step-state">In progress</span></li>
+<li class="step next" title="testnet genesis fixed (Bitcoin blocks 973,970-973,975); software ready; opens with its first seed node"><span class="step-n">07</span><span class="step-name">Testnets</span><span class="step-state">Upcoming</span></li>
+<li class="step next" title="independent human protocol review and AI-assisted code reviews done (audits/); named independent security audit pending (see the mainnet readiness page)"><span class="step-n">08</span><span class="step-name">Independent review</span><span class="step-state">Upcoming</span></li>
 <li class="step next"><span class="step-n">09</span><span class="step-name">Fair launch</span><span class="step-state">Upcoming</span></li>
 </ol>
 <!-- status:end -->

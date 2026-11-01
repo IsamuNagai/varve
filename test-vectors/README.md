@@ -8,8 +8,9 @@
 | `addresses.json` | commitments, Bech32m addresses | `tools/gen_vectors.py` | hygiene: regenerate + diff |
 | `genesis.json` | Bitcoin compact nBits decoding; six-header anchor validation (valid: Bitcoin blocks 0–5 as a fixture; invalid: linkage, nBits, PoW, compact encoding, period boundary); example genesis | `tools/gen_genesis_vectors.py` | hygiene: regenerate + diff; prototype tests (plus all 480 single-byte mutations rejected) |
 | `consensus.json` | transaction parsing (valid and malformed), txid, wtxid, weight, sighash, Merkle roots (1–17 leaves), header serialization and block id, chainwork | `tools/gen_consensus_vectors.py` | hygiene: regenerate + diff; prototype tests; parser fuzzing |
-| `chain.json` | 42 block-validity cases on a 295-block regtest chain: header rules, coinbase rules, maturity and recovery-delay boundaries, signatures, value rules, locktime, double spends, same-block spends | `tools/gen_consensus_vectors.py --signed` (once) | crypto (x86_64 + ARM64): replay with real liboqs |
+| `chain.json` | 70 block-validity cases on a 295-block regtest chain: header rules, coinbase rules, maturity and recovery-delay boundaries, signatures, shared witnesses (path 2, including the mandatory-layout rule), value rules, locktime, double spends, same-block spends | `tools/gen_consensus_vectors.py --signed` (regenerated when the rules change) | crypto (x86_64 + ARM64): replay with real liboqs; node tests on Windows, macOS and Linux |
 | `signatures.json` | ML-DSA-65 and SLH-DSA-SHA2-128s verification (valid, corrupted, wrong message) | `tools/gen_consensus_vectors.py --signed` (once) | crypto: verify with real liboqs |
+| `wallet.json` | wallet derivation (protocol/wallet.md): a public test seed with and without passphrase → mnemonic, master, keys, commitments, addresses (no secret keys) | `cargo test -p varve-wallet` with `VARVE_WRITE_WALLET_VECTORS=1` | node CI: `varve-wallet` tests on every platform |
 | `pow.json` | RandomX v2 + Varve salt, 4 keys × 16 inputs | `tools/pow_vectors.c` | crypto: pinned, patched build on x86_64 + ARM64, portable and JIT modes |
 
 Notes:

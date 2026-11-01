@@ -2,7 +2,7 @@
 
 **Isamu Nagai**
 
-*Draft 0.3 (specification and testnet phase). Parameters may still change before mainnet.*
+*Draft 0.4 (specification and testnet phase). Parameters may still change before mainnet.*
 
 ---
 
@@ -250,23 +250,34 @@ the same rules as everyone else.
    Bitcoin timestamps, so no single Bitcoin miner controls it.
 5. The genesis coinbase is unspendable, and genesis contains nothing else.
 
-After genesis, Varve never consults Bitcoin again. [OPEN] Mainnet must also
-bound the easy-block burst that would follow a launch long after genesis time
-(open question Q-17).
+After genesis, Varve never consults Bitcoin again. [DESIGN] The difficulty
+schedule starts two hours after the genesis time (difficulty.md §2.1), so a
+launch inside that window gets no burst of easy blocks; the launch procedure
+starts mining inside it.
 
 ## 10. Status
 
-As of October 2026:
+As of November 2026:
 
 - **Specification.** Normative documents cover encoding, transactions, blocks,
   difficulty, subsidy, proof of work, genesis, upgrades, P2P and wallets.
+  Spending several coins of one key needs a single signature (shared
+  authorization), and every transaction has exactly one valid witness layout.
 - **Three agreeing implementations of the rules.** A disposable prototype, an
   independent verifier written only from the specification, and the reference
   node all pass the same consensus test vectors, including real ML-DSA and
   SLH-DSA signatures and RandomX hashes on x86_64 and ARM64.
-- **Reference node.** A Rust node, miner and wallet with no third-party Rust
-  dependencies, tested across separate nodes: mining, sync, signed payments,
-  chain reorganizations and restarts.
+- **Reference node.** A Rust node and miner with no third-party Rust
+  dependencies, built and tested on Windows, macOS and Linux (x86-64 and ARM64):
+  mining, sync, signed payments, chain reorganizations and restarts. Its wallet
+  is encrypted, and it serves a read-only public API.
+- **Strata and Varvescan.** A desktop wallet that keeps keys on the user's
+  computer in an encrypted file restorable from 24 words, and a block explorer
+  on the project website.
+- **Adversarial testing.** Battle tests attack real nodes with invalid blocks,
+  double spends, chain rewrites, corrupted data and power cuts: the first run
+  found two bugs, both fixed, and both published runs since passed every test. Every parser is fuzzed
+  on each change and every night.
 - **Testnet.** Genesis is anchored to Bitcoin blocks 973,970–973,975, verified by
   every node at start-up. A public testnet opens once its first seed node is
   online.
@@ -285,8 +296,10 @@ The main risks, in rough order of likelihood:
 2. **No adoption.** Without users, the chain cannot fund its own security.
 3. **Consensus bugs.** Mitigated by specification-first development, test
    vectors checked by independent implementations, fuzzing, and review.
-4. **Signature implementation flaws.** Side channels, faults and weak
-   randomness. Mitigated by audited implementations and hedged signing.
+4. **Signature implementation flaws.** Side channels, faults, weak randomness
+   and miscompilation. Mitigated by a pinned, widely used implementation
+   (liboqs) checked against the official NIST vectors on every platform, and
+   hedged signing.
 5. **Specialized hardware and botnets.** Both can concentrate mining.
 6. **Chain growth.** It must never price out independent verification.
 7. **Social capture.** A founder cult, a dominant implementation, or a

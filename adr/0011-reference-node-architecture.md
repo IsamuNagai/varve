@@ -31,8 +31,10 @@ mines. ADR-0010 leans towards Rust.
   code uses checked arithmetic explicitly regardless.
 - **Storage:** append-only block files, a block index, and a UTXO set with
   per-block undo data for reorganizations. Simple and inspectable before fast.
-- **Wallet:** minimal (keys, addresses, balance, send). Testnet only until
-  protocol/wallet.md is reviewed and seeded key generation is available.
+- **Wallet:** minimal (addresses, balance, send), using the seeded derivation
+  and encrypted file format of protocol/wallet.md (the same as the Strata
+  wallet). The running node holds only public commitments; keys are decrypted
+  only while a payment is signed. Strata (crates/strata) is the full wallet.
 
 ## Consequences
 - Builds need git, CMake and a C/C++ compiler, and network access to GitHub

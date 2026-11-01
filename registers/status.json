@@ -15,43 +15,43 @@
    "n": 2,
    "name": "Specification",
    "state": "active",
-   "note": "consensus drafts v0.2-v0.3, p2p and wallet drafts"
+   "note": "consensus drafts v0.3-v0.5 (transactions v0.5), P2P and wallet (v0.3) drafts; frozen before mainnet"
   },
   {
    "n": 3,
    "name": "Threat model",
    "state": "active",
-   "note": "threat register in registers/threats.md"
+   "note": "living threat register mapped to tests (registers/threats.md)"
   },
   {
    "n": 4,
    "name": "Simulation",
    "state": "active",
-   "note": "issuance, difficulty, capacity models"
+   "note": "issuance, difficulty and capacity models; economic attack simulations still to do"
   },
   {
    "n": 5,
    "name": "Prototype",
-   "state": "active",
-   "note": "disposable Python prototype and an independent spec-only verifier"
+   "state": "done",
+   "note": "Python prototype and an independent spec-only verifier agree on every test vector"
   },
   {
    "n": 6,
    "name": "Reference implementation",
    "state": "active",
-   "note": "Rust node, miner and wallet (node/); passes every test vector; testnet software"
+   "note": "Rust node and miner with encrypted wallet and public API, Strata wallet, Varvescan explorer; battle-tested, continuously fuzzed, built for Windows, macOS and Linux"
   },
   {
    "n": 7,
    "name": "Testnets",
    "state": "upcoming",
-   "note": "testnet genesis fixed (Bitcoin blocks 973,970-973,975); opens with its first seed node"
+   "note": "testnet genesis fixed (Bitcoin blocks 973,970-973,975); software ready; opens with its first seed node"
   },
   {
    "n": 8,
    "name": "Independent review",
    "state": "upcoming",
-   "note": "one independent human protocol review and AI-assisted code reviews done (audits/); public, named security audit pending"
+   "note": "independent human protocol review and AI-assisted code reviews done (audits/); named independent security audit pending (see the mainnet readiness page)"
   },
   {
    "n": 9,

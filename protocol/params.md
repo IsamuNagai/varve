@@ -1,4 +1,4 @@
-# Consensus parameters (normative, draft v0.2)
+# Consensus parameters (normative, draft v0.3)
 
 Every consensus constant is listed once, in a fixed order, and committed into
 genesis through `params_hash` (genesis.md). Changing any value changes genesis,

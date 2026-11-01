@@ -52,14 +52,15 @@ if C:
     before = {t["id"]: t for t in C["tests"]}
     fixed = [t for t in tests if t["outcome"] in OK and t["id"] in before and before[t["id"]]["outcome"] not in OK]
     new = [t for t in tests if t["id"] not in before]
-    side_title = "Fixed since run 1"
+    since = C["label"].split(":")[0].strip()
+    side_title = f"Changes since {since.lower()}"
     side = "".join(f'<li><span class="tag" style="background:{COLORS["defended"]}">FIXED</span><b>{E(t["name"])}</b><div class="d">{E(t["attack"])}</div></li>' for t in fixed)
+    side += "".join(f'<li><span class="tag" style="background:#cfae78">NEW TEST</span><b>{E(t["name"])}</b><div class="d">{E(t["attack"])} ({E(t["outcome"])})</div></li>' for t in new)
     if bad:
         side += "".join(finding(t) for t in bad)
     if not side:
         side = "<li>No changes.</li>"
-    added = f'{len(new)} new test{"s" if len(new) != 1 else ""} added since run 1. ' if new else ""
-    extra = f'<p class="note">{added}{"Every test passed." if not bad else ""}</p>'
+    extra = f'<p class="note">{"Every test passed." if not bad else ""}</p>'
 else:
     side_title = "What the battle test found"
     side = "".join(finding(t) for t in bad) or "<li>Nothing: every test passed.</li>"

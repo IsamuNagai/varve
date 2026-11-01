@@ -9,4 +9,4 @@ The last work before the testnet goes live was about making the whole structure 
 
 **Every parser is now fuzzed continuously.** Transactions, blocks, network messages, addresses, recovery phrases, wallet files and the wallet's local web server each get a stream of randomly corrupted input. Anything that parses must re-encode to exactly the same bytes, so no object can have two encodings. It runs on every change and for 45 minutes every night. The first runs, hundreds of millions of inputs, found nothing.
 
-Mining speed is unchanged: none of this touches the miner. The battle tests pass with all of it in place, now 57 out of 57. What is still ahead before mainnet is on the [readiness page](mainnet.html). Next: the testnet.
+Mining speed is unchanged: none of this touches the miner. The battle tests pass with all of it in place: [run 3](security.html#battle-tests), with one new check added, passed all 56. What is still ahead before mainnet is on the [readiness page](mainnet.html). Next: the testnet.

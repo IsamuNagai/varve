@@ -1,4 +1,4 @@
-# Consensus upgrades and activation (normative, draft v0.1)
+# Consensus upgrades and activation (normative, draft v0.2)
 
 This document answers audit finding M-01: how a consensus rule change, such as
 a signature-scheme lifecycle change, is defined, activated and identified.

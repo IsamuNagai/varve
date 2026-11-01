@@ -12,6 +12,8 @@
 <p>The first run on 31 October 2026 passed 53 of 55 tests and found two real problems. The node now fixes both, and the second run passed all 55.</p>
 <figure class="shot"><a href="assets/battle-test-2026-10-31-run-1.png"><img src="assets/battle-test-2026-10-31-run-1.png" alt="Varve battle test run 1, 31 October 2026: 55 tests, 53 handled correctly, 2 problems found" width="1200" height="1124" loading="lazy"></a><figcaption>Run 1, before fixes: two problems found.</figcaption></figure>
 <figure class="shot"><a href="assets/battle-test-2026-10-31-run-2.png"><img src="assets/battle-test-2026-10-31-run-2.png" alt="Varve battle test run 2, 31 October 2026: all 55 tests handled correctly" width="1200" height="1124" loading="lazy"></a><figcaption>Run 2, after fixes: all 55 tests passed.</figcaption></figure>
+<p>After the final hardening before testnet (an encrypted node wallet, network defences and continuous fuzzing), run 3 on 1 November 2026, with one new check, passed all 56.</p>
+<figure class="shot"><a href="assets/battle-test-2026-11-01-run-3.png"><img src="assets/battle-test-2026-11-01-run-3.png" alt="Varve battle test run 3, 1 November 2026: all 56 tests handled correctly" width="1200" height="1124" loading="lazy"></a><figcaption>Run 3, after pre-testnet hardening: all 56 tests passed.</figcaption></figure>
 <p>What these tests do not cover yet: network flooding and an independent human code audit. Passing them shows the node enforces its rules under attack. It does not prove the absence of bugs. Anyone can rerun them: the harness and raw results are in <a href="https://github.com/IsamuNagai/varve/tree/main/battle"><code>battle/</code></a>.</p>
 </section>
 <section class="block reveal">

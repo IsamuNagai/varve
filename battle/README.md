@@ -8,6 +8,7 @@ is sent anywhere else.
 | --- | --- | --- | --- |
 | [Run 1](results/run-1.json), before fixes | 2026-10-31 19:10 | `121906a` | 53 of 55 handled correctly, 2 problems found |
 | [Run 2](results/run-final.json), after fixes | 2026-10-31 19:27 | `812a3f2` | 55 of 55 handled correctly |
+| [Run 3](results/run-3.json), after pre-testnet hardening | 2026-11-01 11:58 | `08e58d6` | 56 of 56 handled correctly (one check added: invalid-signature relay) |
 
 The charts are in [`docs/assets/`](../docs/assets/) and on the website's security page.
 
@@ -24,7 +25,7 @@ The charts are in [`docs/assets/`](../docs/assets/) and on the website's securit
 
   Each is sent by RPC and over P2P. The node must reject it and keep its tip.
 - **Chain reorganizations (4):** a double spend through a longer private chain; ties between equal-work blocks (the first seen must win); a 20-block reorg; a longer chain with an invalid block hidden inside.
-- **Mempool policy (3):** conflicting spends, zero-fee transactions, long chains of unconfirmed transactions. Since run 2 the harness also checks that a peer relaying a transaction with an invalid signature is disconnected (passes).
+- **Mempool policy (3):** conflicting spends, zero-fee transactions, long chains of unconfirmed transactions. Since run 3 the harness also checks that a peer relaying a transaction with an invalid signature is disconnected (passes).
 - **Wallet input (9):** malformed or wrong-network addresses, impossible amounts, insufficient funds, twelve concurrent payments.
 - **Fuzzing and cross-checks (3):**
   - 2,000 mutated blocks and transactions sent by RPC

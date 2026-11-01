@@ -1,4 +1,4 @@
-# Encoding conventions (normative, draft v0.2)
+# Encoding conventions (normative, draft v0.3)
 
 ## 1. General
 

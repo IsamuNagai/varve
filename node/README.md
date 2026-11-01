@@ -50,6 +50,11 @@ Other wallet commands: `wallet import` (restore from 24 words), `wallet phrase`
 (show the words again, after your passphrase), `wallet address`,
 `wallet newaddress`, and `wallet repair` (rebuild the public address list).
 
+The testnet starts days after the Bitcoin blocks its genesis is anchored to, so
+its first blocks are very easy until the chain catches up with its five-minute
+schedule (difficulty.md §2.1). Expect a burst of fast blocks at the start;
+testnet coins have no value.
+
 Mining uses all cores in RandomX fast mode, which needs about 2.1 GiB of free
 memory. Use `--threads N` to limit cores and `--light` on small machines.
 

@@ -63,7 +63,8 @@ signatures and RandomX hashes. The [reference node](node/) mines, syncs,
 sends payments and survives reorganizations in multi-node tests on every
 change. Real nodes are [battle-tested](battle/) against invalid blocks, double
 spends, chain rewrites, corrupted data and power cuts: the first run found two
-bugs, both fixed, and the second passed all 55 tests. The
+bugs, both fixed; the second passed all 55 tests, and the third, after the
+final pre-testnet hardening, all 56. The
 [Strata](node/crates/strata/) desktop wallet and the
 [Varvescan](https://isamunagai.github.io/varve/scan/) explorer are ready for
 testnet. The testnet genesis is fixed, and the public testnet opens with its
@@ -98,7 +99,7 @@ flowchart LR
     P1 --> P2["2 · Specification ◐"]
     P2 --> P3["3 · Threat model ◐"]
     P3 --> P4["4 · Simulation ◐"]
-    P4 --> P5["5 · Prototype ◐"]
+    P4 --> P5["5 · Prototype ✓"]
     P5 --> P6["6 · Reference implementation ◐"]
     P6 --> P7["7 · Testnets"]
     P7 --> P8["8 · Independent review"]
