@@ -213,7 +213,7 @@ impl Wallet {
                 return Err(io(e));
             }
         }
-        std::fs::rename(&tmp, path).map_err(|e| {
+        crate::util::rename_with_retry(&tmp, path).map_err(|e| {
             let _ = std::fs::remove_file(&tmp);
             io(e)
         })

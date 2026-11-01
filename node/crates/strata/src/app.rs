@@ -310,7 +310,7 @@ impl App {
             // keep the replaced file next to the new one rather than destroying it
             let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
             let bak = self.dir.join(format!("wallet-replaced-{}.json", secs));
-            std::fs::rename(&path, &bak).map_err(|e| (500, format!("cannot move the old wallet file aside: {}", e.kind())))?;
+            varve_wallet::util::rename_with_retry(&path, &bak).map_err(|e| (500, format!("cannot move the old wallet file aside: {}", e.kind())))?;
         }
         let saved = match self.kdf {
             Some(p) => w.save_with_params(file_pass, p).map_err(|e| wallet_err(&e)).and_then(|t| config::write_atomic(&path, t.as_bytes())),

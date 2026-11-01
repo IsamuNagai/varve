@@ -66,7 +66,7 @@ pub fn write_atomic(path: &Path, data: &[u8]) -> Result<(), String> {
         f.write_all(data)?;
         f.sync_all()?;
         drop(f);
-        std::fs::rename(&tmp, path)
+        varve_wallet::util::rename_with_retry(&tmp, path)
     })();
     if let Err(e) = r {
         let _ = std::fs::remove_file(&tmp);

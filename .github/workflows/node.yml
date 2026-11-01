@@ -60,10 +60,11 @@ jobs:
           VARVE_DEPS: ${{ runner.temp }}/deps
         run: |
           cargo test --release --locked --no-fail-fast > "$RUNNER_TEMP/test-out.txt" 2>&1 || true
-          msg=$(grep -E -A2 "panicked at" "$RUNNER_TEMP/test-out.txt" | grep -v "^--$" | head -30 | tr '\n\r' '  ' | cut -c1-3500)
-          echo "::error title=panics::$msg"
-          sum=$(grep -E "Running|^test result" "$RUNNER_TEMP/test-out.txt" | sed 's/.*Running //' | tr '\n\r' '  ' | cut -c1-3500)
-          echo "::error title=summary::$sum"
+          msg=$( (grep -E -A2 "panicked at|^error" "$RUNNER_TEMP/test-out.txt" || true) | grep -v "^--$" | head -30 | tr '\n\r' '  ' | cut -c1-3500)
+          echo "::error title=panics::${msg:-none found}"
+          sum=$( (grep -E "Running|^test result|FAILED" "$RUNNER_TEMP/test-out.txt" || true) | sed 's/.*Running //' | tr '\n\r' '  ' | cut -c1-3500)
+          echo "::error title=summary::${sum:-no summary}"
+          echo "::error title=tail::$(tail -c 1500 "$RUNNER_TEMP/test-out.txt" | tr '\n\r' '  ')"
       - name: Build release binary
         working-directory: node
         env:

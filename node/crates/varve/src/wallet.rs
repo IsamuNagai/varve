@@ -181,7 +181,7 @@ impl Wallet {
         let path = self.dir.join(PUBLIC_FILE);
         let tmp = path.with_extension("json.tmp");
         write_private(&tmp, doc.to_string().as_bytes())?;
-        std::fs::rename(&tmp, &path).map_err(|e| e.to_string())
+        varve_wallet::util::rename_with_retry(&tmp, &path).map_err(|e| e.to_string())
     }
 
     // ---------------------------------------------------------------- lock / unlock

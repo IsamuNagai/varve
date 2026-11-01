@@ -105,3 +105,20 @@ mod tests {
         assert!(!ct_eq(b"abc", b"ab"));
     }
 }
+
+/// Atomically replace `to` with `from`. On Windows a file that was just written can be
+/// held open for a moment by other software (antivirus, indexing), which makes the
+/// rename fail with "access denied"; retry briefly there instead of failing.
+pub fn rename_with_retry(from: &std::path::Path, to: &std::path::Path) -> std::io::Result<()> {
+    let mut attempt = 0u64;
+    loop {
+        match std::fs::rename(from, to) {
+            Ok(()) => return Ok(()),
+            Err(e) if cfg!(windows) && attempt < 20 && (e.kind() == std::io::ErrorKind::PermissionDenied || e.raw_os_error() == Some(32)) => {
+                attempt += 1;
+                std::thread::sleep(std::time::Duration::from_millis(25 * attempt));
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
